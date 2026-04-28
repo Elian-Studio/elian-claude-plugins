@@ -10,6 +10,13 @@
 
 ## 마켓플레이스 (`elian`)
 
+### [2.0.1] — 2026-04-28
+
+#### Fixed
+- **Skill Quality Gate detection 누수** — 기존 워크플로우의 `git diff --diff-filter=AM` 가 git rename(R) 을 누락. 디렉토리 이동 PR 에서 SKILL.md 변경 0개로 감지되어 평가/코멘트가 모두 스킵되던 문제 (PR #3 사례). `--no-renames` 추가로 rename 을 add+delete 로 분해해 새 경로가 A 로 잡히도록 수정. 향후 경로+콘텐츠 동시 변경 시에도 게이트가 정상 작동.
+
+---
+
 ### [2.0.0] — 2026-04-28 ⚠ BREAKING
 
 #### Changed (BREAKING for users)
