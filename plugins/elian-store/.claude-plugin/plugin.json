@@ -1,0 +1,20 @@
+{
+  "name": "elian-store",
+  "description": "Daniel(Elian-Studio) 의 Claude Code 워크플로우 스킬 번들. 한 번의 설치로 결정 대시보드, (예정) 스킬 관리·브레인스토밍·커밋 등 다수 스킬을 함께 사용할 수 있습니다.",
+  "version": "2.0.0",
+  "author": {
+    "name": "Daniel (Elian-Studio)",
+    "email": "danielmrbang@gmail.com"
+  },
+  "homepage": "https://github.com/Elian-Studio/elian-claude-plugins/tree/main/plugins/elian-store",
+  "repository": "https://github.com/Elian-Studio/elian-claude-plugins",
+  "license": "MIT",
+  "keywords": [
+    "elian",
+    "decision",
+    "dashboard",
+    "workflow",
+    "toolkit",
+    "korean"
+  ]
+}

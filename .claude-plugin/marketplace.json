@@ -5,26 +5,26 @@
     "email": "danielmrbang@gmail.com"
   },
   "metadata": {
-    "description": "Daniel(Elian-Studio) 의 개인 Claude Code 플러그인 마켓플레이스. 결정 대시보드 등 워크플로우 도구를 모아둡니다. 모든 변경은 PR + 90점 Quality Gate (휴리스틱, 외부 API 의존 없음) 를 통과해야 합니다.",
-    "version": "1.2.0",
+    "description": "Daniel(Elian-Studio) 의 Claude Code 플러그인 마켓플레이스. 단일 번들 플러그인 elian-store 로 다수 스킬을 함께 배포합니다. 모든 변경은 PR + 90점 Quality Gate (휴리스틱, 외부 API 의존 없음) 를 통과해야 합니다.",
+    "version": "2.0.0",
     "pluginRoot": "./plugins"
   },
   "plugins": [
     {
-      "name": "decision-dashboard",
-      "source": "./plugins/decision-dashboard",
-      "description": "여러 사안을 한 번에 결정할 수 있는 인터랙티브 HTML 대시보드 생성기. 라디오 선택 + 메모 + MD/JSON 다운로드 지원.",
-      "version": "1.0.0",
+      "name": "elian-store",
+      "source": "./plugins/elian-store",
+      "description": "Daniel(Elian-Studio) 의 워크플로우 스킬 번들. 한 번 설치로 결정 대시보드, (예정) 스킬 관리·브레인스토밍·커밋 등 다수 스킬을 함께 사용 가능.",
+      "version": "2.0.0",
       "author": {
         "name": "Daniel (Elian-Studio)"
       },
       "category": "productivity",
       "tags": [
+        "elian",
+        "bundle",
         "decision",
-        "dashboard",
-        "review",
-        "korean",
-        "interactive-html"
+        "workflow",
+        "korean"
       ],
       "license": "MIT"
     }
