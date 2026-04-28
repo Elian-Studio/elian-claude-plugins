@@ -1,0 +1,105 @@
+<!-- 좋은 결정 카드 1개 — 그대로 복사해서 NAV_GROUPS / DECISION_SECTIONS placeholder 영역에 넣을 수 있다.
+     example-good-card.md 의 GOOD 시나리오에 해당. -->
+
+<!-- ===== NAV_GROUPS 안에 들어갈 nav-link ===== -->
+<a class="nav-link" href="#c1" data-id="c1">
+  <span class="pip pip-p0">1</span><span>푸시 알림 실패 건 자동 재발송</span>
+  <span class="check-indicator" id="ci-c1"></span>
+</a>
+
+<!-- ===== DECISION_SECTIONS 안에 들어갈 카드 ===== -->
+<div class="card open" id="c1" data-key="c1">
+  <div class="card-head" onclick="toggleCard(this)">
+    <span class="card-num">1</span>
+    <div class="card-head-text">
+      <div class="card-title">푸시 알림 실패 건 자동 재발송 도입</div>
+    </div>
+    <span class="card-chevron">▶</span>
+  </div>
+  <div class="card-body"><div class="card-inner">
+
+    <div class="info-block">
+      <div class="info-label">배경</div>
+      <div class="info-box box-context">
+        어제 결제한 사용자 100명 중 7명에게 영수증 푸시가 안 갔습니다 (수신자 단말 일시 오류).
+        지금은 첫 발송이 실패하면 그대로 유실 — 사용자는 결제됐는지 모르고 환불 요청이 옵니다 (어제만 4건).
+        이번 결정으로 "재시도 자동화" vs "운영팀 수동 처리" 방식이 갈립니다.
+      </div>
+    </div>
+
+    <div class="info-block">
+      <div class="info-label">판단 질문</div>
+      <div class="info-box box-judge">
+        사용자가 영수증을 1시간 안에 100% 받아야 할까요, 운영팀이 매일 누락 건을 수동 처리해도 괜찮을까요?
+      </div>
+    </div>
+
+    <div class="choices">
+      <div class="choices-label"><span class="req-dot"></span> 결정</div>
+      <div class="opt-list" data-group="c1">
+        <button class="opt" data-val="A" onclick="pick(this)">
+          <span class="circle"></span>
+          <span>
+            <span class="key">A.</span>
+            자동 재발송으로 바꾼다 — 사용자가 늦어도 1시간 안에 영수증 받음, 운영팀 수동 처리 0건
+          </span>
+          <span class="rec-badge">권고</span>
+        </button>
+        <button class="opt" data-val="B" onclick="pick(this)">
+          <span class="circle"></span>
+          <span>
+            <span class="key">B.</span>
+            운영팀 수동 처리 유지 — 매일 한 번 누락 건 모아서 수동 발송, 사용자는 평균 6시간 대기
+          </span>
+        </button>
+        <button class="opt" data-val="C" onclick="pick(this)">
+          <span class="circle"></span>
+          <span>
+            <span class="key">C.</span>
+            사용자에게 "발송 실패" 안내 후 재요청 버튼 노출 — 사용자가 직접 트리거
+          </span>
+        </button>
+        <button class="opt" data-val="D" onclick="pick(this)">
+          <span class="circle"></span>
+          <span>
+            <span class="key">D.</span>
+            기타 — 아래 메모에 직접 입력
+          </span>
+        </button>
+      </div>
+      <div class="memo">
+        <textarea placeholder="메모 (D 선택 시 필수, 그 외 선택)" data-memo="c1"></textarea>
+      </div>
+    </div>
+
+    <div class="detail-trigger" onclick="toggleDetail(this)">▷ 기술 근거 펼치기 (개발자용)</div>
+    <div class="detail-panel">
+      <table class="cmp">
+        <thead>
+          <tr><th>항목</th><th>A. 자동 재발송</th><th>B. 수동 처리</th><th>C. 재요청 버튼</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>관련 클래스</th>
+            <td>NotificationRetryScheduler 신규</td>
+            <td>변경 없음</td>
+            <td>UserActionResendController 신규</td>
+          </tr>
+          <tr>
+            <th>스키마 변경</th>
+            <td>notification_log 에 retry_count, next_retry_dtm 추가</td>
+            <td>없음</td>
+            <td>없음</td>
+          </tr>
+          <tr>
+            <th>분산락</th>
+            <td>ShedLock 필요 (다중 서버)</td>
+            <td>—</td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div></div>
+</div>

@@ -51,28 +51,40 @@
 
 ### [1.0.0] — 2026-04-28
 
-첫 공개 릴리즈. 개인 사용 중이던 `~/.claude/skills/decision-dashboard/` 를 플러그인으로 패키징.
+첫 공개 릴리즈. 개인 사용 중이던 `~/.claude/skills/decision-dashboard/` 를 플러그인으로 패키징하면서, 마켓플레이스 배포 적합성을 위해 [garrytan/gstack](https://github.com/garrytan/gstack/blob/main/docs/skills.md) + [alirezarezvani/claude-skills](https://github.com/alirezarezvani/claude-skills) 의 베스트 프랙티스를 종합 적용.
 
-#### Added
+#### Added — 핵심 기능
 - 단일 HTML 결정 대시보드 생성 (라디오 선택 + 메모 + MD/JSON 다운로드 + JSON 클립보드 복사)
 - 우선순위 색상(P0/P1/P2) + 사이드바 카드 네비게이션
 - 카드 본문 LANGUAGE GATE — 카드 본문에 클래스명/테이블명/내부 약어 노출 차단 (개발자 근거는 접이식 상세 패널에 격리)
-- 자동 검증 체크리스트 — 미해결 placeholder, 중첩 주석, nav-link/카드 ID 매칭, LANGUAGE GATE 통과 검사
 - "기타 — 직접 입력" 옵션 표준화 — 모든 카드의 마지막 옵션
-- 결정 반영 후 HTML 자동 정리 규칙 (Cleanup after decision)
+
+#### Added — 베스트 프랙티스 적용 (gstack + alirezarezvani)
+- **Outcome-focused description** — "When 3+ pending decisions block PO/team progress, capture them in a printable HTML artifact so the team can decide in 5 minutes" (process 가 아닌 outcome 우선). gstack 의 *"Lead with the concrete problem the skill solves, not aspirational framing"*
+- **Mode differentiation** — `generate` (첫 생성) / `finalize` (결정 영구화 + 정리) 2개 명시 모드. gstack 의 `/plan-ceo-review` 4모드 패턴 차용
+- **Skill sequencing** — "Where this fits in the workflow" 섹션. `brainstorm → design → DECISION-DASHBOARD → implement → review → ship` 의 어느 단계인지 명시
+- **Manual decision gating** — "What's automated vs what needs your taste" 표. Claude 자동 결정(우선순위 분류, 라벨 변환, GATE 검사) vs 사용자 결정(A/B/C 선택, 옵션 정의 검토) 명시
+- **Persistent artifact for downstream** — `decisions-final.json` 영구 저장 (issue, decisions[], summary, rejected_alternatives 포함). 후행 스킬(`/implement`, `/ship`) 이 컨텍스트로 소비
+- **End-of-skill reflection** — finalize 종료 시 결정 패턴 관찰 보고 (3개 항목, hedge 사용). gstack 의 *"specific callbacks, not generic praise"*
+- **Three-file minimum** — `references/` 디렉토리 추가:
+  - `references/example-good-card.md` — BEFORE/AFTER 카드 비교 + 셀프 체크리스트
+  - `references/example-card-snippet.html` — 좋은 카드 1개 HTML fragment (그대로 복사 가능)
+- **`scripts/validate-dashboard.py`** — inline bash 검증을 분리. argparse 기반 `--help` + `--json` 출력 지원 (다른 스킬 chaining). stdlib only (zero pip installs). alirezarezvani 의 *"All CLI tools tested with --help and --json flag support"* 표준
+- **`argument-hint`** 두 번째/세 번째 인자(output-dir, mode) 반영
+- **`${CLAUDE_SKILL_DIR}`** 사용 (플러그인 루트가 아닌 스킬 자신의 경로)
+- **Standing Instructions 섹션 격리** — 카드 작성 규칙(LANGUAGE GATE, 배경 3문장, 옵션 라벨, 판단 질문) 을 모드 절차와 분리해 standing instructions 로
 
 #### Changed (개인 버전 대비)
-- **출력 경로 일반화**: 기본 `claudedocs/{ISSUE}/decisions-{DATE}.html`. 환경변수 `DECISIONS_DIR` 또는 `$ARGUMENTS` 두 번째 인자로 override 가능
-- **이슈 ID 자동 추출**: `git branch --show-current` 에서 `[A-Z]+-[0-9]+` 패턴 매칭 (회사별 이슈 prefix 자동 인식)
-- **`${CLAUDE_PLUGIN_ROOT}` 사용**: template.html 경로를 플러그인 루트 환경변수로 참조 (cache 디렉토리 호환)
+- **출력 경로 일반화** — 기본 `claudedocs/{ISSUE}/decisions-{DATE}.html`. 환경변수 `DECISIONS_DIR` 또는 `$ARGUMENTS` 두 번째 인자로 override 가능
+- **이슈 ID 자동 추출** — `git branch --show-current` 에서 `[A-Z]+-[0-9]+` 패턴 매칭 (회사별 이슈 prefix 자동 인식)
 
 #### Fixed (개인 버전 대비)
-- **Auto-validation 셸 변수 버그**: 기존 `FILE=claudedocs/{ISSUE}/...` 가 placeholder를 변수처럼 쓰고 있어 검증이 항상 깨지던 문제 → 실제 셸 변수로 교체
-- **Python heredoc 변수 미치환**: `<<'EOF'` (인용된 heredoc) 안에서 `$FILE` 이 빈 값으로 들어가 LANGUAGE GATE 가 항상 실패하던 문제 → `python3 - "$FILE" <<'PYEOF'` 로 인자 전달 방식 변경
+- **Auto-validation 셸 변수 버그** — 기존 `FILE=claudedocs/{ISSUE}/...` 가 placeholder 를 변수처럼 쓰고 있어 검증이 항상 깨지던 문제 → 실제 셸 변수 + 별도 Python 스크립트로 교체
+- **Python heredoc 변수 미치환** — `<<'EOF'` (인용된 heredoc) 안에서 `$FILE` 이 빈 값으로 들어가 LANGUAGE GATE 가 항상 실패하던 문제 → 별도 스크립트 + argparse 로 해결
 
 #### Removed (개인 버전 대비)
-- **PENDING.md 아카이브 플로우 전체 제거** — 개인 워크플로우(claudedocs/{ISSUE}/PENDING.md 6블록 결정 카드)에 강하게 결합되어 일반 공유에 부적합. 결정 근거는 커밋 메시지에 한 줄 남기는 방식으로 대체
-- mobidoc 프로젝트 고유 예시(MPT-####, ShedLock 환급 시나리오 등) — 일반 예시(PROJ-123, OrderRefundScheduler) 로 교체
+- **PENDING.md 아카이브 플로우 전체 제거** — 개인 워크플로우(claudedocs/{ISSUE}/PENDING.md 6블록 결정 카드)에 강하게 결합되어 일반 공유에 부적합. 결정 근거는 `decisions-final.json` 영구 저장 + 커밋 메시지로 대체
+- mobidoc 프로젝트 고유 예시(MPT-####, ShedLock 환급 시나리오 등) — 일반 예시(PROJ-123, 푸시 알림 재발송 시나리오) 로 교체
 
 ---
 
