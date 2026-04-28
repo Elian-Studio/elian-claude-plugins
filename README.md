@@ -1,196 +1,104 @@
 # elian-claude-plugins
 
-Daniel(Elian-Studio) 의 개인 Claude Code 플러그인 마켓플레이스. 결정 대시보드 등 개인 워크플로우 도구를 동료들과 공유하기 위해 패키징한 곳.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Latest Release](https://img.shields.io/github/v/release/Elian-Studio/elian-claude-plugins?label=release)](https://github.com/Elian-Studio/elian-claude-plugins/releases)
+[![Plugin: elian-store](https://img.shields.io/badge/plugin-elian--store-blue)](plugins/elian-store/)
+[![Skill Quality Gate](https://img.shields.io/badge/quality_gate-90%2F100-brightgreen)](scripts/rubric.md)
 
-## 포함된 플러그인
-
-| 이름 | 버전 | 설명 |
-|------|------|------|
-| [decision-dashboard](plugins/decision-dashboard/) | 1.0.0 | 여러 사안을 한 번에 결정할 때 사용하는 인터랙티브 HTML 대시보드 생성기. 라디오 선택 + 메모 + MD/JSON 다운로드. |
-
-상세 변경 이력은 [CHANGELOG.md](CHANGELOG.md) 참조.
+> **결정 피로를 줄이고 워크플로우를 매끄럽게 만드는 Claude Code 스킬 번들.**
+> 한 번의 플러그인 설치(`elian-store`) 로 여러 스킬을 함께 받고, 새 스킬이 추가되면 자동 업데이트됩니다.
+> 모든 SKILL.md 변경은 90점 품질 게이트(휴리스틱) 를 통과한 PR 만 main 에 반영됩니다.
 
 ---
 
-## 설치 (사용자)
-
-### 1. 마켓플레이스 등록
+## 🚀 Quick Start
 
 ```shell
 /plugin marketplace add Elian-Studio/elian-claude-plugins
+/plugin install elian-store@elian
 ```
 
-또는 git URL 직접:
+이후 Claude Code 에서:
 
-```shell
-/plugin marketplace add https://github.com/Elian-Studio/elian-claude-plugins.git
-```
+> "결정 사안이 4건 쌓였어. 결정 대시보드 만들어줘"
 
-### 2. 플러그인 설치
+→ `elian-store` 안의 `decision-dashboard` 스킬이 자동 호출되어 인쇄 가능한 HTML 대시보드가 생성됩니다. 명시 호출은 `/elian-store:decision-dashboard`.
 
-```shell
-/plugin install decision-dashboard@elian
-```
+---
 
-### 3. 사용
+## 📦 elian-store 에 포함된 스킬
 
-`/decision-dashboard:decision-dashboard` 로 명시 호출하거나, "결정 대시보드 만들어줘" 같은 자연어로 말하면 Claude 가 자동 호출.
+| 스킬 | 상태 | 설명 | 호출 |
+|------|------|------|------|
+| [decision-dashboard](plugins/elian-store/skills/decision-dashboard/) | ✅ v1.0.0 | 3개 이상의 결정이 쌓인 순간, 인쇄 가능한 단일 HTML 산출물로 캡처해 5분 안에 A/B/C 선택 가능하게 만듭니다. | `/elian-store:decision-dashboard` |
+| manage-skills | 🔮 예정 | 세션 변경사항 분석 + 검증 스킬 드리프트 자동 탐지 | `/elian-store:manage-skills` |
+| brainstorm | 🔮 예정 | 기획+설계 인터랙티브 브레인스토밍 | `/elian-store:brainstorm` |
+| commit | 🔮 예정 | 구조화된 커밋 메시지 + Co-Authored-By 처리 | `/elian-store:commit` |
 
-자세한 사용법은 [`plugins/decision-dashboard/skills/decision-dashboard/SKILL.md`](plugins/decision-dashboard/skills/decision-dashboard/SKILL.md) 참조.
+새 스킬 추가는 별도 설치 없이 `/plugin update elian-store@elian` 한 번으로 반영됩니다.
 
-### 업데이트
+---
+
+## 🎯 decision-dashboard — 어떤 화면이 나오나요?
+
+![decision-dashboard preview](docs/screenshots/decision-dashboard-overview.png)
+
+좌측 사이드바는 결정 사안을 우선순위별로 그룹핑(P0/P1/P2). 우측은 펼친 카드의 배경 → 판단 질문 → 옵션(A/B/C/D + "기타 — 직접 입력") → 메모 흐름. 하단에 진행률과 JSON/MD 다운로드 버튼.
+
+### 사용 시나리오
+
+**Before** — 채팅에 결정 사안 4건이 길게 늘어져 있고 PO 가 끝까지 안 읽음. 결정 부재로 다음 단계가 막힘.
+
+**After** — `decision-dashboard` 호출 → 카드 4개 자동 생성 → 브라우저로 PO 에게 공유 → 5분 후 JSON 받음 → 후속 스킬이 그 JSON 을 컨텍스트로 진행.
+
+핵심 원칙:
+- **카드 본문 LANGUAGE GATE** — 클래스명/테이블명/내부 약어 자동 차단. 결정자는 코드를 보지 않아도 됨
+- **"기타 — 직접 입력" 옵션 필수** — 제시된 선택지가 부적합할 때의 도주로
+- **2-mode 분리** — `generate` (첫 생성) / `finalize` (영구 JSON + HTML 정리)
+- **Persistent artifact** — `decisions-final.json` 이 후행 스킬에 컨텍스트로 전달됨
+
+자세한 사용법: [`plugins/elian-store/skills/decision-dashboard/SKILL.md`](plugins/elian-store/skills/decision-dashboard/SKILL.md)
+
+---
+
+## 🔄 업데이트
 
 ```shell
 /plugin marketplace update elian
-/plugin update decision-dashboard@elian
+/plugin update elian-store@elian
 ```
+
+새 스킬이 추가되면 자동으로 함께 받아집니다.
 
 ---
 
-## Contributing (기여 / 자체 수정)
+## ⚠️ v1.x → v2.x 마이그레이션
 
-이 마켓플레이스는 **PR 기반 워크플로우**로 운영된다. 모든 변경은 PR 을 통과해야 main 에 반영된다.
+v1.x 의 `decision-dashboard` 플러그인이 v2.0.0 부터 **`elian-store` 번들 안의 한 스킬**로 재배치됐습니다. 다수 스킬을 묶어 한 번 설치하기 위함입니다.
 
-### 워크플로우
-
-```
-1. 브랜치 생성 → feature/<scope> 또는 fix/<scope>
-2. SKILL.md / plugin.json / marketplace.json 변경
-3. 로컬 검증 (선택)
-4. PR 생성
-5. Skill Quality Gate (Actions) 자동 실행 — 90점 이상 통과
-6. 리뷰 + 머지
+이미 v1.x 를 설치했다면:
+```shell
+/plugin uninstall decision-dashboard@elian
+/plugin install elian-store@elian
 ```
 
-### 로컬 검증
-
-휴리스틱 채점 — Python stdlib 만 사용. **외부 API 키 / 의존성 / 비용 모두 0**. 같은 입력은 같은 점수.
-
-```bash
-# 텍스트 출력
-python3 scripts/score_skill.py plugins/decision-dashboard/skills/decision-dashboard/SKILL.md
-
-# JSON 출력 (다른 스킬과 chaining 가능)
-python3 scripts/score_skill.py plugins/decision-dashboard/skills/decision-dashboard/SKILL.md --json
-
-# 여러 SKILL.md 동시 채점
-python3 scripts/score_skill.py plugins/*/skills/*/SKILL.md
+호출 형식 변경:
+```
+/decision-dashboard:decision-dashboard   →   /elian-store:decision-dashboard
 ```
 
-종료 코드: 모든 입력이 90점 이상이면 `0`, 하나라도 미만이면 `1`.
-
-### 평가 기준
-
-PR 의 SKILL.md 변경은 [scripts/rubric.md](scripts/rubric.md) 의 100점 만점 루브릭으로 평가된다.
-
-10개 축 × 각 10점:
-1. Frontmatter 규약 준수
-2. Description 자동 호출 신뢰성
-3. Progressive Disclosure (토큰 효율)
-4. Standing Instructions
-5. 예시 완결성
-6. Anti-pattern / Failure-mode 핸들링
-7. Validation 자가 검증
-8. 보안 / 권한 (`allowed-tools`)
-9. 일반화 / 휴대성
-10. 의사결정·산출물 설계
-
-루브릭은 다음 세 레퍼런스를 종합한다:
-- [Claude Code 공식 Skills 가이드](https://code.claude.com/docs/en/skills)
-- [garrytan/gstack — docs/skills.md](https://github.com/garrytan/gstack/blob/main/docs/skills.md) (실전 운영 사례)
-- [alirezarezvani/claude-skills](https://github.com/alirezarezvani/claude-skills) (235 스킬 마켓플레이스 패턴)
+자연어 호출("결정 대시보드 만들어줘") 은 변동 없음.
 
 ---
 
-## 저장소 운영 (메인테이너)
+## 📜 라이선스
 
-### 1회 셋업
-
-게이트는 stdlib 만 사용하는 휴리스틱이라 **API 키 / Secret 셋업 불필요**. 브랜치 보호 규칙만 적용하면 즉시 작동.
-
-#### 브랜치 보호 규칙 (main 보호)
-
-직접 푸시 차단 + 게이트 통과 필수.
-
-GitHub UI:
-```
-Settings → Branches → Add branch ruleset
-- Branch name pattern: main
-- Require a pull request before merging: ✅
-- Require status checks to pass before merging: ✅
-  - Status check: "Evaluate skills (90+ required)"
-  - Require branches to be up to date before merging: ✅
-- Block force pushes: ✅
-- Require linear history: (선택)
-```
-
-`gh` CLI (간이):
-```bash
-gh api -X PUT repos/Elian-Studio/elian-claude-plugins/branches/main/protection \
-  --input - <<'EOF'
-{
-  "required_status_checks": {
-    "strict": true,
-    "contexts": ["Evaluate skills (90+ required)"]
-  },
-  "enforce_admins": false,
-  "required_pull_request_reviews": {
-    "required_approving_review_count": 0,
-    "dismiss_stale_reviews": false
-  },
-  "restrictions": null,
-  "allow_force_pushes": false,
-  "allow_deletions": false
-}
-EOF
-```
-
-> `enforce_admins: false` 는 메인테이너(=daniel) 가 긴급 시 우회할 수 있도록 둔 설정. 엄격히 하려면 `true`.
-
-### 릴리즈 절차 (변경 머지 → 배포)
-
-1. PR 머지 (게이트 통과 후)
-2. **`plugin.json.version`** 또는 **마켓플레이스 메타데이터 버전** 이 bump 되었으면 사용자에게 자동 업데이트 도달
-3. 명시 태그 권장 (선택):
-   ```bash
-   git tag v1.1.0
-   git push origin v1.1.0
-   ```
-
-> 공식 가이드: *"If `plugin.json` declares `"version": "1.0.0"`, pushing new commits without changing that string does nothing for existing users, because Claude Code sees the same version and keeps the cached copy."* 반드시 bump.
+MIT (`plugins/elian-store/.claude-plugin/plugin.json` 참조)
 
 ---
 
-## 디렉토리 구조
+## 🤝 기여 / 자체 수정 / 메인테이너 가이드
 
-```
-elian-claude-plugins/
-├── .claude-plugin/
-│   └── marketplace.json          # 마켓플레이스 카탈로그
-├── .github/
-│   ├── workflows/
-│   │   └── skill-quality-gate.yml  # PR 자동 평가
-│   └── pull_request_template.md
-├── plugins/
-│   └── decision-dashboard/
-│       ├── .claude-plugin/
-│       │   └── plugin.json
-│       └── skills/
-│           └── decision-dashboard/
-│               ├── SKILL.md
-│               ├── template.html
-│               ├── scripts/      # 스킬 자체 도구 (validation 등)
-│               └── references/   # 예시, 체크리스트
-├── scripts/                       # 마켓플레이스 레벨 도구
-│   ├── rubric.md                 # 평가 루브릭 (100점, 휴리스틱)
-│   └── score_skill.py            # 휴리스틱 채점 (stdlib only)
-├── CHANGELOG.md
-├── README.md
-└── .gitignore
-```
+이 마켓플레이스에 PR 을 올리거나 본인 fork 를 운영하려면 [`CONTRIBUTING.md`](CONTRIBUTING.md) 참조 — 워크플로우, 로컬 검증, 평가 기준, 새 스킬 추가 절차, 브랜치 보호/릴리즈 절차가 한 곳에 정리되어 있습니다.
 
----
-
-## 라이선스
-
-MIT (각 플러그인의 `plugin.json.license` 참조)
+상세 변경 이력은 [`CHANGELOG.md`](CHANGELOG.md), 릴리즈 노트는 [Releases](https://github.com/Elian-Studio/elian-claude-plugins/releases) 탭 참조.

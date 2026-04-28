@@ -10,6 +10,29 @@
 
 ## 마켓플레이스 (`elian`)
 
+### [2.0.0] — 2026-04-28 ⚠ BREAKING
+
+#### Changed (BREAKING for users)
+- **단일 번들 플러그인 모델로 전환** — 기존 `decision-dashboard` 단일 스킬 플러그인을 `elian-store` 번들 플러그인으로 재배치. 다수 스킬을 한 번의 설치로 받고, 새 스킬은 `/plugin update elian-store@elian` 로 자동 반영
+- 마이그레이션:
+  ```shell
+  /plugin uninstall decision-dashboard@elian
+  /plugin install elian-store@elian
+  ```
+- 호출 형식 변경: `/decision-dashboard:decision-dashboard` → `/elian-store:decision-dashboard` (자연어 호출 "결정 대시보드 만들어줘" 는 변동 없음)
+- `decision-dashboard` 스킬 자체의 콘텐츠는 변경 없음 — 위치만 `plugins/elian-store/skills/decision-dashboard/` 로 이동
+
+#### 마이그레이션 동기
+
+기존 구조(플러그인=스킬 1:1) 는 새 스킬 추가 시 매번 별도 plugin.json + 마켓플레이스 entry + 사용자 별도 install 을 요구. 단일 번들로 전환하여:
+
+- 사용자 입장: 한 번 설치 → 모든 스킬 자동
+- 메인테이너 입장: 새 스킬 = 디렉토리 하나 추가 + plugin.json version bump
+
+향후 추가 예정 스킬: `manage-skills`, `brainstorm`, `commit` 등
+
+---
+
 ### [1.2.0] — 2026-04-28
 
 #### Changed (BREAKING for maintainers)
@@ -47,7 +70,21 @@
 
 ---
 
-## decision-dashboard
+## elian-store (번들)
+
+### [2.0.0] — 2026-04-28 ⚠ BREAKING
+
+#### Changed
+- 신규 번들 플러그인 — `decision-dashboard` 플러그인(v1.0.0) 을 흡수하여 첫 번째 스킬로 포함
+- 향후 추가 스킬은 `plugins/elian-store/skills/<name>/` 디렉토리 추가만으로 사용자에게 자동 도달
+
+#### Migration from decision-dashboard@1.0.0
+- `/plugin uninstall decision-dashboard@elian` → `/plugin install elian-store@elian`
+- 호출: `/decision-dashboard:decision-dashboard` → `/elian-store:decision-dashboard`
+
+---
+
+## decision-dashboard (legacy plugin, 1.0.0 only — superseded by elian-store@2.0.0)
 
 ### [1.0.0] — 2026-04-28
 
