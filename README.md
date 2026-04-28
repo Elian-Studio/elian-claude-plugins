@@ -64,15 +64,20 @@ Daniel(Elian-Studio) 의 개인 Claude Code 플러그인 마켓플레이스. 결
 
 ### 로컬 검증
 
-```bash
-# 정적 검증 (무료, 빠름)
-bash scripts/static_checks.sh plugins/decision-dashboard/skills/decision-dashboard/SKILL.md
+휴리스틱 채점 — Python stdlib 만 사용. **외부 API 키 / 의존성 / 비용 모두 0**. 같은 입력은 같은 점수.
 
-# LLM 평가 (Anthropic API 호출, 1회 약 $0.02)
-export ANTHROPIC_API_KEY=sk-ant-...
-pip install 'anthropic>=0.40.0'
-python scripts/evaluate_skill.py plugins/decision-dashboard/skills/decision-dashboard/SKILL.md
+```bash
+# 텍스트 출력
+python3 scripts/score_skill.py plugins/decision-dashboard/skills/decision-dashboard/SKILL.md
+
+# JSON 출력 (다른 스킬과 chaining 가능)
+python3 scripts/score_skill.py plugins/decision-dashboard/skills/decision-dashboard/SKILL.md --json
+
+# 여러 SKILL.md 동시 채점
+python3 scripts/score_skill.py plugins/*/skills/*/SKILL.md
 ```
+
+종료 코드: 모든 입력이 90점 이상이면 `0`, 하나라도 미만이면 `1`.
 
 ### 평가 기준
 
@@ -101,21 +106,7 @@ PR 의 SKILL.md 변경은 [scripts/rubric.md](scripts/rubric.md) 의 100점 만�
 
 ### 1회 셋업
 
-#### Anthropic API 키 등록
-
-PR 게이트가 LLM 평가를 위해 API 키를 사용한다.
-
-GitHub UI:
-```
-Settings → Secrets and variables → Actions → New repository secret
-Name: ANTHROPIC_API_KEY
-Value: sk-ant-...
-```
-
-`gh` CLI:
-```bash
-gh secret set ANTHROPIC_API_KEY --body "sk-ant-..." --repo Elian-Studio/elian-claude-plugins
-```
+게이트는 stdlib 만 사용하는 휴리스틱이라 **API 키 / Secret 셋업 불필요**. 브랜치 보호 규칙만 적용하면 즉시 작동.
 
 #### 브랜치 보호 규칙 (main 보호)
 
@@ -187,11 +178,12 @@ elian-claude-plugins/
 │       └── skills/
 │           └── decision-dashboard/
 │               ├── SKILL.md
-│               └── template.html
-├── scripts/
-│   ├── rubric.md                 # 평가 루브릭 (100점)
-│   ├── static_checks.sh          # 정적 검증 (frontmatter, 길이 등)
-│   └── evaluate_skill.py         # LLM 평가
+│               ├── template.html
+│               ├── scripts/      # 스킬 자체 도구 (validation 등)
+│               └── references/   # 예시, 체크리스트
+├── scripts/                       # 마켓플레이스 레벨 도구
+│   ├── rubric.md                 # 평가 루브릭 (100점, 휴리스틱)
+│   └── score_skill.py            # 휴리스틱 채점 (stdlib only)
 ├── CHANGELOG.md
 ├── README.md
 └── .gitignore

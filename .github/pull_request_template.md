@@ -1,9 +1,10 @@
 <!--
 PR 작성 가이드:
 - SKILL.md 변경 시 자동으로 Skill Quality Gate (90점) 가 작동합니다.
-- 정적 검증 + LLM 평가 (claude-sonnet-4-6 기준) 가 PR 코멘트로 결과를 게시합니다.
+- 휴리스틱 채점 (Python stdlib only, 외부 API 의존 없음) 결과가 PR 코멘트로 게시됩니다.
 - 점수가 90 미만이면 머지가 차단됩니다 (브랜치 보호 규칙).
-- 평가 루브릭은 scripts/rubric.md 참조.
+- 평가 루브릭은 scripts/rubric.md, 채점 스크립트는 scripts/score_skill.py 참조.
+- 로컬에서 사전 점검: `python3 scripts/score_skill.py <SKILL.md>` (의존성 0)
 -->
 
 ## 변경 요약
@@ -31,8 +32,7 @@ PR 작성 가이드:
 - [ ] `plugin.json` 의 `version` bump 완료
 - [ ] `marketplace.json` 의 해당 플러그인 `version` bump 완료 (둘 다 bump 권장)
 - [ ] `CHANGELOG.md` 에 변경사항 기록 (Added / Changed / Fixed / Removed)
-- [ ] 로컬에서 정적 검증 통과 — `bash scripts/static_checks.sh <SKILL.md>`
-- [ ] (선택) 로컬에서 LLM 평가 통과 — `ANTHROPIC_API_KEY=... python scripts/evaluate_skill.py <SKILL.md>`
+- [ ] 로컬 채점 통과 — `python3 scripts/score_skill.py <SKILL.md>` (90+ 확인)
 
 ### 신규 플러그인 추가 시
 
