@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.pytest_cache/
+
+# Evaluation artifacts (CI 가 생성)
+evaluation-results.json
+evaluation-output.txt
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+
+# 환경변수 (로컬 테스트용)
+.env
+.env.local

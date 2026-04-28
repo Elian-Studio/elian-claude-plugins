@@ -1,0 +1,32 @@
+{
+  "name": "elian",
+  "owner": {
+    "name": "Elian-Studio",
+    "email": "danielmrbang@gmail.com"
+  },
+  "metadata": {
+    "description": "Daniel(Elian-Studio) 의 개인 Claude Code 플러그인 마켓플레이스. 결정 대시보드 등 워크플로우 도구를 모아둡니다. 모든 변경은 PR + 90점 Quality Gate 를 통과해야 합니다.",
+    "version": "1.1.0",
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "decision-dashboard",
+      "source": "./plugins/decision-dashboard",
+      "description": "여러 사안을 한 번에 결정할 수 있는 인터랙티브 HTML 대시보드 생성기. 라디오 선택 + 메모 + MD/JSON 다운로드 지원.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Daniel (Elian-Studio)"
+      },
+      "category": "productivity",
+      "tags": [
+        "decision",
+        "dashboard",
+        "review",
+        "korean",
+        "interactive-html"
+      ],
+      "license": "MIT"
+    }
+  ]
+}

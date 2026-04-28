@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ISSUE_ID}} 결정 대시보드</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #111318;
+    --bg-dot: #191c23;
+    --surface: #181b22;
+    --surface-2: #1e2128;
+    --surface-3: #252830;
+    --border: rgba(255,255,255,0.06);
+    --border-hover: rgba(255,255,255,0.1);
+    --border-active: rgba(255,255,255,0.15);
+
+    --text: #eaedf3;
+    --text-2: #a0a7b5;
+    --text-3: #636b7a;
+    --text-4: #454d5e;
+
+    --amber: #f0a050;
+    --amber-soft: rgba(240,160,80,0.08);
+    --amber-border: rgba(240,160,80,0.2);
+
+    --red: #e85c5c;
+    --red-soft: rgba(232,92,92,0.07);
+    --red-border: rgba(232,92,92,0.2);
+
+    --yellow: #d4a843;
+    --yellow-soft: rgba(212,168,67,0.07);
+    --yellow-border: rgba(212,168,67,0.2);
+
+    --blue: #6ba3e8;
+    --blue-soft: rgba(107,163,232,0.07);
+    --blue-border: rgba(107,163,232,0.2);
+
+    --green: #5cb87a;
+    --green-soft: rgba(92,184,122,0.08);
+    --green-border: rgba(92,184,122,0.25);
+    --green-glow: rgba(92,184,122,0.15);
+
+    --radius: 10px;
+    --radius-sm: 6px;
+    --radius-xs: 4px;
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+    --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.65;
+    min-height: 100vh;
+    overflow-x: hidden;
+    /* subtle dot grid */
+    background-image: radial-gradient(circle, var(--text-4) 0.5px, transparent 0.5px);
+    background-size: 24px 24px;
+    background-position: 12px 12px;
+  }
+
+  /* ── Layout ── */
+  .shell {
+    display: grid;
+    grid-template-columns: 272px 1fr;
+    min-height: 100vh;
+  }
+
+  /* ── Sidebar ── */
+  .nav {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    background: rgba(17,19,24,0.92);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+  }
+
+  .nav::-webkit-scrollbar { width: 0; }
+
+  .nav-brand {
+    padding: 28px 24px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-brand h1 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 22px;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--amber);
+    letter-spacing: -0.3px;
+  }
+
+  .nav-brand .meta {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-3);
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .nav-brand .meta .dot-sep {
+    width: 3px; height: 3px; border-radius: 50%;
+    background: var(--text-4);
+  }
+
+  /* nav groups */
+  .nav-group {
+    padding: 16px 12px 4px;
+  }
+
+  .nav-group-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-4);
+    padding: 0 12px;
+    margin-bottom: 6px;
+  }
+
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--text-3);
+    font-size: 13px;
+    font-weight: 400;
+    transition: all 200ms var(--ease);
+    position: relative;
+  }
+
+  .nav-link:hover { color: var(--text-2); background: rgba(255,255,255,0.03); }
+  .nav-link.active { color: var(--text); background: rgba(255,255,255,0.05); }
+
+  .nav-link .pip {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    width: 22px; height: 22px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: var(--radius-xs);
+    flex-shrink: 0;
+    border: 1px solid transparent;
+  }
+
+  .pip-p0 { color: var(--red); background: var(--red-soft); border-color: var(--red-border); }
+  .pip-p1 { color: var(--yellow); background: var(--yellow-soft); border-color: var(--yellow-border); }
+  .pip-p2 { color: var(--blue); background: var(--blue-soft); border-color: var(--blue-border); }
+
+  .nav-link .check-indicator {
+    margin-left: auto;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border-hover);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 350ms var(--spring);
+    flex-shrink: 0;
+  }
+
+  .nav-link .check-indicator.done {
+    border-color: var(--green);
+    background: var(--green);
+    transform: scale(1);
+    animation: checkPop 400ms var(--spring);
+  }
+
+  @keyframes checkPop {
+    0% { transform: scale(0.5); }
+    100% { transform: scale(1); }
+  }
+
+  .nav-link .check-indicator.done::after {
+    content: '✓';
+    font-size: 10px;
+    font-weight: 700;
+    color: white;
+  }
+
+  /* nav footer */
+  .nav-footer {
+    margin-top: auto;
+    padding: 20px;
+    border-top: 1px solid var(--border);
+    background: rgba(17,19,24,0.5);
+  }
+
+  .gauge {
+    margin-bottom: 16px;
+  }
+
+  .gauge-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+
+  .gauge-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-3);
+    letter-spacing: 0.3px;
+  }
+
+  .gauge-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--text-2);
+    font-weight: 500;
+  }
+
+  .gauge-track {
+    height: 3px;
+    background: var(--surface-3);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .gauge-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green), #7ad49a);
+    border-radius: 2px;
+    transition: width 500ms var(--ease);
+    box-shadow: 0 0 8px var(--green-glow);
+  }
+
+  /* format toggle */
+  .fmt-toggle {
+    display: flex;
+    background: var(--surface-2);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+  }
+
+  .fmt-opt {
+    flex: 1;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 5px 0;
+    border: none;
+    background: transparent;
+    color: var(--text-3);
+    cursor: pointer;
+    border-radius: var(--radius-xs);
+    transition: all 200ms var(--ease);
+    text-align: center;
+  }
+
+  .fmt-opt:hover { color: var(--text-2); }
+
+  .fmt-opt.on {
+    background: var(--surface-3);
+    color: var(--text);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+
+  /* submit */
+  .btn-export {
+    width: 100%;
+    padding: 11px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: default;
+    transition: all 350ms var(--ease);
+    background: var(--surface-2);
+    color: var(--text-4);
+    letter-spacing: 0.2px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-export.live {
+    cursor: pointer;
+    background: linear-gradient(135deg, var(--green), #4aa868);
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 2px 16px var(--green-glow), inset 0 1px 0 rgba(255,255,255,0.15);
+  }
+
+  .btn-export.live:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 24px var(--green-glow), inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+
+  .btn-export.live:active { transform: translateY(0); }
+
+  .btn-copy-json {
+    width: 100%;
+    margin-top: 6px;
+    padding: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-2);
+    color: var(--text-4);
+    cursor: default;
+    transition: all 200ms var(--ease);
+  }
+  .btn-copy-json.live {
+    cursor: pointer;
+    background: var(--surface-1);
+    color: var(--text-2);
+  }
+  .btn-copy-json.live:hover {
+    border-color: var(--green);
+    color: var(--green);
+  }
+
+  /* ── Main ── */
+  .content {
+    padding: 40px 56px 100px;
+    max-width: 880px;
+  }
+
+  .content-header {
+    margin-bottom: 48px;
+  }
+
+  .content-header h2 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 32px;
+    font-weight: 400;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .content-header p {
+    font-size: 14px;
+    color: var(--text-3);
+    max-width: 540px;
+    line-height: 1.7;
+  }
+
+  /* priority section */
+  .pri-section {
+    margin-bottom: 52px;
+  }
+
+  .pri-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .pri-line {
+    height: 1px;
+    flex: 1;
+    background: var(--border);
+  }
+
+  .pri-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  .pri-tag-p0 { color: var(--red); background: var(--red-soft); border: 1px solid var(--red-border); }
+  .pri-tag-p1 { color: var(--yellow); background: var(--yellow-soft); border: 1px solid var(--yellow-border); }
+  .pri-tag-p2 { color: var(--blue); background: var(--blue-soft); border: 1px solid var(--blue-border); }
+
+  /* ── Card ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 16px;
+    transition: all 300ms var(--ease);
+    opacity: 0;
+    transform: translateY(12px);
+    animation: cardIn 500ms var(--ease) forwards;
+  }
+
+  .card:nth-child(2) { animation-delay: 60ms; }
+  .card:nth-child(3) { animation-delay: 120ms; }
+  .card:nth-child(4) { animation-delay: 180ms; }
+
+  @keyframes cardIn {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card:hover { border-color: var(--border-hover); }
+
+  .card.resolved {
+    border-color: var(--green-border);
+    box-shadow: 0 0 0 1px var(--green-border), 0 2px 12px rgba(92,184,122,0.04);
+  }
+
+  .card-head {
+    padding: 20px 24px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .card-num {
+    font-family: 'Instrument Serif', serif;
+    font-style: italic;
+    font-size: 20px;
+    color: var(--text-4);
+    line-height: 1.3;
+    flex-shrink: 0;
+    width: 28px;
+    text-align: center;
+    transition: color 200ms var(--ease);
+  }
+
+  .card.resolved .card-num { color: var(--green); }
+
+  .card-head-text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .card-title {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: -0.1px;
+    color: var(--text);
+  }
+
+  .card-title code {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    background: var(--surface-3);
+    padding: 2px 7px;
+    border-radius: var(--radius-xs);
+    color: var(--amber);
+    font-weight: 400;
+  }
+
+  .card-chevron {
+    color: var(--text-4);
+    font-size: 12px;
+    transition: transform 300ms var(--ease);
+    margin-top: 4px;
+    flex-shrink: 0;
+  }
+
+  .card.open .card-chevron { transform: rotate(90deg); }
+
+  .card-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 400ms var(--ease);
+  }
+
+  .card.open .card-body { max-height: 2000px; }
+
+  .card-inner {
+    padding: 0 24px 24px;
+    padding-left: 66px; /* aligns with title after num */
+  }
+
+  /* info blocks */
+  .info-block {
+    margin-bottom: 16px;
+  }
+
+  .info-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-4);
+    margin-bottom: 6px;
+  }
+
+  .info-box {
+    padding: 14px 18px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    line-height: 1.75;
+    color: var(--text-2);
+  }
+
+  .info-box code {
+    font-family: 'DM Mono', monospace;
+    font-size: 11.5px;
+    background: rgba(255,255,255,0.05);
+    padding: 1px 6px;
+    border-radius: 3px;
+    color: var(--amber);
+  }
+
+  .info-box b { color: var(--text); font-weight: 600; }
+
+  .box-context {
+    background: var(--amber-soft);
+    border-left: 2px solid var(--amber);
+  }
+
+  .box-judge {
+    background: var(--blue-soft);
+    border-left: 2px solid var(--blue);
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .box-rec {
+    background: var(--green-soft);
+    border-left: 2px solid var(--green);
+  }
+
+  /* detail toggle */
+  .detail-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-3);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 14px 4px 10px;
+    cursor: pointer;
+    transition: all 200ms var(--ease);
+    margin-bottom: 16px;
+  }
+
+  .detail-trigger:hover { color: var(--text-2); border-color: var(--border-hover); background: var(--surface-2); }
+  .detail-trigger .tri { font-size: 8px; transition: transform 200ms var(--ease); }
+  .detail-trigger.open .tri { transform: rotate(90deg); }
+
+  .detail-panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 300ms var(--ease);
+  }
+
+  .detail-panel.show { grid-template-rows: 1fr; }
+  .detail-panel > div { overflow: hidden; }
+
+  /* comparison table */
+  .cmp {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 12px;
+    margin-bottom: 16px;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .cmp th, .cmp td {
+    padding: 9px 12px;
+    text-align: left;
+    vertical-align: top;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cmp th {
+    background: var(--surface-2);
+    font-weight: 600;
+    color: var(--text-3);
+    font-size: 11px;
+    letter-spacing: 0.2px;
+  }
+
+  .cmp td { color: var(--text-2); }
+  .cmp tr:last-child td { border-bottom: none; }
+  .cmp td.w { background: rgba(92,184,122,0.05); }
+  .cmp td.l { background: rgba(232,92,92,0.04); }
+
+  /* ── Selection ── */
+  .choices {
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .choices-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .choices-label .req-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--red);
+  }
+
+  .opt-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .opt {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--surface-2);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 250ms var(--ease);
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-2);
+    position: relative;
+    text-align: left;
+    font-family: inherit;
+    width: 100%;
+  }
+
+  .opt:hover {
+    border-color: var(--border-hover);
+    background: var(--surface-3);
+    color: var(--text);
+  }
+
+  .opt.picked {
+    border-color: var(--amber-border);
+    background: var(--amber-soft);
+    color: var(--text);
+    box-shadow: 0 0 0 1px var(--amber-border);
+  }
+
+  .opt .circle {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--text-4);
+    flex-shrink: 0;
+    margin-top: 2px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 250ms var(--spring);
+  }
+
+  .opt.picked .circle {
+    border-color: var(--amber);
+    background: var(--amber);
+    animation: radioPop 350ms var(--spring);
+  }
+
+  @keyframes radioPop {
+    0% { transform: scale(0.7); }
+    60% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+  }
+
+  .opt.picked .circle::after {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--bg);
+  }
+
+  .opt code {
+    font-family: 'DM Mono', monospace;
+    font-size: 11.5px;
+    background: rgba(255,255,255,0.05);
+    padding: 1px 6px;
+    border-radius: 3px;
+    color: var(--amber);
+  }
+
+  .opt .key {
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    color: var(--text);
+    flex-shrink: 0;
+  }
+
+  .rec-badge {
+    position: absolute;
+    top: 10px; right: 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--green);
+    background: var(--green-soft);
+    border: 1px solid var(--green-border);
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+
+  /* memo */
+  .memo {
+    margin-top: 10px;
+  }
+
+  .memo textarea {
+    width: 100%;
+    min-height: 52px;
+    padding: 10px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    resize: vertical;
+    outline: none;
+    transition: border-color 200ms var(--ease), box-shadow 200ms var(--ease);
+  }
+
+  .memo textarea::placeholder { color: var(--text-4); }
+  .memo textarea:focus { border-color: var(--amber-border); box-shadow: 0 0 0 2px var(--amber-soft); }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 28px; right: 28px;
+    background: var(--surface-2);
+    border: 1px solid var(--green-border);
+    color: var(--text);
+    padding: 14px 22px;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+    transition: all 350ms var(--spring);
+    pointer-events: none;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .toast .toast-icon {
+    width: 20px; height: 20px;
+    background: var(--green);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    color: white;
+    font-weight: 700;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 860px) {
+    .shell { grid-template-columns: 1fr; }
+    .nav {
+      position: relative;
+      height: auto;
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-group { display: none; }
+    .nav-footer { border-top: none; }
+    .content { padding: 28px 20px 80px; }
+    .card-inner { padding-left: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- ── Nav ── -->
+  <nav class="nav">
+    <div class="nav-brand">
+      <h1>{{ISSUE_ID}}</h1>
+      <div class="meta">
+        <span>{{BRANCH}}</span>
+        <span class="dot-sep"></span>
+        <span>{{DATE}}</span>
+      </div>
+    </div>
+
+    <!-- NAV_GROUPS:START -->
+    <!--
+      각 그룹은 아래 패턴으로 생성:
+      <div class="nav-group">
+        <div class="nav-group-label">P0 착수 차단</div>
+        <a class="nav-link" href="#c1" data-id="c1">
+          <span class="pip pip-p0">1</span>
+          <span>짧은 라벨</span>
+          <span class="check-indicator" id="ci-c1"></span>
+        </a>
+        ...
+      </div>
+      pip-p0 / pip-p1 / pip-p2 로 우선순위 색 결정
+    -->
+    {{NAV_GROUPS}}
+    <!-- NAV_GROUPS:END -->
+
+    <div class="nav-footer">
+      <div class="gauge">
+        <div class="gauge-header">
+          <span class="gauge-label">결정 진행률</span>
+          <span class="gauge-count" id="g-count">0 / 0</span>
+        </div>
+        <div class="gauge-track">
+          <div class="gauge-fill" id="g-fill" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="fmt-toggle">
+        <button class="fmt-opt on" data-f="md">.md</button>
+        <button class="fmt-opt" data-f="json">.json</button>
+      </div>
+      <button class="btn-export" id="btn-go" disabled>로드 중...</button>
+      <button class="btn-copy-json" id="btn-copy-json" disabled title="JSON 을 파일로 내려받지 않고 클립보드에 복사합니다">📋 JSON 복사</button>
+    </div>
+  </nav>
+
+  <!-- ── Content ── -->
+  <main class="content">
+    <div class="content-header">
+      <h2>{{DASHBOARD_TITLE}}</h2>
+      <p>{{DASHBOARD_SUBTITLE}}</p>
+    </div>
+
+    <!-- DECISION_SECTIONS:START -->
+    <!--
+      각 우선순위 그룹은 <section class="pri-section"> 블록:
+        <section class="pri-section">
+          <div class="pri-header">
+            <span class="pri-tag pri-tag-p0">P0 — 라벨</span>
+            <span class="pri-line"></span>
+          </div>
+          [카드들]
+        </section>
+
+      카드 한 장의 구조 (id=cN 유일, data-key 동일):
+        <div class="card [open]" id="cN" data-key="cN">
+          <div class="card-head" onclick="toggleCard(this)">
+            <span class="card-num">N</span>
+            <div class="card-head-text"><div class="card-title">제목 <code>코드</code></div></div>
+            <span class="card-chevron">▶</span>
+          </div>
+          <div class="card-body"><div class="card-inner">
+            <div class="info-block">
+              <div class="info-label">배경</div>
+              <div class="info-box box-context">왜 지금 결정해야 하는가 + 방치 비용.</div>
+            </div>
+            <div class="info-block">
+              <div class="info-label">판단 축</div>
+              <div class="info-box box-judge">한 문장 기준. <b>핵심 대비</b> 강조.</div>
+            </div>
+            (선택) 상세 비교표 — 2x2 초과일 때만
+            <button class="detail-trigger" onclick="toggleDetail(this)"><span class="tri">▶</span> 선택지 상세 비교</button>
+            <div class="detail-panel"><div>
+              <table class="cmp">
+                <tr><th>축</th><th>A</th><th>B</th></tr>
+                <tr><td>라벨</td><td class="w">✅ 우세</td><td class="l">❌ 열세</td></tr>
+              </table>
+            </div></div>
+            <div class="choices">
+              <div class="choices-label"><span class="req-dot"></span> 결정</div>
+              <div class="opt-list" data-group="cN">
+                <button class="opt" data-val="A" onclick="pick(this)">
+                  <span class="circle"></span>
+                  <span><span class="key">A.</span> 선택지 요약 + 얻는 것/잃는 것.</span>
+                  <span class="rec-badge">권고</span>  (권고 선택지에만)
+                </button>
+                <button class="opt" data-val="B" onclick="pick(this)">
+                  <span class="circle"></span>
+                  <span><span class="key">B.</span> 대안 요약.</span>
+                </button>
+              </div>
+              <div class="memo"><textarea placeholder="결정 사유나 보충 메모 (선택)" data-memo="cN"></textarea></div>
+            </div>
+          </div></div>
+        </div>
+
+      규칙:
+      - 첫 카드에만 class="card open" 으로 펼친 상태 시작
+      - pip-p0/p1/p2, pri-tag-p0/p1/p2, box-context/judge/rec 색상 통일
+      - data-group 과 data-memo 는 카드 id(cN)와 일치
+    -->
+    {{DECISION_SECTIONS}}
+    <!-- DECISION_SECTIONS:END -->
+  </main>
+</div>
+
+<div class="toast" id="toast"><span class="toast-icon">✓</span><span id="toast-msg"></span></div>
+
+<script>
+  // DOM 에서 카드 데이터 자동 추출 — 하드코딩 불필요, 카드만 붙이면 됨
+  const state = {};
+  const CARDS = Array.from(document.querySelectorAll('.card[data-key]'));
+  const TOTAL = CARDS.length;
+  const titles = {};
+  const prios = {};
+  CARDS.forEach(c => {
+    const id = c.dataset.key;
+    const num = c.querySelector('.card-num') ? c.querySelector('.card-num').textContent.trim() : '';
+    const t = c.querySelector('.card-title') ? c.querySelector('.card-title').textContent.trim() : id;
+    titles[id] = (num ? num + '. ' : '') + t;
+    const pip = document.querySelector('.nav-link[data-id="' + id + '"] .pip');
+    if (pip) {
+      if (pip.classList.contains('pip-p0')) prios[id] = 'P0';
+      else if (pip.classList.contains('pip-p1')) prios[id] = 'P1';
+      else if (pip.classList.contains('pip-p2')) prios[id] = 'P2';
+      else prios[id] = '-';
+    } else prios[id] = '-';
+  });
+  const ISSUE_ID = '{{ISSUE_ID}}';
+  const BRANCH = '{{BRANCH}}';
+  let fmt = 'md';
+
+  // Card toggle
+  function toggleCard(head) {
+    head.closest('.card').classList.toggle('open');
+  }
+
+  // Detail toggle
+  function toggleDetail(btn) {
+    btn.classList.toggle('open');
+    btn.nextElementSibling.classList.toggle('show');
+  }
+
+  // Pick option
+  function pick(btn) {
+    const grp = btn.closest('.opt-list').dataset.group;
+    btn.closest('.opt-list').querySelectorAll('.opt').forEach(o => o.classList.remove('picked'));
+    btn.classList.add('picked');
+
+    const label = btn.querySelector('span:nth-child(2)').textContent.trim();
+    state[grp] = { value: btn.dataset.val, label };
+
+    btn.closest('.card').classList.add('resolved');
+    const ci = document.getElementById('ci-' + grp);
+    if (ci) ci.classList.add('done');
+    refresh();
+  }
+
+  function refresh() {
+    const n = Object.keys(state).length;
+    document.getElementById('g-count').textContent = n + ' / ' + TOTAL;
+    document.getElementById('g-fill').style.width = (n / TOTAL * 100) + '%';
+    const btn = document.getElementById('btn-go');
+    const cbtn = document.getElementById('btn-copy-json');
+    if (n === TOTAL) {
+      btn.disabled = false;
+      btn.classList.add('live');
+      btn.textContent = '결정 결과 내보내기';
+      if (cbtn) { cbtn.disabled = false; cbtn.classList.add('live'); }
+    } else {
+      btn.disabled = true;
+      btn.classList.remove('live');
+      btn.textContent = (TOTAL - n) + '개 사안 남음';
+      if (cbtn) { cbtn.disabled = true; cbtn.classList.remove('live'); }
+    }
+  }
+
+  function buildJsonPayload() {
+    const now = new Date();
+    const memos = {};
+    document.querySelectorAll('textarea[data-memo]').forEach(ta => {
+      if (ta.value.trim()) memos[ta.dataset.memo] = ta.value.trim();
+    });
+    return JSON.stringify({
+      title: ISSUE_ID + ' 결정 결과',
+      exported_at: now.toISOString(),
+      branch: BRANCH,
+      decisions: Object.entries(state).map(([id, s]) => ({
+        id, priority: prios[id], title: titles[id],
+        selected: s.value, selected_label: s.label,
+        memo: memos[id] || null,
+      })),
+    }, null, 2);
+  }
+
+  // Copy JSON to clipboard
+  document.getElementById('btn-copy-json').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-copy-json');
+    if (btn.disabled) return;
+    const payload = buildJsonPayload();
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(payload);
+      } else {
+        // file:// fallback — clipboard API 비활성 환경
+        const ta = document.createElement('textarea');
+        ta.value = payload; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      toast('JSON 이 클립보드에 복사되었습니다 (' + payload.length.toLocaleString() + ' 자)');
+    } catch (e) {
+      toast('복사 실패: ' + (e.message || e));
+    }
+  });
+
+  // Format toggle
+  document.querySelectorAll('.fmt-opt').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.fmt-opt').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+      fmt = b.dataset.f;
+    });
+  });
+
+  // Export
+  document.getElementById('btn-go').addEventListener('click', () => {
+    const now = new Date();
+    const d = now.toISOString().split('T')[0];
+    const t = now.toTimeString().split(' ')[0].replace(/:/g,'');
+    const memos = {};
+    document.querySelectorAll('textarea[data-memo]').forEach(ta => {
+      if (ta.value.trim()) memos[ta.dataset.memo] = ta.value.trim();
+    });
+
+    let content, filename, mime;
+
+    if (fmt === 'json') {
+      const obj = {
+        title: ISSUE_ID + ' 결정 결과',
+        exported_at: now.toISOString(),
+        branch: BRANCH,
+        decisions: Object.entries(state).map(([id, s]) => ({
+          id, priority: prios[id], title: titles[id],
+          selected: s.value, selected_label: s.label,
+          memo: memos[id] || null,
+        })),
+      };
+      content = JSON.stringify(obj, null, 2);
+      filename = `${ISSUE_ID}_decisions_${d}_${t}.json`;
+      mime = 'application/json';
+    } else {
+      const L = [];
+      L.push('# ' + ISSUE_ID + ' 결정 결과','');
+      L.push(`- **내보낸 시각**: ${now.toLocaleString('ko-KR')}`);
+      L.push('- **브랜치**: `' + BRANCH + '`','','---','');
+      // 섹션 DOM 에서 그룹 자동 추출
+      const groups = Array.from(document.querySelectorAll('.pri-section')).map(sec => {
+        const h = sec.querySelector('.pri-tag') ? sec.querySelector('.pri-tag').textContent.trim() : '';
+        const ids = Array.from(sec.querySelectorAll('.card[data-key]')).map(c => c.dataset.key);
+        return { h, ids };
+      });
+      for (const g of groups) {
+        L.push(`## ${g.h}`,'');
+        for (const id of g.ids) {
+          const s = state[id];
+          L.push(`### ${titles[id]}`,'');
+          L.push(`- **선택**: ${s.value}`);
+          L.push(`- **내용**: ${s.label}`);
+          if (memos[id]) L.push(`- **메모**: ${memos[id]}`);
+          L.push('');
+        }
+      }
+      L.push('---','');
+      L.push('> `claudedocs/' + ISSUE_ID + '/PENDING.md` "결정 완료" 표에 반영 후 문서 일괄 갱신. 각 결정은 독립 커밋으로 분리.');
+      content = L.join('\n');
+      filename = `${ISSUE_ID}_decisions_${d}_${t}.md`;
+      mime = 'text/markdown';
+    }
+
+    const blob = new Blob([content], { type: mime + ';charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast(filename + ' 다운로드 완료');
+  });
+
+  function toast(msg) {
+    const el = document.getElementById('toast');
+    document.getElementById('toast-msg').textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 3200);
+  }
+
+  // Scroll spy
+  const spy = new IntersectionObserver(entries => {
+    for (const e of entries) {
+      if (e.isIntersecting) {
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        const link = document.querySelector(`.nav-link[data-id="${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    }
+  }, { rootMargin: '-15% 0px -65% 0px' });
+
+  document.querySelectorAll('.card[data-key]').forEach(c => spy.observe(c));
+
+  // Nav-link 클릭: 카드 자동 펼치기 + 정확한 위치 스크롤 (기본 anchor 동작 대체)
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const id = link.dataset.id;
+      const card = document.getElementById(id);
+      if (!card) return;
+      if (!card.classList.contains('open')) card.classList.add('open');
+      const rect = card.getBoundingClientRect();
+      const top = window.pageYOffset + rect.top - 24;
+      window.scrollTo({ top, behavior: 'smooth' });
+      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+      history.replaceState(null, '', '#' + id);
+    });
+  });
+
+  refresh();  // 초기 gauge/버튼 상태 반영
+</script>
+</body>
+</html>
