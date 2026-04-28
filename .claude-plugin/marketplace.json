@@ -5,8 +5,8 @@
     "email": "danielmrbang@gmail.com"
   },
   "metadata": {
-    "description": "Daniel(Elian-Studio) 의 개인 Claude Code 플러그인 마켓플레이스. 결정 대시보드 등 워크플로우 도구를 모아둡니다. 모든 변경은 PR + 90점 Quality Gate 를 통과해야 합니다.",
-    "version": "1.1.0",
+    "description": "Daniel(Elian-Studio) 의 개인 Claude Code 플러그인 마켓플레이스. 결정 대시보드 등 워크플로우 도구를 모아둡니다. 모든 변경은 PR + 90점 Quality Gate (휴리스틱, 외부 API 의존 없음) 를 통과해야 합니다.",
+    "version": "1.2.0",
     "pluginRoot": "./plugins"
   },
   "plugins": [

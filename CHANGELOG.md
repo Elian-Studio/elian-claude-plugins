@@ -10,16 +10,34 @@
 
 ## 마켓플레이스 (`elian`)
 
+### [1.2.0] — 2026-04-28
+
+#### Changed (BREAKING for maintainers)
+- **Skill Quality Gate 를 LLM 기반에서 stdlib 휴리스틱으로 전환** — `ANTHROPIC_API_KEY` Secret 셋업이 더 이상 필요 없음. 결정적 채점, 비용 0, 외부 의존성 0
+- 채점 신호는 결정적 패턴 매칭 (섹션 존재, 길이, 키워드, 디렉토리 구조). 의미적 품질(글의 매끄러움) 은 평가하지 못하지만, 잘 만들어진 스킬은 구조가 갖춰져 있으므로 90점 게이트로는 충분
+- 자가 검증: 개선 전 SKILL.md = 54점 (FAIL), 개선 후 SKILL.md = 97점 (PASS) — 게이트가 의도대로 작동
+
+#### Added
+- `scripts/score_skill.py` — Python stdlib 휴리스틱 채점기. argparse, `--help`, `--json` 지원. 다중 SKILL.md 동시 채점
+
+#### Removed
+- `scripts/evaluate_skill.py` — Anthropic SDK 기반 LLM 평가 스크립트 (휴리스틱으로 대체)
+- `scripts/static_checks.sh` — score_skill.py 가 정적 검증을 흡수
+- `ANTHROPIC_API_KEY` Secret 의존성 — 워크플로우/README/PR 템플릿에서 모두 제거
+
+#### 향후 LLM 보강 (선택, 미구현)
+- 휴리스틱 80~89점 구간에서만 LLM 추가 평가하는 hybrid 모델 가능. 비용 절약 + 의미적 품질 평가 동시 충족. 필요 시 별도 PR
+
+---
+
 ### [1.1.0] — 2026-04-28
 
 #### Added
-- **PR 기반 워크플로우 + Skill Quality Gate** — 모든 SKILL.md 변경은 PR 을 통과해야 main 에 반영. GitHub Actions 가 정적 검증 + LLM 평가(claude-sonnet-4-6) 를 자동 실행하고 90점 미만이면 머지 차단
+- **PR 기반 워크플로우 + Skill Quality Gate** — 모든 SKILL.md 변경은 PR 을 통과해야 main 에 반영. GitHub Actions 가 자동 실행하고 90점 미만이면 머지 차단
 - `scripts/rubric.md` — 100점 만점 평가 루브릭. 공식 Claude Code 가이드 + [garrytan/gstack](https://github.com/garrytan/gstack/blob/main/docs/skills.md) + [alirezarezvani/claude-skills](https://github.com/alirezarezvani/claude-skills) 의 베스트 프랙티스 종합
-- `scripts/static_checks.sh` — frontmatter, 길이, 중첩 주석, 위험 권한 패턴 등 결정적 정적 검증
-- `scripts/evaluate_skill.py` — Anthropic SDK 기반 LLM 평가. tool_use 강제 JSON, 프롬프트 캐싱
 - `.github/workflows/skill-quality-gate.yml` — PR 트리거, 변경 SKILL.md 만 평가, 결과 PR 코멘트 자동 게시
 - `.github/pull_request_template.md` — 변경 유형/체크리스트 표준화
-- `README.md` 의 Contributing 섹션 — 로컬 검증/브랜치 보호 설정 명령
+- `README.md` 의 Contributing 섹션
 
 ### [1.0.0] — 2026-04-28
 
