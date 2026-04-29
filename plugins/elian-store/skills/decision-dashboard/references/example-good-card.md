@@ -1,114 +1,113 @@
-# 좋은 결정 카드 vs 나쁜 결정 카드
+# Good decision card vs bad decision card
 
-스킬의 LANGUAGE GATE / 배경 3문장 골격 / 옵션 라벨 규칙 / 판단 질문 규칙을
-**한 카드 안에서 동시에 시연**하는 BEFORE/AFTER 예시.
+A BEFORE / AFTER pair that demonstrates the skill's LANGUAGE GATE / 3-sentence background skeleton / option-label rule / judgment-question rule **simultaneously, on a single card**.
 
-이 파일은 Claude 가 결정 카드 작성 시 참조하는 기준점이다.
-
----
-
-## 시나리오
-
-**상황**: 알림 시스템에서 푸시 발송 실패가 누적됨. 어떻게 처리할지 결정 필요.
+This file is the reference Claude consults when authoring a decision card.
 
 ---
 
-## ❌ BAD — 자체 규칙 위반 카드
+## Scenario
 
-### 제목
-> `NotificationRetryScheduler` 도입 여부
-
-> ⚠ 위반: 클래스명 카드 제목 노출 (LANGUAGE GATE)
-
-### 배경 (info-box box-context)
-> 현재 `notification_log` 테이블에 send_status 가 FAILED 인 건이 누적되고 있음.
-> R6 요구사항에 따라 재시도 정책 필요. 결정 #38 에서 폴링 vs 큐 방식 논의 중.
-> ShedLock 도입 여부도 함께 결정해야 함.
-
-> ⚠ 위반: 테이블명(notification_log, send_status), 요구사항 번호(R6), 결정 번호(#38), 기술 스택(ShedLock) — 결정자가 코드를 안 보면 이해 불가
-
-### 판단 축 (info-box box-judge)
-> 운영 효율성을 확보할 것인가, 시스템 단순성을 수용할 것인가?
-
-> ⚠ 위반: "X 를 확보할 것인가, Y 를 수용할 것인가" 추상어 — 결정자가 답할 수 없는 질문
-
-### 옵션
-- **A. 일반화 — `RetryScheduler` 클래스 도입 + ShedLock + cron 5분 주기**
-- **B. 폴링 방식 — `next_retry_dtm` 컬럼 추가 후 폴링**
-- **C. 보류**
-
-> ⚠ 위반:
-> - 옵션 A: 클래스명/스택명/기술 용어 (구현 용어)
-> - 옵션 B: 컬럼명 노출
-> - 옵션 C: "보류" 는 결정 회피, "기타 (직접 입력)" 옵션 부재
+**Situation**: Push-notification delivery failures are accumulating in the notification system. We need to decide how to handle them.
 
 ---
 
-## ✅ GOOD — 모든 규칙 통과 카드
+## ❌ BAD — card that violates the rules
 
-### 제목
-> 푸시 알림 실패 건 자동 재발송 도입
+### Title
+> Whether to introduce `NotificationRetryScheduler`
 
-> ✓ 결과 중심 제목, 내부 식별자 없음
+> ⚠ Violation: class name exposed in card title (LANGUAGE GATE).
 
-### 배경 (info-box box-context, 3문장 골격)
-> 어제 결제한 사용자 100명 중 7명에게 영수증 푸시가 안 갔습니다 (수신자 단말 일시 오류).
-> 지금은 첫 발송이 실패하면 그대로 유실 — 사용자는 결제됐는지 모르고 환불 요청이 옵니다 (어제만 4건).
-> 이번 결정으로 "재시도 자동화" vs "운영팀 수동 처리" 방식이 갈립니다.
+### Background (info-box box-context)
+> The `notification_log` table has rows with `send_status = FAILED` accumulating.
+> Per requirement R6, we need a retry policy. Decision #38 is debating polling vs queue.
+> Whether to introduce ShedLock has to be decided too.
 
-> ✓ 1. 지금 일어나는 일 (사용자 시점, 구체 숫자 7명/100명)
-> ✓ 2. 결정 안 하면 발생하는 고통 (환불 요청 4건)
-> ✓ 3. 두 선택지의 결과 차이 (재시도 vs 수동)
+> ⚠ Violations: table / column names (`notification_log`, `send_status`), requirement number (R6), decision number (#38), stack name (ShedLock) — the decision-maker can't understand without reading code.
 
-### 판단 질문 (info-box box-judge)
-> 사용자가 영수증을 1시간 안에 100% 받아야 할까요, 운영팀이 매일 누락 건을 수동 처리해도 괜찮을까요?
+### Judgment axis (info-box box-judge)
+> Should we secure operational efficiency, or accept system simplicity?
 
-> ✓ 결정자가 직접 답 가능한 구체 질문 (1시간 / 100% / 수동 처리)
+> ⚠ Violation: abstract phrasing "secure X or accept Y" — the decision-maker cannot answer.
 
-### 옵션 (rec-badge 1개 + 기타 옵션 필수)
-- **A. 자동 재발송으로 바꾼다 — 사용자가 늦어도 1시간 안에 영수증 받음, 운영팀 수동 처리 0건** [권고]
-- **B. 운영팀 수동 처리 유지 — 매일 한 번 누락 건 모아서 수동 발송, 사용자는 평균 6시간 대기**
-- **C. 사용자에게 "발송 실패" 안내 후 재요청 버튼 노출 — 사용자가 직접 트리거**
-- **D. 기타 — 아래 메모에 직접 입력**
+### Options
+- **A. Generalize — introduce a `RetryScheduler` class + ShedLock + 5-minute cron**
+- **B. Polling — add a `next_retry_dtm` column and poll**
+- **C. Defer**
 
-> ✓ 모두 "무엇이 달라진다" 로 끝남 (사용자 체감 차이)
-> ✓ "기타" 옵션 마지막에 항상 존재
-
-### 메모 영역
-> 비어 있음 (기타 선택 시 자유 입력)
+> ⚠ Violations:
+> - Option A: class names / stack names / impl jargon (impl-term).
+> - Option B: column name exposed.
+> - Option C: "Defer" is decision avoidance, and there's no "Other (custom input)" option.
 
 ---
 
-## detail-panel (개발자 근거 영역) — 내부 식별자 허용
+## ✅ GOOD — card that passes every rule
 
-GOOD 카드의 `detail-trigger` + `detail-panel` 안에 다음 정보를 넣을 수 있다 (결정자는 펼치지 않아도 됨):
+### Title
+> Add automatic retry for failed push notifications
+
+> ✓ Outcome-centered title, no internal identifiers.
+
+### Background (info-box box-context, 3-sentence skeleton)
+> Yesterday, of 100 users who paid, 7 didn't receive the receipt push (transient device errors on the recipient side).
+> Right now a first-send failure means lost — the user doesn't know whether the payment went through, and refund requests come in (4 yesterday alone).
+> This decision splits "automated retry" vs "ops-team manual handling".
+
+> ✓ 1. What's happening now (user-perspective, concrete numbers 7 / 100).
+> ✓ 2. Pain if no decision (4 refund requests).
+> ✓ 3. Difference between options (retry vs manual).
+
+### Judgment question (info-box box-judge)
+> Should the user receive the receipt within 1 hour 100% of the time, or is it acceptable for the ops team to manually handle missed deliveries each day?
+
+> ✓ Concrete question the decision-maker can answer directly (1 hour / 100% / manual handling).
+
+### Options (1 rec-badge + mandatory "Other")
+- **A. Switch to automatic retry — users get the receipt within 1 hour at the latest, ops manual handling drops to 0** [recommended]
+- **B. Keep ops manual handling — once a day, ops collects misses and sends manually; users wait 6 hours on average**
+- **C. Show the user a "send failed" notice with a "retry" button — user-triggered**
+- **D. Other — fill in below**
+
+> ✓ All end with "what becomes different" (user-perspective).
+> ✓ "Other" is always the last option.
+
+### Memo
+> Empty (free input when D is selected).
+
+---
+
+## detail-panel (developer-rationale area) — internal identifiers allowed
+
+The GOOD card's `detail-trigger` + `detail-panel` may carry the following (the decision-maker doesn't have to expand it):
 
 ```html
-<div class="detail-trigger">▷ 기술 근거 펼치기</div>
+<div class="detail-trigger">▷ Show technical rationale</div>
 <div class="detail-panel">
-  <h4>관련 코드/스키마</h4>
+  <h4>Related code / schema</h4>
   <ul>
-    <li>NotificationRetryScheduler 클래스 신규 작성</li>
-    <li>notification_log 테이블에 retry_count, next_retry_dtm 컬럼 추가</li>
-    <li>R6 요구사항 ID, PRD 결정 #38 참조</li>
-    <li>ShedLock 사용 (서버 다중화 시 중복 방지)</li>
+    <li>New class: NotificationRetryScheduler</li>
+    <li>Add `retry_count`, `next_retry_dtm` to `notification_log`</li>
+    <li>Refs: requirement R6, PRD decision #38</li>
+    <li>Use ShedLock to prevent duplicates under multi-server deployments</li>
   </ul>
 </div>
 ```
 
-> 이 영역은 LANGUAGE GATE 검사 대상에서 제외됨 — 개발자 근거용 sandbox.
+> This area is exempt from LANGUAGE GATE — the developer-rationale sandbox.
 
 ---
 
-## 셀프 체크리스트 (5분 안에 결정 가능?)
+## Self-checklist (decidable in 5 minutes?)
 
-카드 작성 후 다음 6개 항목 모두 ✓ 가 나와야 발행:
+After writing a card, all 6 must be ✓ before publishing:
 
-- [ ] 결정자(PO/팀장)가 코드/DB 를 보지 않고 모든 카드 본문을 이해 가능
-- [ ] 배경에서 "지금 무엇이 일어나는지" 가 사용자/관리자 시점 구체 장면 1개 이상
-- [ ] 배경에 구체 숫자 또는 시나리오 1개 이상 (예: "7명/100명", "환불 4건")
-- [ ] 판단 질문에 결정자가 즉답 가능 (yes/no 또는 A/B 형식)
-- [ ] 모든 옵션 라벨이 "무엇이 달라진다" 로 끝남 (구현 동사 X)
-- [ ] 마지막 옵션이 "기타 — 직접 입력" + rec-badge 권고 1개만 표시
+- [ ] The decision-maker (PO / team lead) can understand every body without reading code or DB.
+- [ ] Background includes at least one concrete user-or-admin-perspective scene of "what's happening now".
+- [ ] Background includes at least one concrete number or scenario (e.g., "7 / 100", "4 refunds").
+- [ ] Judgment question is directly answerable (yes / no or A / B form).
+- [ ] Every option label ends in "what becomes different" (no impl verbs).
+- [ ] Last option is "Other — fill in below" + at most one rec-badge.
 
-5/6 미만이면 카드 다시 작성.
+If fewer than 5 / 6, rewrite the card.
