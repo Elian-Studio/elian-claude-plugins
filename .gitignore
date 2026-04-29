@@ -21,3 +21,6 @@ Thumbs.db
 # 환경변수 (로컬 테스트용)
 .env
 .env.local
+
+# Claude Code per-developer local state
+.claude/settings.local.json

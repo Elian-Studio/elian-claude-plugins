@@ -6,15 +6,15 @@
   },
   "metadata": {
     "description": "Daniel(Elian-Studio) 의 Claude Code 플러그인 마켓플레이스. 단일 번들 플러그인 elian-store 로 다수 스킬을 함께 배포합니다. 모든 변경은 PR + 90점 Quality Gate (휴리스틱, 외부 API 의존 없음) 를 통과해야 합니다.",
-    "version": "2.0.1",
+    "version": "2.1.0",
     "pluginRoot": "./plugins"
   },
   "plugins": [
     {
       "name": "elian-store",
       "source": "./plugins/elian-store",
-      "description": "Daniel(Elian-Studio) 의 워크플로우 스킬 번들. 한 번 설치로 결정 대시보드, (예정) 스킬 관리·브레인스토밍·커밋 등 다수 스킬을 함께 사용 가능.",
-      "version": "2.0.0",
+      "description": "Daniel(Elian-Studio) 의 워크플로우 스킬 번들. 결정 대시보드 + /generate-teammate 와 14 개 도메인 전문 에이전트(엔지니어링·디자인·리서치·마케팅·비즈니스·비판적 검토) 를 함께 배포.",
+      "version": "2.1.0",
       "author": {
         "name": "Daniel (Elian-Studio)"
       },
