@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Daniel(Elian-Studio) 의 Claude Code 플러그인 마켓플레이스. 단일 번들 플러그인 elian-store 로 다수 스킬을 함께 배포합니다. 모든 변경은 PR + 90점 Quality Gate (휴리스틱, 외부 API 의존 없음) 를 통과해야 합니다.",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "pluginRoot": "./plugins"
   },
   "plugins": [

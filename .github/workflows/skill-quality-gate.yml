@@ -35,7 +35,9 @@ jobs:
           set -euo pipefail
           BASE_SHA="${{ github.event.pull_request.base.sha }}"
           HEAD_SHA="${{ github.event.pull_request.head.sha }}"
-          mapfile -t FILES < <(git diff --name-only --diff-filter=AM "${BASE_SHA}" "${HEAD_SHA}" -- 'plugins/**/skills/**/SKILL.md')
+          # --no-renames: rename 을 (delete + add) 로 분해해서 새 경로가 'A' 로 잡히게 함.
+          # 이렇게 안 하면 git 의 rename 감지가 작동해 A/M 필터에서 누락됨 (기존 PR #3 사례).
+          mapfile -t FILES < <(git diff --no-renames --name-only --diff-filter=AM "${BASE_SHA}" "${HEAD_SHA}" -- 'plugins/**/skills/**/SKILL.md')
           if [[ ${#FILES[@]} -eq 0 ]]; then
             echo "변경된 SKILL.md 없음 — 게이트 스킵"
             echo "files=" >> "$GITHUB_OUTPUT"
