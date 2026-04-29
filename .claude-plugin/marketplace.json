@@ -6,15 +6,15 @@
   },
   "metadata": {
     "description": "Daniel (Elian-Studio)'s Claude Code plugin marketplace. Ships a single bundled plugin (elian-store) packaging multiple workflow skills. Every change must pass PR review + a 90-point Quality Gate (heuristic, no external API dependency).",
-    "version": "2.2.0",
+    "version": "2.3.0",
     "pluginRoot": "./plugins"
   },
   "plugins": [
     {
       "name": "elian-store",
       "source": "./plugins/elian-store",
-      "description": "Daniel (Elian-Studio)'s workflow skill bundle. Includes decision-dashboard, /generate-teammate with 14 domain-expert agents, the TDD family (/implement, /fix, /improve), and /brainstorm.",
-      "version": "2.2.0",
+      "description": "Daniel (Elian-Studio)'s workflow skill bundle. Includes decision-dashboard, /generate-teammate with 14 domain-expert agents, the TDD family (/implement, /fix, /improve), /brainstorm, and the skill-meta pair (/manage-skills, /verify-implementation).",
+      "version": "2.3.0",
       "author": {
         "name": "Daniel (Elian-Studio)"
       },

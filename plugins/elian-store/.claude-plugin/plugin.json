@@ -1,7 +1,7 @@
 {
   "name": "elian-store",
-  "description": "Daniel (Elian-Studio)'s Claude Code workflow skill bundle. One install gives you decision-dashboard, /generate-teammate, 14 domain-expert agents, the TDD family (/implement, /fix, /improve), and /brainstorm.",
-  "version": "2.2.0",
+  "description": "Daniel (Elian-Studio)'s Claude Code workflow skill bundle. One install gives you decision-dashboard, /generate-teammate, 14 domain-expert agents, the TDD family (/implement, /fix, /improve), /brainstorm, and the skill-meta pair (/manage-skills, /verify-implementation).",
+  "version": "2.3.0",
   "author": {
     "name": "Daniel (Elian-Studio)",
     "email": "danielmrbang@gmail.com"
