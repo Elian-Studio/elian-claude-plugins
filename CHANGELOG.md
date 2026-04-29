@@ -1,114 +1,142 @@
 # Changelog
 
-이 마켓플레이스에 포함된 모든 플러그인의 주요 변경 사항을 기록합니다.
+This file records significant changes for every plugin in this marketplace.
 
-포맷은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/) 를 따르고, 버전 체계는 [Semantic Versioning](https://semver.org/spec/v2.0.0.html) 을 따릅니다.
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the version scheme follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-> 마켓플레이스 자체와 각 플러그인은 **독립적인 버전**을 갖습니다. 마켓플레이스 버전은 카탈로그 구조 변경(플러그인 추가/제거/메타데이터)을 추적하고, 플러그인 버전은 해당 플러그인의 기능 변경을 추적합니다.
+> The marketplace itself and each plugin keep **independent versions**. The marketplace version tracks catalog-structure changes (adding / removing plugins, metadata). Plugin versions track functional changes inside that plugin.
 
 ---
 
-## 마켓플레이스 (`elian`)
+## Marketplace (`elian`)
+
+### [2.2.0] — 2026-04-29
+
+#### Added
+- **Four new skills** in `elian-store`:
+  - `/implement` — TDD-driven feature implementation. Workflow: project recognition → context gathering → plan + conflict matrix → approval gate → Red→Green→Refactor (parallel where safe) → integration verification → code review → completion report. Self-contained, English, gate 96/100.
+  - `/fix` — Root-cause-first bug repair. Workflow: bug analysis → repair plan → approval gate → TDD repair (regression test first) → side-effect verification → review → report. Self-contained, English, gate 92/100.
+  - `/improve` — Behavior-changing improvement to working features. Workflow: BEFORE snapshot → improvement plan → approval gate → TDD improvement protecting existing tests → quantified BEFORE/AFTER verification → review → report. Includes Characterization Test guidance. Gate 94/100.
+  - `/brainstorm` — Conversational discovery for fuzzy requests. Workflow: context recognition → Socratic requirements probing → 3+ option drafting → tradeoff comparison → decision gate → handoff with persistent plan artifact. Gate 91/100.
+- Each new skill ships with `references/templates.md` and `scripts/validate_skill.py` (stdlib only, argparse + `--json`).
+
+#### Changed
+- **All in-plugin documentation unified to English.** Every SKILL.md, references file, agent definition, and accompanying doc inside `plugins/elian-store/` now uses English. Marketplace metadata, README, CHANGELOG, PR template, and workflow comments aligned to the same language policy.
+- `marketplace.json` and `plugin.json` descriptions updated to reflect the new skill catalog.
+- `plugin.json` keywords now include `tdd` and `brainstorm`.
+
+#### Notes
+- The new skills depend on `plugins/elian-store/skills/_shared/execution-strategy.md` shipped with this plugin (no external dependency). Self-validators in each skill's `scripts/` confirm structural correctness.
+
+---
 
 ### [2.1.0] — 2026-04-29
 
 #### Added
-- **`/generate-teammate` 스킬 추가** — Agent Team / Subagent / 직접 실행을 Phase 별로 독립 판정해 최적 전략을 결정하는 팀 생성기. Phase 분해 → 접근법 판정 (★ 적합 / 가능 / 부적합) → 단일 또는 하이브리드 전략 선택 → 팀 / 작업 설계 → 사용자 확인 → 실행 흐름. 공식 문서(Sub-agents, Agent Teams) 의 핵심 판별 질문 ("작업자 간 소통이 필요한가?") 을 1차 기준으로 사용.
-- **14 개 도메인 전문 에이전트 정의 번들** — `plugins/elian-store/agents/` 에 self-contained (외부 스킬 의존 0) 로 배포:
-  - 엔지니어링 8 개: `frontend-architect` (React / Vue / Angular / Svelte / Solid 멀티 프레임워크), `backend-architect` (Spring Boot / Express / NestJS / Django / FastAPI / Rails / Go / .NET 멀티 스택), `system-architect` (ADR · 도메인 모델), `security-engineer` (OWASP + AI · 클라우드), `performance-engineer` (측정 우선), `quality-engineer` (테스트 피라미드), `devops-architect` (Docker · K8s · Terraform · CI / CD), `requirements-analyst` (PRD · 인수기준)
-  - 디자인 / 리서치 / 전략 6 개: `ui-ux-designer` (디자인 토큰 · 컴포넌트 · a11y), `technical-writer` (Diátaxis), `ux-researcher` (인터뷰 · 페르소나 · 저니맵), `marketing-strategist` (포지셔닝 · GTM), `business-analyst` (단위 경제 · ROI · 의사결정 프레임), `devil-advocate` (사전 부검 · 가정 발굴 · 윤리 lens)
-- **references/ 디렉토리** — 입력 → Phase 분해 → 판정 → 팀 구성 → spawn prompt 까지 전체 trace 4 개 시나리오 (풀스택 신기능, 가설 경쟁 디버깅, 다관점 PR 리뷰, 비-개발 런치 전략).
-- **Documentation Team / Strategy Team 패턴 추가** — Design Team 은 기술 / UX 두 변형으로 확장. 단일 도메인 (스킬 빌더 · 분석가) 위주에서 풀 도메인 카탈로그로.
-- 모든 스킬 내부 문서 영어 통일 (마켓플레이스 사용자가 다국적임을 고려).
+- **`/generate-teammate` skill** — Decompose work into phases, judge each phase independently (Agent Team / Subagent / direct), produce a hybrid execution plan. Phase decomposition → fit scoring (★ Fit / Possible / Unfit) → strategy selection → team / task design → user confirmation → execution. Built around the official-doc primary question: "Do workers need to communicate with each other?"
+- **14 plugin-bundled domain agents** in `plugins/elian-store/agents/`, all self-contained (zero external skill deps):
+  - Engineering (8): `frontend-architect` (React / Vue / Angular / Svelte / Solid framework-agnostic), `backend-architect` (Spring Boot / Express / NestJS / Django / FastAPI / Rails / Go / .NET multi-stack), `system-architect` (ADR + domain modeling), `security-engineer` (OWASP + AI / cloud), `performance-engineer` (measurement-first), `quality-engineer` (test pyramid), `devops-architect` (Docker / K8s / Terraform / CI / CD), `requirements-analyst` (PRD + acceptance criteria).
+  - Design / research / strategy (6): `ui-ux-designer` (design tokens + components + a11y), `technical-writer` (Diátaxis), `ux-researcher` (interviews + personas + journey maps), `marketing-strategist` (positioning + GTM), `business-analyst` (unit economics + ROI + decision frameworks), `devil-advocate` (pre-mortems + assumption excavation + ethical lens).
+- **`references/` directory** — End-to-end traces of 4 scenarios (fullstack feature, competing-hypothesis debugging, multi-lens PR review, non-engineering launch strategy).
+- **Documentation Team / Strategy Team patterns** — Design Team expanded with technical and UX variants. Catalog evolved from a single-domain focus to full-domain coverage.
+- All in-skill documentation unified to English (multinational marketplace audience).
 
 #### Changed
-- 마켓플레이스 / 플러그인 description 업데이트하여 새 스킬 + 에이전트 카탈로그 반영.
-- `plugin.json` keywords 에 `agent-team`, `subagent` 추가.
+- Marketplace / plugin descriptions updated to reflect the new skill + agent catalog.
+- `plugin.json` keywords now include `agent-team` and `subagent`.
 
 #### Notes
-- Agent Teams 는 실험적 기능. 사용 전 `settings.json` 또는 환경 변수에 `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` 필요. Claude Code v2.1.32 이상.
-- 14 에이전트는 `skills:` frontmatter 의존성 없음 — 본 플러그인 단독 설치만으로 동작.
+- Agent Teams is an experimental feature. Set `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in `settings.json` or environment before use. Requires Claude Code v2.1.32 or later.
+- The 14 agents do not use the `skills:` frontmatter — they work standalone with this plugin.
 
 ---
 
 ### [2.0.1] — 2026-04-28
 
 #### Fixed
-- **Skill Quality Gate detection 누수** — 기존 워크플로우의 `git diff --diff-filter=AM` 가 git rename(R) 을 누락. 디렉토리 이동 PR 에서 SKILL.md 변경 0개로 감지되어 평가/코멘트가 모두 스킵되던 문제 (PR #3 사례). `--no-renames` 추가로 rename 을 add+delete 로 분해해 새 경로가 A 로 잡히도록 수정. 향후 경로+콘텐츠 동시 변경 시에도 게이트가 정상 작동.
+- **Skill Quality Gate detection leak** — The previous workflow's `git diff --diff-filter=AM` missed git renames (R), causing PRs that moved SKILL.md to be detected as "0 changed SKILL.md" and have evaluation / comment skipped (PR #3 case). Adding `--no-renames` decomposes a rename into add+delete so the new path is captured as `A`. Future path-and-content combined changes will now flow through the gate normally.
 
 ---
 
 ### [2.0.0] — 2026-04-28 ⚠ BREAKING
 
 #### Changed (BREAKING for users)
-- **단일 번들 플러그인 모델로 전환** — 기존 `decision-dashboard` 단일 스킬 플러그인을 `elian-store` 번들 플러그인으로 재배치. 다수 스킬을 한 번의 설치로 받고, 새 스킬은 `/plugin update elian-store@elian` 로 자동 반영
-- 마이그레이션:
+- **Switched to a single bundled-plugin model** — The previous standalone `decision-dashboard` plugin became a skill inside the new `elian-store` bundle plugin. One install gives you many skills, and new skills land via `/plugin update elian-store@elian`.
+- Migration:
   ```shell
   /plugin uninstall decision-dashboard@elian
   /plugin install elian-store@elian
   ```
-- 호출 형식 변경: `/decision-dashboard:decision-dashboard` → `/elian-store:decision-dashboard` (자연어 호출 "결정 대시보드 만들어줘" 는 변동 없음)
-- `decision-dashboard` 스킬 자체의 콘텐츠는 변경 없음 — 위치만 `plugins/elian-store/skills/decision-dashboard/` 로 이동
+- Invocation format change: `/decision-dashboard:decision-dashboard` → `/elian-store:decision-dashboard` (natural-language invocation "make a decision dashboard" is unchanged).
+- The `decision-dashboard` skill content itself didn't change — only its location moved to `plugins/elian-store/skills/decision-dashboard/`.
 
-#### 마이그레이션 동기
+#### Migration rationale
 
-기존 구조(플러그인=스킬 1:1) 는 새 스킬 추가 시 매번 별도 plugin.json + 마켓플레이스 entry + 사용자 별도 install 을 요구. 단일 번들로 전환하여:
+The old shape (one plugin per skill) required a separate `plugin.json`, marketplace entry, and per-user install for every new skill. Bundling fixes this:
 
-- 사용자 입장: 한 번 설치 → 모든 스킬 자동
-- 메인테이너 입장: 새 스킬 = 디렉토리 하나 추가 + plugin.json version bump
+- For users: one install → all skills automatically.
+- For maintainers: a new skill is just a directory + `plugin.json` version bump.
 
-향후 추가 예정 스킬: `manage-skills`, `brainstorm`, `commit` 등
+Planned follow-up skills: `manage-skills`, `brainstorm`, `commit`, etc.
 
 ---
 
 ### [1.2.0] — 2026-04-28
 
 #### Changed (BREAKING for maintainers)
-- **Skill Quality Gate 를 LLM 기반에서 stdlib 휴리스틱으로 전환** — `ANTHROPIC_API_KEY` Secret 셋업이 더 이상 필요 없음. 결정적 채점, 비용 0, 외부 의존성 0
-- 채점 신호는 결정적 패턴 매칭 (섹션 존재, 길이, 키워드, 디렉토리 구조). 의미적 품질(글의 매끄러움) 은 평가하지 못하지만, 잘 만들어진 스킬은 구조가 갖춰져 있으므로 90점 게이트로는 충분
-- 자가 검증: 개선 전 SKILL.md = 54점 (FAIL), 개선 후 SKILL.md = 97점 (PASS) — 게이트가 의도대로 작동
+- **Migrated Skill Quality Gate from LLM-based scoring to a stdlib heuristic.** No more `ANTHROPIC_API_KEY` secret to set up. Scoring is deterministic, free, and depends on nothing external.
+- Scoring signals are deterministic pattern matching (section presence, length, keywords, directory structure). Semantic quality (writing fluency) isn't evaluated, but well-built skills usually have the structure to clear a 90-point gate.
+- Self-validation: pre-improvement SKILL.md = 54 (FAIL), post-improvement = 97 (PASS). The gate behaves as intended.
 
 #### Added
-- `scripts/score_skill.py` — Python stdlib 휴리스틱 채점기. argparse, `--help`, `--json` 지원. 다중 SKILL.md 동시 채점
+- `scripts/score_skill.py` — Python-stdlib heuristic scorer. argparse, `--help`, `--json`. Scores multiple SKILL.md files in one run.
 
 #### Removed
-- `scripts/evaluate_skill.py` — Anthropic SDK 기반 LLM 평가 스크립트 (휴리스틱으로 대체)
-- `scripts/static_checks.sh` — score_skill.py 가 정적 검증을 흡수
-- `ANTHROPIC_API_KEY` Secret 의존성 — 워크플로우/README/PR 템플릿에서 모두 제거
+- `scripts/evaluate_skill.py` — the Anthropic-SDK-based LLM evaluator (replaced by the heuristic).
+- `scripts/static_checks.sh` — `score_skill.py` absorbed the static checks.
+- `ANTHROPIC_API_KEY` secret dependency — removed from workflow, README, and PR template.
 
-#### 향후 LLM 보강 (선택, 미구현)
-- 휴리스틱 80~89점 구간에서만 LLM 추가 평가하는 hybrid 모델 가능. 비용 절약 + 의미적 품질 평가 동시 충족. 필요 시 별도 PR
+#### Future LLM augmentation (optional, unimplemented)
+- A hybrid model could call an LLM only for the 80–89 heuristic range — saves cost while still capturing semantic quality. Out of scope for this PR.
 
 ---
 
 ### [1.1.0] — 2026-04-28
 
 #### Added
-- **PR 기반 워크플로우 + Skill Quality Gate** — 모든 SKILL.md 변경은 PR 을 통과해야 main 에 반영. GitHub Actions 가 자동 실행하고 90점 미만이면 머지 차단
-- `scripts/rubric.md` — 100점 만점 평가 루브릭. 공식 Claude Code 가이드 + [garrytan/gstack](https://github.com/garrytan/gstack/blob/main/docs/skills.md) + [alirezarezvani/claude-skills](https://github.com/alirezarezvani/claude-skills) 의 베스트 프랙티스 종합
-- `.github/workflows/skill-quality-gate.yml` — PR 트리거, 변경 SKILL.md 만 평가, 결과 PR 코멘트 자동 게시
-- `.github/pull_request_template.md` — 변경 유형/체크리스트 표준화
-- `README.md` 의 Contributing 섹션
+- **PR-based workflow + Skill Quality Gate** — Every SKILL.md change must pass a PR before reaching `main`. GitHub Actions runs the gate automatically and blocks merge below 90.
+- `scripts/rubric.md` — 100-point evaluation rubric synthesizing the official Claude Code guide + [garrytan/gstack](https://github.com/garrytan/gstack/blob/main/docs/skills.md) + [alirezarezvani/claude-skills](https://github.com/alirezarezvani/claude-skills) best practices.
+- `.github/workflows/skill-quality-gate.yml` — PR trigger, evaluates only changed SKILL.md, posts results as a PR comment.
+- `.github/pull_request_template.md` — Change-type / checklist standardization.
+- A Contributing section in `README.md`.
 
 ### [1.0.0] — 2026-04-28
 
 #### Added
-- `decision-dashboard` 플러그인 v1.0.0 등록
-- 마켓플레이스 메타데이터 (`metadata.pluginRoot = ./plugins`)
+- Registered `decision-dashboard` plugin v1.0.0.
+- Marketplace metadata (`metadata.pluginRoot = ./plugins`).
 
 ---
 
-## elian-store (번들)
+## elian-store (bundle)
+
+### [2.2.0] — 2026-04-29
+
+See marketplace 2.2.0 notes above.
+
+### [2.1.0] — 2026-04-29
+
+See marketplace 2.1.0 notes above.
 
 ### [2.0.0] — 2026-04-28 ⚠ BREAKING
 
 #### Changed
-- 신규 번들 플러그인 — `decision-dashboard` 플러그인(v1.0.0) 을 흡수하여 첫 번째 스킬로 포함
-- 향후 추가 스킬은 `plugins/elian-store/skills/<name>/` 디렉토리 추가만으로 사용자에게 자동 도달
+- New bundled plugin — absorbed the `decision-dashboard` plugin (v1.0.0) as its first skill.
+- Future skills land just by adding `plugins/elian-store/skills/<name>/` (no separate user install).
 
 #### Migration from decision-dashboard@1.0.0
 - `/plugin uninstall decision-dashboard@elian` → `/plugin install elian-store@elian`
-- 호출: `/decision-dashboard:decision-dashboard` → `/elian-store:decision-dashboard`
+- Invocation: `/decision-dashboard:decision-dashboard` → `/elian-store:decision-dashboard`
 
 ---
 
@@ -116,53 +144,53 @@
 
 ### [1.0.0] — 2026-04-28
 
-첫 공개 릴리즈. 개인 사용 중이던 `~/.claude/skills/decision-dashboard/` 를 플러그인으로 패키징하면서, 마켓플레이스 배포 적합성을 위해 [garrytan/gstack](https://github.com/garrytan/gstack/blob/main/docs/skills.md) + [alirezarezvani/claude-skills](https://github.com/alirezarezvani/claude-skills) 의 베스트 프랙티스를 종합 적용.
+First public release. Packaged the personal `~/.claude/skills/decision-dashboard/` as a plugin and applied marketplace-distribution-ready best practices from [garrytan/gstack](https://github.com/garrytan/gstack/blob/main/docs/skills.md) + [alirezarezvani/claude-skills](https://github.com/alirezarezvani/claude-skills).
 
-#### Added — 핵심 기능
-- 단일 HTML 결정 대시보드 생성 (라디오 선택 + 메모 + MD/JSON 다운로드 + JSON 클립보드 복사)
-- 우선순위 색상(P0/P1/P2) + 사이드바 카드 네비게이션
-- 카드 본문 LANGUAGE GATE — 카드 본문에 클래스명/테이블명/내부 약어 노출 차단 (개발자 근거는 접이식 상세 패널에 격리)
-- "기타 — 직접 입력" 옵션 표준화 — 모든 카드의 마지막 옵션
+#### Added — core
+- Single-HTML decision dashboard generator (radio choice + notes + MD/JSON download + JSON clipboard copy).
+- Priority colors (P0/P1/P2) + sidebar card navigation.
+- Card-body LANGUAGE GATE — class names, table names, internal acronyms are filtered out (developer rationale lives in a collapsible details panel).
+- "Other — custom input" option standardized as the last option on every card.
 
-#### Added — 베스트 프랙티스 적용 (gstack + alirezarezvani)
-- **Outcome-focused description** — "When 3+ pending decisions block PO/team progress, capture them in a printable HTML artifact so the team can decide in 5 minutes" (process 가 아닌 outcome 우선). gstack 의 *"Lead with the concrete problem the skill solves, not aspirational framing"*
-- **Mode differentiation** — `generate` (첫 생성) / `finalize` (결정 영구화 + 정리) 2개 명시 모드. gstack 의 `/plan-ceo-review` 4모드 패턴 차용
-- **Skill sequencing** — "Where this fits in the workflow" 섹션. `brainstorm → design → DECISION-DASHBOARD → implement → review → ship` 의 어느 단계인지 명시
-- **Manual decision gating** — "What's automated vs what needs your taste" 표. Claude 자동 결정(우선순위 분류, 라벨 변환, GATE 검사) vs 사용자 결정(A/B/C 선택, 옵션 정의 검토) 명시
-- **Persistent artifact for downstream** — `decisions-final.json` 영구 저장 (issue, decisions[], summary, rejected_alternatives 포함). 후행 스킬(`/implement`, `/ship`) 이 컨텍스트로 소비
-- **End-of-skill reflection** — finalize 종료 시 결정 패턴 관찰 보고 (3개 항목, hedge 사용). gstack 의 *"specific callbacks, not generic praise"*
-- **Three-file minimum** — `references/` 디렉토리 추가:
-  - `references/example-good-card.md` — BEFORE/AFTER 카드 비교 + 셀프 체크리스트
-  - `references/example-card-snippet.html` — 좋은 카드 1개 HTML fragment (그대로 복사 가능)
-- **`scripts/validate-dashboard.py`** — inline bash 검증을 분리. argparse 기반 `--help` + `--json` 출력 지원 (다른 스킬 chaining). stdlib only (zero pip installs). alirezarezvani 의 *"All CLI tools tested with --help and --json flag support"* 표준
-- **`argument-hint`** 두 번째/세 번째 인자(output-dir, mode) 반영
-- **`${CLAUDE_SKILL_DIR}`** 사용 (플러그인 루트가 아닌 스킬 자신의 경로)
-- **Standing Instructions 섹션 격리** — 카드 작성 규칙(LANGUAGE GATE, 배경 3문장, 옵션 라벨, 판단 질문) 을 모드 절차와 분리해 standing instructions 로
+#### Added — best-practice adoption (gstack + alirezarezvani)
+- **Outcome-focused description** — "When 3+ pending decisions block PO/team progress, capture them in a printable HTML artifact so the team can decide in 5 minutes" (outcome over process). gstack: *"Lead with the concrete problem the skill solves, not aspirational framing."*
+- **Mode differentiation** — `generate` (first creation) vs `finalize` (persist decisions + clean up). Borrows gstack's `/plan-ceo-review` 4-mode pattern.
+- **Skill sequencing** — "Where this fits in the workflow" section: `brainstorm → design → DECISION-DASHBOARD → implement → review → ship`.
+- **Manual decision gating** — "What's automated vs what needs your taste" table. Claude decides priority classification, label conversion, GATE filtering; user decides A/B/C, option definitions.
+- **Persistent artifact for downstream** — `decisions-final.json` (issue, decisions[], summary, rejected_alternatives). Consumed as context by downstream skills (`/implement`, `/ship`).
+- **End-of-skill reflection** — at finalize, observe decision patterns (3 items, hedged language). gstack: *"specific callbacks, not generic praise"*.
+- **Three-file minimum** — `references/` directory:
+  - `references/example-good-card.md` — BEFORE / AFTER card comparison + self-checklist.
+  - `references/example-card-snippet.html` — A single good-card HTML fragment (copy-paste).
+- **`scripts/validate-dashboard.py`** — pulled inline bash validation into a Python script. argparse-based `--help` + `--json` output (chainable with other skills). stdlib only (zero pip installs). alirezarezvani's *"All CLI tools tested with --help and --json flag support"* standard.
+- **`argument-hint`** carries the second / third arguments (output-dir, mode).
+- **`${CLAUDE_SKILL_DIR}`** used (the skill's own path, not the plugin root).
+- **Standing Instructions section isolated** — card-writing rules (LANGUAGE GATE, 3-sentence background, option labels, guiding question) separated from per-mode procedures and surfaced as standing instructions.
 
-#### Changed (개인 버전 대비)
-- **출력 경로 일반화** — 기본 `claudedocs/{ISSUE}/decisions-{DATE}.html`. 환경변수 `DECISIONS_DIR` 또는 `$ARGUMENTS` 두 번째 인자로 override 가능
-- **이슈 ID 자동 추출** — `git branch --show-current` 에서 `[A-Z]+-[0-9]+` 패턴 매칭 (회사별 이슈 prefix 자동 인식)
+#### Changed (vs personal version)
+- **Output path generalized** — default `claudedocs/{ISSUE}/decisions-{DATE}.html`. Override with `DECISIONS_DIR` env var or `$ARGUMENTS[2]`.
+- **Issue ID auto-extraction** — `git branch --show-current` matched against `[A-Z]+-[0-9]+` (vendor-neutral company-issue prefix detection).
 
-#### Fixed (개인 버전 대비)
-- **Auto-validation 셸 변수 버그** — 기존 `FILE=claudedocs/{ISSUE}/...` 가 placeholder 를 변수처럼 쓰고 있어 검증이 항상 깨지던 문제 → 실제 셸 변수 + 별도 Python 스크립트로 교체
-- **Python heredoc 변수 미치환** — `<<'EOF'` (인용된 heredoc) 안에서 `$FILE` 이 빈 값으로 들어가 LANGUAGE GATE 가 항상 실패하던 문제 → 별도 스크립트 + argparse 로 해결
+#### Fixed (vs personal version)
+- **Auto-validation shell-variable bug** — the prior `FILE=claudedocs/{ISSUE}/...` used a placeholder where a shell variable belonged, so validation always broke → replaced with a real shell variable + a separate Python script.
+- **Python-heredoc variable non-substitution** — inside `<<'EOF'` (quoted heredoc), `$FILE` was empty, so the LANGUAGE GATE always failed → resolved by extracting to a separate script with argparse.
 
-#### Removed (개인 버전 대비)
-- **PENDING.md 아카이브 플로우 전체 제거** — 개인 워크플로우(claudedocs/{ISSUE}/PENDING.md 6블록 결정 카드)에 강하게 결합되어 일반 공유에 부적합. 결정 근거는 `decisions-final.json` 영구 저장 + 커밋 메시지로 대체
-- mobidoc 프로젝트 고유 예시(MPT-####, ShedLock 환급 시나리오 등) — 일반 예시(PROJ-123, 푸시 알림 재발송 시나리오) 로 교체
+#### Removed (vs personal version)
+- **Removed the entire PENDING.md archival flow** — coupled to a personal workflow (claudedocs/{ISSUE}/PENDING.md 6-block decision cards), not appropriate for general distribution. Decision rationale is preserved via `decisions-final.json` + commit messages instead.
+- mobidoc-project-specific examples (MPT-####, ShedLock refund scenario, etc.) — replaced with generic ones (PROJ-123, push-notification re-send scenario).
 
 ---
 
-## 버전 관리 정책
+## Versioning policy
 
-- **변경 시 반드시 `version` 필드를 bump** 합니다. `plugin.json` 의 `version` 이 그대로면 Claude Code 가 캐시된 사본을 그대로 사용해 사용자에게 업데이트가 도달하지 않습니다.
-- 마켓플레이스 카탈로그 구조만 바뀌면 `marketplace.json` 의 `metadata.version` 만 bump.
-- 플러그인 내용이 바뀌면 해당 플러그인의 `plugin.json.version` + 마켓플레이스 엔트리의 `version` 을 함께 bump (단, [공식 문서](https://code.claude.com/docs/en/plugin-marketplaces#version-resolution-and-release-channels)에 따라 `plugin.json` 값이 우선 — 두 곳에 동시에 두는 것보다 `plugin.json` 만 관리하는 편이 안전).
+- **Always bump the `version` field on changes.** If `plugin.json`'s `version` stays the same, Claude Code uses the cached copy and updates never reach users.
+- Catalog-only changes → bump only `marketplace.json`'s `metadata.version`.
+- Plugin-content changes → bump the plugin's `plugin.json.version` and the marketplace entry's `version` together (per the [official doc](https://code.claude.com/docs/en/plugin-marketplaces#version-resolution-and-release-channels), `plugin.json` wins on conflict — managing one source of truth is safer).
 
-### SemVer 적용 가이드
+### SemVer guide
 
-| 변경 유형 | 예시 | bump |
-|----------|------|------|
-| MAJOR (breaking) | placeholder 이름 변경, 출력 디렉토리 디폴트 변경, allowed-tools 축소 | `1.0.0 → 2.0.0` |
-| MINOR (feature) | 새 검증 규칙, 새 옵션, 새 카드 타입 | `1.0.0 → 1.1.0` |
-| PATCH (fix/docs) | 버그 수정, 문서 보강, 예시 추가 | `1.0.0 → 1.0.1` |
+| Change type | Example | Bump |
+|-------------|---------|------|
+| MAJOR (breaking) | placeholder name change, default output-dir change, allowed-tools narrowing | `1.0.0 → 2.0.0` |
+| MINOR (feature) | new validation rule, new option, new card type | `1.0.0 → 1.1.0` |
+| PATCH (fix/docs) | bug fix, documentation polish, examples added | `1.0.0 → 1.0.1` |

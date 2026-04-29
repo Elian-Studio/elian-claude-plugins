@@ -1,14 +1,14 @@
 ---
 name: decision-dashboard
 description: When 3+ pending decisions block PO/team progress, capture them in a printable HTML artifact so the team can decide in 5 minutes instead of long Slack threads. Replaces "decision fatigue scattered across messages" with "one page, all options, traceable choice + memo + downloadable JSON for downstream skills".
-when_to_use: 3+ decisions pile up in a review (architecture/DDL/UX/consistency), user says "결정 대시보드 만들어줘"·"선택지 정리해줘"·"make decision dashboard", or chat explanations are too long to inline. Skip for 1~2 decisions (ask in chat).
+when_to_use: 3+ decisions pile up in a review (architecture / DDL / UX / consistency), the user says "make a decision dashboard" / "lay out the choices", or chat explanations are too long to inline. Skip for 1-2 decisions (just ask in chat).
 argument-hint: [issue-id] [output-dir?] [mode?]
 allowed-tools: Bash(cp *) Bash(sed *) Bash(grep *) Bash(awk *) Bash(diff *) Bash(open *) Bash(date *) Bash(git branch*) Bash(mkdir *) Bash(rm claudedocs/*) Bash(python3 *) Edit Read Write
 ---
 
 # Decision Dashboard Generator
 
-3개 이상의 결정이 쌓여서 의사결정자(PO/팀장)가 채팅을 끝까지 읽기 어려운 순간, 그 결정들을 **한 장의 인쇄 가능한 HTML 산출물**로 캡처해 5분 안에 A/B/C 를 고를 수 있게 만든다. 결정 결과는 다른 스킬이 소비할 수 있는 JSON 으로 영구 저장된다.
+When 3+ decisions pile up and the decision-maker (PO / team lead) cannot read every chat thread to the bottom, this skill captures the decisions as a **single printable HTML artifact** so the team can pick A/B/C in 5 minutes. The decisions are then persisted as JSON for downstream skills.
 
 ---
 
@@ -20,139 +20,139 @@ brainstorm → design → ▶ DECISION-DASHBOARD ◀ → implement → review �
                            moment for taste)
 ```
 
-- **선행 스킬** (brainstorm/design/review) 이 결정 사안을 표면화한다.
-- **이 스킬** 이 그 결정들을 인쇄 가능한 HTML 로 만들고, JSON 으로 영구화한다.
-- **후행 스킬** (implement/ship) 이 `decisions/{ISSUE}-final.json` 을 읽어 "무엇을, 왜 그렇게 결정했나" 컨텍스트로 사용한다.
+- **Upstream skills** (brainstorm / design / review) surface the decisions.
+- **This skill** turns those decisions into a printable HTML page and persists them as JSON.
+- **Downstream skills** (implement / ship) read `decisions/{ISSUE}-final.json` to know "what was decided and why" as context.
 
 ---
 
 ## What's automated vs what needs your taste
 
-(gstack 의 "What can the model safely decide alone, and what needs human taste?" 원칙 적용)
+(Following gstack's "What can the model safely decide alone, and what needs human taste?" principle.)
 
-| Claude 가 자동으로 결정 | 사용자가 결정 |
-|--------------------------|-------------|
-| 카드 번호 (c1, c2, …) | 각 카드의 옵션 선택 (A/B/C/D) |
-| P0/P1/P2 우선순위 분류 | 옵션 자체의 정의가 맞는지 |
-| 옵션 라벨 변환 (구현 용어 → 결과 용어) | "기타 (직접 입력)" 사용 시점 |
-| LANGUAGE GATE 검사 (내부 식별자 차단) | 결정 보류 / 다음 세션으로 미룸 |
-| 카드 본문의 배경 3문장 골격 적용 | 선택지가 부적합할 때 새 옵션 제안 |
+| Claude decides automatically | User decides |
+|------------------------------|--------------|
+| Card numbering (c1, c2, …) | Per-card option choice (A/B/C/D) |
+| P0/P1/P2 priority classification | Whether each option's definition is right |
+| Option label rewrite (impl-term → outcome-term) | When to use "Other (custom input)" |
+| LANGUAGE GATE filtering (block internal identifiers) | Defer / push a decision to a later session |
+| Background's 3-sentence skeleton applied | Propose new options when offered ones don't fit |
 
-자동 부분이 잘못되면 사용자가 메모로 교정. 메모가 빈 상태로 D(기타) 선택 시 발행 차단.
+If automation gets something wrong, the user corrects via memo. Cards with `D (Other)` selected and an empty memo are blocked from publishing.
 
 ---
 
 ## Modes
 
-이 스킬은 2개의 명시적 모드를 지원한다. 첫 인자가 모드 키워드면 그 모드, 아니면 `generate` 기본.
+This skill supports two explicit modes. If the first argument matches a mode keyword, it's that mode; otherwise the default is `generate`.
 
-### Mode 1: `generate` (기본)
+### Mode 1: `generate` (default)
 
-3+ 결정 사안을 카드로 만들고 HTML 대시보드를 생성한다.
+Create cards from 3+ decisions and produce the HTML dashboard.
 
-**언제**: 결정 사안 첫 캡처. 새 이슈에 대한 결정이 쌓였을 때.
+**When**: first capture of decisions for an issue. New decisions accumulating.
 
-**산출물**: `{OUT_DIR}/{ISSUE}/decisions-{DATE}.html`
+**Output**: `{OUT_DIR}/{ISSUE}/decisions-{DATE}.html`
 
 ### Mode 2: `finalize`
 
-JSON/MD 결과를 받아 결정을 영구화하고 일회용 HTML 을 정리한다.
+Receive the JSON / MD result from the user, persist the decision, and clean up the disposable HTML.
 
-**언제**: 사용자가 대시보드에서 선택을 마치고 "이거 반영해줘" 라고 했을 때.
+**When**: the user finished selecting on the dashboard and says "apply these".
 
-**산출물**:
-- `{OUT_DIR}/{ISSUE}/decisions-final.json` — **영구 보존**. 후행 스킬이 소비
-- `{OUT_DIR}/{ISSUE}/decisions-{DATE}.html` — **삭제** (일회용 UI 레이어)
+**Output**:
+- `{OUT_DIR}/{ISSUE}/decisions-final.json` — **persistent**, consumed by downstream skills
+- `{OUT_DIR}/{ISSUE}/decisions-{DATE}.html` — **deleted** (disposable UI layer)
 
 ---
 
 ## Auto-invoke vs explicit
 
 **Auto-invoke**:
-- 3+ 결정 사안이 사용자 확인을 기다림
-- 한 결정의 설명이 채팅에 인라인으로 읽기엔 너무 김
-- 리뷰 결과(consistency / architecture / DDL / UX) 에서 여러 결정 사안이 노출됨
+- 3+ decisions awaiting user confirmation
+- One decision's explanation is too long to inline in chat
+- Review output (consistency / architecture / DDL / UX) surfaces multiple decisions
 
 **Explicit invocation**:
-- `/decision-dashboard:decision-dashboard`
-- "결정 대시보드 만들어줘", "선택지 정리해줘"
+- `/elian-store:decision-dashboard`
+- "make a decision dashboard", "lay out the choices"
 
 **Do NOT invoke when**:
-- 1~2개 결정 → 채팅에서 직접 묻기 (AskUserQuestion 또는 짧은 Markdown)
-- 단순 yes/no 확인 → 그냥 묻기
-- 구현 제안에 대한 단방향 선택 → 짧은 답변
+- 1-2 decisions → just ask in chat (AskUserQuestion or short Markdown)
+- Simple yes/no confirmation → just ask
+- One-way choice on an implementation suggestion → short answer
 
 ---
 
 ## Output location
 
-기본 경로:
+Default path:
 ```
 {output-dir}/{ISSUE_ID}/decisions-{YYYY-MM-DD-HHmm}.html
 ```
 
-이슈 ID 가 없으면:
+Without an issue ID:
 ```
 {output-dir}/decisions/{descriptive-name}-{YYYY-MM-DD-HHmm}.html
 ```
 
-`{output-dir}` 우선순위:
-1. `$ARGUMENTS` 두 번째 인자 (명시적 override)
-2. 환경변수 `DECISIONS_DIR`
-3. `claudedocs` (기본)
+`{output-dir}` precedence:
+1. `$ARGUMENTS[1]` (explicit override)
+2. `DECISIONS_DIR` env var
+3. `claudedocs` (default)
 
-파일명에 시분(HHmm) 을 포함해 같은 이슈에서 하루 여러 번 생성할 때 충돌 방지.
+Filenames include hour-minute (HHmm) so multiple runs in one day on one issue don't collide.
 
 ---
 
-## Standing rules — 카드 본문 작성
+## Standing rules — card-body authoring
 
-(이 섹션의 규칙은 모든 카드에 항상 적용. 절차가 아니라 standing instructions.)
+(These rules apply to every card always; they are standing instructions, not procedure.)
 
-결정 문서는 **대화가 아니다**. 결정자(PO/팀장/미래의 나) 는 코드를 안 본다. 5분 안에 A/B 중 하나를 골라야 한다. 따라서 카드 본문(title / background / judgment axis / option labels) 은 **제품 관점의 실제 상황** 만 서술한다.
+A decision document is **not a conversation**. The decision-maker (PO / team lead / future-self) doesn't read code. They have 5 minutes to pick A or B. So the card body (title / background / judgment axis / option labels) describes **product-perspective real situations** only.
 
-### 금지 (카드 본문에 쓰면 안 되는 것)
+### Forbidden in card body
 
-| 금지 범주 | 예시 |
-|-----------|------|
-| 클래스명/메소드명 | `OrderRefundScheduler`, `isNightTime()`, `UserCampaignTagSendScheduler` |
-| DB 테이블명/컬럼명 | `user_lock`, `next_compute_dtm`, `send_dtm` |
-| 파일 경로/커밋 해시 | `overview.md §4`, `architecture.html §04-2`, `59623a8e7` |
-| 프로젝트 내부 약어 | `BULK`, `AUTO_RULE`, `send_source`, `FILTER_CRITERIA` |
-| 요구사항/결정 번호 | `R3`, `R6`, `#38`, `#A4`, `결정 #44` |
-| 기술 스택 고유명 | `ShedLock`, `cron`, `@SchedulerLock`, `polling`, `@Scheduled` |
-| 환경명 | `stag`, `prod`, `PR` (풀어서 "운영 배포 전") |
+| Forbidden category | Examples |
+|--------------------|----------|
+| Class / method names | `OrderRefundScheduler`, `isNightTime()`, `UserCampaignTagSendScheduler` |
+| Table / column names | `user_lock`, `next_compute_dtm`, `send_dtm` |
+| File paths / commit SHAs | `overview.md §4`, `architecture.html §04-2`, `59623a8e7` |
+| Internal acronyms | `BULK`, `AUTO_RULE`, `send_source`, `FILTER_CRITERIA` |
+| Requirement / decision IDs | `R3`, `R6`, `#38`, `#A4`, `decision #44` |
+| Stack-specific names | `ShedLock`, `cron`, `@SchedulerLock`, `polling`, `@Scheduled` |
+| Environment names | `stag`, `prod`, `PR` (use plain language: "before production deploy") |
 
-> 위 예시 토큰은 일반 패턴. 본인 프로젝트의 클래스명/스택을 같은 기준으로 카드 본문에서 배제.
+> The example tokens are illustrative. Apply the same standard to your project's class names / stack and exclude them from card bodies.
 
-위 금지 토큰은 **접이식 상세 패널**(`detail-trigger` + `detail-panel`) 내부에서만 허용. 개발자 검증용 근거 영역.
+The forbidden tokens are allowed **only inside the collapsible details panel** (`detail-trigger` + `detail-panel`) — that's the developer-rationale area.
 
-### 배경 3문장 골격
+### Background's 3-sentence skeleton
 
-1. **지금 제품에서 무엇이 일어나는가** — 사용자/관리자 시점의 구체 장면 1개.
-2. **결정하지 않으면 어떤 고통이 발생하는가** — 구체 숫자 1개 또는 시나리오 1개. ("결제 금액이 9,800 대신 9,750만 차감")
-3. **두 선택지의 결과가 어떻게 다른가** — 사용자 체감 차이.
+1. **What's happening in the product right now** — one concrete user-or-admin-perspective scene.
+2. **Pain if no decision is made** — one concrete number or scenario. (e.g., "9,750 charged instead of 9,800")
+3. **How the two options diverge in the user's experience** — what users feel.
 
-### 옵션 라벨 규칙
+### Option-label rules
 
-**"무엇을 한다"** 가 아니라 **"무엇이 달라진다"** 로 끝낸다.
+End with **"what becomes different"**, not **"what we do"**.
 
-| 나쁨 (구현 용어) | 좋음 (결과) |
-|------|------|
-| A. 일반화 — `OrderRefundScheduler` 로 source 무관 처리 | A. 한 번에 둘 다 환급되게 만든다 — 자동 발송 실패 건도 바로 복구 |
-| A. 선행 도입 — 분산락 의존성 추가 | A. 이번에 같이 도입 — 출시 직후 서버 여러 대 띄워도 중복 처리 없음 |
-| A. 폴링으로 교체 — 만기 폴링 | A. 즉시 반영으로 바꾼다 — 관리자가 조건 수정하면 바로 반영 |
+| Bad (impl jargon) | Good (outcome) |
+|-------------------|----------------|
+| A. Generalize — `OrderRefundScheduler` handles source-agnostic | A. Both refunded together — auto-send failures recover immediately |
+| A. Add upfront — pull in distributed-lock dep | A. Add now — multi-server rollout post-launch processes each request once |
+| A. Replace with polling — expiry polling | A. Switch to immediate — admin condition changes apply right away |
 
-### 판단 질문 규칙
+### Judgment-question rule
 
-"축" 대신 **"결정 질문"**. 결정자가 답해야 할 1문장 질문. "X 를 확보할 것인가, Y 를 수용할 것인가" 같은 추상어 금지 — "관리자가 조건을 바꿨을 때 즉시 반영돼야 할까요, 다음날 반영돼도 괜찮을까요?" 처럼 구체적 상황 질문.
+Use a **decision question**, not an "axis". A 1-sentence question the decision-maker must answer. Avoid abstractions like "trade A for B"; use concrete situational questions: "When the admin changes the condition, should it apply right away, or is next-day acceptable?"
 
-### "기타 — 직접 입력" 옵션 필수
+### "Other — custom input" option is mandatory
 
-모든 카드의 마지막 옵션은 항상 `D. 기타 — 아래 메모에 직접 입력`. 메모에 자유 텍스트 가능.
+The last option of every card is always `D. Other — fill in below`. The memo accepts free text.
 
-> 완성 카드 예시 1개: [`references/example-good-card.md`](references/example-good-card.md) — BEFORE/AFTER 비교
-> HTML 스니펫: [`references/example-card-snippet.html`](references/example-card-snippet.html) — 그대로 복사 가능
+> Worked example: [`references/example-good-card.md`](references/example-good-card.md) — BEFORE / AFTER comparison.
+> HTML snippet: [`references/example-card-snippet.html`](references/example-card-snippet.html) — copy-paste ready.
 
 ---
 
@@ -160,79 +160,79 @@ JSON/MD 결과를 받아 결정을 영구화하고 일회용 HTML 을 정리한�
 
 | Class | Color | Meaning |
 |-------|-------|---------|
-| `pip-p0` / `pri-tag-p0` | Red | 착수 차단 (지금 결정) |
-| `pip-p1` / `pri-tag-p1` | Yellow | 구현 중 블로커 |
-| `pip-p2` / `pri-tag-p2` | Blue | 착수 후 결정 가능 |
+| `pip-p0` / `pri-tag-p0` | Red | Blocks startup (decide now) |
+| `pip-p1` / `pri-tag-p1` | Yellow | Implementation blocker |
+| `pip-p2` / `pri-tag-p2` | Blue | Decidable after build starts |
 
-카드 번호 (cN) 는 모든 우선순위에 걸쳐 단일 시퀀스. `data-key` / `id` / `data-group` / `data-memo` 가 모두 일치해야 한다.
+Card numbers (cN) are a single sequence across priorities. `data-key` / `id` / `data-group` / `data-memo` must all match.
 
 ---
 
 ## Mode 1 procedure: `generate`
 
 ```bash
-# 1. 변수 설정
+# 1. Set variables
 ISSUE="${1:-$(git branch --show-current | grep -oE '[A-Z]+-[0-9]+' || echo decision)}"
 OUT_DIR="${2:-${DECISIONS_DIR:-claudedocs}}"
 DATE=$(date +%Y-%m-%d-%H%M)
 TARGET_DIR="${OUT_DIR}/${ISSUE}"
 FILE="${TARGET_DIR}/decisions-${DATE}.html"
 
-# 2. 출력 디렉토리 + 템플릿 복사
+# 2. Create output directory + copy template
 mkdir -p "${TARGET_DIR}"
 cp "${CLAUDE_SKILL_DIR}/template.html" "${FILE}"
 
-# 3. 단순 placeholder 치환
+# 3. Substitute simple placeholders
 BRANCH=$(git branch --show-current 2>/dev/null || echo main)
 sed -i '' \
   -e "s|{{ISSUE_ID}}|${ISSUE}|g" \
   -e "s|{{BRANCH}}|${BRANCH}|g" \
   -e "s|{{DATE}}|${DATE}|g" \
-  -e "s|{{DASHBOARD_TITLE}}|결정 대시보드|g" \
-  -e "s|{{DASHBOARD_SUBTITLE}}|아래 사안들을 검토하고 선택해주세요|g" \
+  -e "s|{{DASHBOARD_TITLE}}|Decision Dashboard|g" \
+  -e "s|{{DASHBOARD_SUBTITLE}}|Review and pick the options below|g" \
   "${FILE}"
 ```
 
-이후:
-4. 결정 항목 정리 (대화 컨텍스트 또는 결정 노트로부터)
-5. 각 항목을 P0 / P1 / P2 로 분류
-6. `{{NAV_GROUPS}}` / `{{DECISION_SECTIONS}}` 는 큰 구조 — **Edit 툴**로 치환 (sed 는 줄바꿈 처리 약함). 카드 작성 시 `references/example-card-snippet.html` 참조
-7. **검증**: `python3 "${CLAUDE_SKILL_DIR}/scripts/validate-dashboard.py" "${FILE}"` — 4개 게이트 모두 통과해야 발행
-8. 브라우저 열기: `open "${FILE}"`
-9. 사용자에게 안내: "브라우저에서 선택 → JSON/MD 다운로드 → 경로를 알려주시면 finalize 모드로 진행"
+Then:
+4. Collect decision items (from chat context or decision notes).
+5. Classify each as P0 / P1 / P2.
+6. `{{NAV_GROUPS}}` / `{{DECISION_SECTIONS}}` are large blocks — substitute via the **Edit tool** (`sed` doesn't handle multi-line well). Use `references/example-card-snippet.html` as the per-card pattern.
+7. **Validate**: `python3 "${CLAUDE_SKILL_DIR}/scripts/validate-dashboard.py" "${FILE}"` — all 4 gates must pass before publishing.
+8. Open in browser: `open "${FILE}"`.
+9. Tell the user: "Pick options in the browser → download JSON/MD → paste the path so we can finalize."
 
-> `${CLAUDE_SKILL_DIR}` 은 Claude Code 가 스킬 설치 경로로 자동 치환. cache 디렉토리에 복사되므로 절대 경로 하드코딩 금지.
+> `${CLAUDE_SKILL_DIR}` is auto-substituted by Claude Code with the skill's install path. The plugin lives in a cache directory, so do not hardcode absolute paths.
 
 ---
 
 ## Mode 2 procedure: `finalize`
 
-사용자가 대시보드에서 결정 후 JSON/MD 다운로드. "이거 반영해줘" 시작.
+User finished picking on the dashboard and downloaded the JSON / MD. They say "apply these".
 
 ```bash
-# 1. 인자 파싱: <ISSUE> <user-downloaded-json-path>
+# 1. Parse args: <ISSUE> <user-downloaded-json-path>
 ISSUE="$1"
 USER_JSON="$2"
 OUT_DIR="${DECISIONS_DIR:-claudedocs}"
 TARGET_DIR="${OUT_DIR}/${ISSUE}"
 FINAL_JSON="${TARGET_DIR}/decisions-final.json"
 
-# 2. 사용자 JSON 을 영구 저장소로 복사 + 메타 추가
+# 2. Copy user JSON to persistent storage + add metadata
 python3 "${CLAUDE_SKILL_DIR}/scripts/finalize.py" \
   --input "${USER_JSON}" \
   --output "${FINAL_JSON}" \
   --issue "${ISSUE}"
 
-# (현재 finalize.py 미포함 — Claude 가 직접 JSON 변환:
-#  사용자 JSON 의 각 카드에 {decided_at, source: dashboard} 메타 추가하여 FINAL_JSON 에 저장)
+# (finalize.py is currently not bundled — Claude does the JSON transform inline:
+#  for each card in user JSON, add {decided_at, source: dashboard} metadata and write to FINAL_JSON.)
 
-# 3. 일회용 HTML 정리
+# 3. Clean up the disposable HTML
 rm "${TARGET_DIR}"/decisions-*.html
 
-# 4. 사용자에게 보고 (다음 섹션 "End-of-skill reflection" 참조)
+# 4. Report to user (see "End-of-skill reflection" below)
 ```
 
-`decisions-final.json` 스키마:
+`decisions-final.json` schema:
 ```json
 {
   "issue": "PROJ-123",
@@ -260,118 +260,118 @@ rm "${TARGET_DIR}"/decisions-*.html
 }
 ```
 
-후행 스킬(`/implement`, `/ship` 등) 이 이 JSON 을 읽어 "무엇이 결정됐고 왜 그랬는지" 컨텍스트로 사용.
+Downstream skills (`/implement`, `/ship`, etc.) read this JSON for "what was decided and why" context.
 
 ---
 
-## End-of-skill reflection (Mode 2 종료 시)
+## End-of-skill reflection (Mode 2 close)
 
-**칭찬하지 말 것. 패턴을 관찰할 것.**
-(gstack 의 *"After /office-hours, the model reflects on what it noticed about how you think — not generic praise, but specific callbacks"* 원칙)
+**Don't praise. Observe patterns.**
+(Following gstack's *"After /office-hours, the model reflects on what it noticed about how you think — not generic praise, but specific callbacks"*.)
 
-JSON 영구화 직후, 사용자에게 다음 형식으로 보고:
+Right after JSON persistence, report to the user in this shape:
 
 ```
-결정 5건 반영 완료. 패턴 관찰:
+5 decisions persisted. Patterns I noticed:
 
-- 5건 중 4건에서 "권고 옵션" 선택 → 권고 옵션의 신뢰도가 높거나, 사용자가 검토 시간이 부족했을 수 있음.
-  다음 세션에서 권고 표시 없이 carded 한 후 같은 비율인지 비교해 볼 만함.
-- P0 결정 2건이 모두 "즉시성 > 부하" 방향 → 사용자/제품이 latency 보다 immediacy 를 우선시하는 경향.
-  같은 축의 다음 결정에서 디폴트로 가정 가능.
-- 메모 입력 0건 → 제시된 옵션이 모두 적합했거나, 사용자가 메모 작성 부담을 느꼈을 수 있음.
-  옵션 D(기타) 선택률이 0이면 후자일 가능성.
+- 4 of 5 picks matched the recommended option → either the recommendation is well-calibrated,
+  or the user was time-pressed. Try a future session without "recommended" labels and see if the rate holds.
+- Both P0 picks chose "immediacy > load" → the user / product trends toward immediacy over latency.
+  May be safe to default future axis-of-this-shape to immediacy.
+- 0 memos written → either offered options fit perfectly, or memo authoring felt like overhead.
+  If "Other (D)" picks are also 0%, the latter is likely.
 
-영구 저장: {FINAL_JSON_PATH}
-HTML 정리됨.
+Persisted at: {FINAL_JSON_PATH}
+HTML cleaned up.
 ```
 
-3개 항목, 각 1문장 관찰 + 1문장 가설/제안. 추측이 사실로 표현되지 않게 "~일 수 있음" / "비교해 볼 만함" 같은 hedge 사용.
+3 items, each = 1-sentence observation + 1-sentence hypothesis / suggestion. Hedge with "may be" / "worth comparing" so guesses don't read as facts.
 
 ---
 
 ## Forbidden
 
-- 외부 CDN / 라이브러리 추가 금지 (Google Fonts 는 template 에 이미 포함, 예외)
-- 단일 HTML 외 별도 산출물 금지 — 단, finalize 모드의 `decisions-final.json` 은 예외 (영구 저장 의도)
-- template CSS 변수 수정 금지 (시각 일관성)
-- 별도 review/version 파일 금지 (`decisions-{date}-v2.html` 같은 것)
-- **중첩 HTML 주석 금지** (`<!-- ... <!-- ... --> ... -->`). 첫 `-->` 가 외부 주석을 닫아 이후 코드 노출. 인라인 주석은 괄호 평문으로
-- finalize 전 HTML 삭제 금지 (사용자 결정 안 끝났을 가능성)
-- 메모 빈 상태로 D(기타) 선택된 카드 발행 금지 — 사용자에게 메모 입력 요청
+- ❌ Adding external CDN / library (Google Fonts is already bundled in the template — exception).
+- ❌ Producing artifacts beyond the single HTML — except `decisions-final.json` in finalize mode (intentionally persistent).
+- ❌ Editing the template's CSS variables (visual consistency).
+- ❌ Separate review / version files (`decisions-{date}-v2.html`, etc.).
+- ❌ **Nested HTML comments** (`<!-- ... <!-- ... --> ... -->`). The first `-->` closes the outer comment and exposes the rest. Inline notes use plain parentheses.
+- ❌ Deleting the HTML before finalize (the user may not have decided yet).
+- ❌ Publishing a card with `D (Other)` selected and an empty memo — request memo input first.
 
 ---
 
-## Known pitfalls (regression prevention)
+## Pitfall / Known issues (regression prevention)
 
 ### Pitfall 1: Nested HTML comment leak
 
-**Symptom**: 주석으로 가린 예시 카드/HTML 이 본문 영역 상단에 노출.
+**Symptom**: An example card / HTML hidden inside a comment is displayed at the top of the body area.
 
-**Cause**: `<!-- DECISION_SECTIONS:START guide -->` 같은 외부 주석 안에 `<!-- recommended only -->` 내부 주석을 넣으면 첫 `-->` 에서 외부 주석이 종료.
+**Cause**: An outer `<!-- DECISION_SECTIONS:START guide -->` containing an inner `<!-- recommended only -->` — the inner's `-->` closes the outer.
 
-**Prevention**: template body 의 모든 중첩 `<!-- -->` 제거. 새 카드 추가 시 인라인 노트는 평문만.
+**Prevention**: Remove every nested `<!-- -->` from the template body. New cards must use plain-text inline notes.
 
 ### Pitfall 2: Awkward scroll to collapsed cards
 
-**Symptom**: 사이드바 링크 클릭 시 작은 헤드만 뷰포트 상단 살짝 아래에 표시.
+**Symptom**: Clicking a sidebar link shows only the small head right below the viewport top.
 
-**Cause**: 카드 body 가 `max-height:0` 으로 접혀 있어 기본 `<a href="#cN">` 앵커가 헤드 상단으로 스크롤.
+**Cause**: Card body collapsed via `max-height: 0` so the default `<a href="#cN">` anchors to the head's top.
 
-**Prevention**: template JS 가 nav-link 클릭 시 카드 자동 펼침 + 부드러운 스크롤(`scrollTo({top: rect.top - 24})`) 처리. 새 nav-link 추가 시 `data-id="cN"` 매칭 정확히 확인.
+**Prevention**: Template JS auto-expands the card on nav-link click and smooth-scrolls (`scrollTo({top: rect.top - 24})`). When adding nav-links, verify `data-id="cN"` matches the card.
 
-### Pitfall 3: `${CLAUDE_PLUGIN_ROOT}` vs `${CLAUDE_SKILL_DIR}` 혼동
+### Pitfall 3: Confusing `${CLAUDE_PLUGIN_ROOT}` with `${CLAUDE_SKILL_DIR}`
 
-**Symptom**: `cp ${CLAUDE_PLUGIN_ROOT}/skills/decision-dashboard/template.html ...` 처럼 PLUGIN_ROOT 를 쓰면 cache 경로에서 실패할 수 있음.
+**Symptom**: `cp ${CLAUDE_PLUGIN_ROOT}/skills/decision-dashboard/template.html …` fails on the cache path.
 
-**Cause**: 플러그인 SKILL.md 안에서 같은 스킬의 자산을 참조할 때는 `CLAUDE_SKILL_DIR` 이 안전한 변수.
+**Cause**: Inside a plugin SKILL.md, when referencing the skill's own assets, `CLAUDE_SKILL_DIR` is the safe variable.
 
-**Prevention**: 항상 `${CLAUDE_SKILL_DIR}/template.html`, `${CLAUDE_SKILL_DIR}/scripts/...`, `${CLAUDE_SKILL_DIR}/references/...` 사용.
+**Prevention**: Always use `${CLAUDE_SKILL_DIR}/template.html`, `${CLAUDE_SKILL_DIR}/scripts/...`, `${CLAUDE_SKILL_DIR}/references/...`.
 
 ---
 
 ## Auto-validation
 
-생성한 HTML 의 4개 게이트를 검증한다. 게이트 실패 시 발행 차단.
+Validate the generated HTML against 4 gates. Failure blocks publishing.
 
 ```bash
 python3 "${CLAUDE_SKILL_DIR}/scripts/validate-dashboard.py" "${FILE}"
 ```
 
-JSON 출력으로 다른 스킬과 chaining 가능:
+Chainable JSON output:
 ```bash
 python3 "${CLAUDE_SKILL_DIR}/scripts/validate-dashboard.py" "${FILE}" --json
 ```
 
-게이트:
-1. **placeholders** — 미해결 `{{...}}` 0개
-2. **nested_comments** — 중첩 HTML 주석 0개
-3. **navlink_card_match** — 모든 nav-link 의 `data-id` 가 실제 카드 `id` 와 일치
-4. **language_gate** — 카드 본문(`info-box`, `card-title`, `.opt`) 에 내부 식별자 노출 0건. `.detail-panel` 내부는 제외 (개발자 근거 영역)
+Gates:
+1. **placeholders** — 0 unresolved `{{...}}`.
+2. **nested_comments** — 0 nested HTML comments.
+3. **navlink_card_match** — every nav-link `data-id` matches an actual card `id`.
+4. **language_gate** — 0 internal-identifier exposure in card body (`info-box`, `card-title`, `.opt`). The `.detail-panel` is exempt (developer-rationale area).
 
-> LANGUAGE GATE 의 패턴 리스트는 `scripts/validate-dashboard.py` 의 `LANGUAGE_GATE_PATTERNS` 에서 직접 편집 가능. 본인 프로젝트의 사내 약어/프레임워크 어노테이션을 추가하라.
+> The LANGUAGE GATE pattern list is editable directly in `scripts/validate-dashboard.py` at `LANGUAGE_GATE_PATTERNS`. Add your project's internal acronyms / framework annotations there.
 
 ---
 
 ## Supporting files
 
-| 파일 | 용도 |
+| File | Role |
 |------|------|
-| [`template.html`](template.html) | 마스터 HTML 템플릿. `{{...}}` placeholder 포함. 그대로 복사 후 치환 |
-| [`scripts/validate-dashboard.py`](scripts/validate-dashboard.py) | 4-gate 검증. `--json` 으로 chaining 가능. stdlib only |
-| [`references/example-good-card.md`](references/example-good-card.md) | BEFORE/AFTER 카드 비교 — 자체 규칙 위반 vs 통과 |
-| [`references/example-card-snippet.html`](references/example-card-snippet.html) | 좋은 카드 1개 HTML fragment — `{{DECISION_SECTIONS}}` 영역에 그대로 삽입 가능 |
+| [`template.html`](template.html) | Master HTML template with `{{...}}` placeholders. Copy and substitute. |
+| [`scripts/validate-dashboard.py`](scripts/validate-dashboard.py) | 4-gate validator. `--json` for chaining. stdlib only. |
+| [`references/example-good-card.md`](references/example-good-card.md) | BEFORE / AFTER card comparison — own-rule violation vs pass. |
+| [`references/example-card-snippet.html`](references/example-card-snippet.html) | A single good-card HTML fragment — paste into `{{DECISION_SECTIONS}}`. |
 
 ---
 
-## Self-check before publishing (사람용)
+## Self-check before publishing (human-readable)
 
-발행 전 다음 8개 항목 모두 ✓ 확인:
+Before publishing, verify all 8 items:
 
-- [ ] `validate-dashboard.py` 4-gate 모두 PASS
-- [ ] 결정자(PO/팀장) 가 코드/DB 를 안 보고 모든 카드 본문 이해 가능
-- [ ] 각 카드 배경에 구체 숫자 또는 시나리오 1개 이상
-- [ ] 각 카드 판단 질문에 결정자가 즉답 가능한 형식
-- [ ] 모든 옵션 라벨이 "무엇이 달라진다" 로 끝남
-- [ ] 모든 카드 마지막에 "기타 — 직접 입력" 옵션 존재
-- [ ] 우선순위(P0/P1/P2) 분류가 합리적
-- [ ] (Mode 2) `decisions-final.json` 에 모든 결정과 거부된 대안이 기록됨
+- [ ] All 4 gates of `validate-dashboard.py` PASS.
+- [ ] The decision-maker (PO / team lead) can understand every card body without reading code or DB.
+- [ ] Every card background has at least one concrete number or scenario.
+- [ ] Every judgment question is answerable on the spot.
+- [ ] Every option label ends in "what becomes different".
+- [ ] Every card ends with the "Other — custom input" option.
+- [ ] Priority (P0 / P1 / P2) classification is reasonable.
+- [ ] (Mode 2) `decisions-final.json` records every decision and rejected alternatives.

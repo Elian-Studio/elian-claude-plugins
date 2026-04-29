@@ -1,63 +1,63 @@
 <!--
-PR 작성 가이드:
-- SKILL.md 변경 시 자동으로 Skill Quality Gate (90점) 가 작동합니다.
-- 휴리스틱 채점 (Python stdlib only, 외부 API 의존 없음) 결과가 PR 코멘트로 게시됩니다.
-- 점수가 90 미만이면 머지가 차단됩니다 (브랜치 보호 규칙).
-- 평가 루브릭은 scripts/rubric.md, 채점 스크립트는 scripts/score_skill.py 참조.
-- 로컬에서 사전 점검: `python3 scripts/score_skill.py <SKILL.md>` (의존성 0)
+PR guide:
+- When SKILL.md changes, the Skill Quality Gate (90 points) runs automatically.
+- Heuristic scorer (Python stdlib only, no external API dependency) posts the result as a PR comment.
+- Below 90 = merge blocked (branch protection).
+- Rubric: scripts/rubric.md. Scorer: scripts/score_skill.py.
+- Local pre-check: `python3 scripts/score_skill.py <SKILL.md>` (zero dependencies).
 -->
 
-## 변경 요약
+## Summary
 
-<!-- 한 줄로 무엇을 바꿨는지 -->
+<!-- One line: what changed. -->
 
-## 변경 유형
+## Change type
 
-- [ ] 신규 플러그인 추가 (`plugins/<name>/` 디렉토리)
-- [ ] 기존 플러그인 기능 추가 (MINOR — `1.0.0 → 1.1.0`)
-- [ ] 기존 플러그인 버그 수정 (PATCH — `1.0.0 → 1.0.1`)
-- [ ] 기존 플러그인 호환성 깨짐 (MAJOR — `1.0.0 → 2.0.0`)
-- [ ] 마켓플레이스 메타데이터 변경 (스킬 자체 변경 없음)
-- [ ] 인프라/문서/CI 변경 (스킬 자체 변경 없음)
+- [ ] New plugin (`plugins/<name>/` directory)
+- [ ] Existing plugin: feature added (MINOR — `1.0.0 → 1.1.0`)
+- [ ] Existing plugin: bug fix (PATCH — `1.0.0 → 1.0.1`)
+- [ ] Existing plugin: breaking change (MAJOR — `1.0.0 → 2.0.0`)
+- [ ] Marketplace metadata only (no skill content change)
+- [ ] Infra / docs / CI (no skill content change)
 
-## 체크리스트
+## Checklist
 
-### 항상
+### Always
 
-- [ ] `feature/*` 또는 `fix/*` 브랜치에서 작업 (직접 main 푸시 금지)
-- [ ] PR 단일 책임 (한 플러그인의 한 가지 변경)
+- [ ] Working on `feature/*` or `fix/*` branch (no direct push to `main`)
+- [ ] Single-responsibility PR (one change to one plugin)
 
-### SKILL.md 변경 시
+### When SKILL.md changes
 
-- [ ] `plugin.json` 의 `version` bump 완료
-- [ ] `marketplace.json` 의 해당 플러그인 `version` bump 완료 (둘 다 bump 권장)
-- [ ] `CHANGELOG.md` 에 변경사항 기록 (Added / Changed / Fixed / Removed)
-- [ ] 로컬 채점 통과 — `python3 scripts/score_skill.py <SKILL.md>` (90+ 확인)
+- [ ] `plugin.json` `version` bumped
+- [ ] `marketplace.json` plugin entry `version` bumped (both recommended)
+- [ ] `CHANGELOG.md` updated (Added / Changed / Fixed / Removed)
+- [ ] Local score passes — `python3 scripts/score_skill.py <SKILL.md>` (≥ 90)
 
-### 신규 플러그인 추가 시
+### When adding a new plugin
 
-- [ ] `plugins/<name>/.claude-plugin/plugin.json` 작성
-- [ ] `marketplace.json` 의 `plugins[]` 에 신규 엔트리 추가
-- [ ] `README.md` 의 플러그인 목록 업데이트
-- [ ] LICENSE 명시 (`plugin.json.license`)
+- [ ] `plugins/<name>/.claude-plugin/plugin.json` written
+- [ ] `marketplace.json` `plugins[]` updated with the new entry
+- [ ] `README.md` plugin list updated
+- [ ] License declared (`plugin.json.license`)
 
-## Skill Quality Gate 점수 (수동 사전 점검)
+## Skill Quality Gate score (manual pre-check)
 
-PR 생성 후 자동 평가가 게시됩니다. 사전에 어떤 축에서 점수 손실이 예상되는지 자가 점검:
+The CI scorer posts a result automatically after PR creation. Before that, self-check expected losses by axis:
 
-- [ ] 1. Frontmatter 규약 (10/10 예상)
-- [ ] 2. Description 자동 호출 신뢰성 (10/10 예상)
-- [ ] 3. Progressive Disclosure (10/10 예상)
-- [ ] 4. Standing Instructions (10/10 예상)
-- [ ] 5. 예시 완결성 (10/10 예상)
-- [ ] 6. Anti-pattern / Failure-mode (10/10 예상)
-- [ ] 7. Validation 자가 검증 (10/10 예상)
-- [ ] 8. 보안 / 권한 (10/10 예상)
-- [ ] 9. 일반화 / 휴대성 (10/10 예상)
-- [ ] 10. 의사결정·산출물 설계 (10/10 예상)
+- [ ] 1. Frontmatter compliance (10/10 expected)
+- [ ] 2. Description auto-invocation reliability (10/10 expected)
+- [ ] 3. Progressive disclosure (10/10 expected)
+- [ ] 4. Standing instructions (10/10 expected)
+- [ ] 5. Example completeness (10/10 expected)
+- [ ] 6. Anti-pattern / failure-mode (10/10 expected)
+- [ ] 7. Validation self-check (10/10 expected)
+- [ ] 8. Security / permission (10/10 expected)
+- [ ] 9. Generalization / portability (10/10 expected)
+- [ ] 10. Decision design / artifacts (10/10 expected)
 
-**예상 총점**: ___ / 100 (90 이상 필요)
+**Expected total**: ___ / 100 (≥ 90 required)
 
-## 관련 이슈 / 컨텍스트
+## Related issues / context
 
-<!-- Closes #N, Refs #M, 또는 결정 배경 -->
+<!-- Closes #N, Refs #M, or decision background -->

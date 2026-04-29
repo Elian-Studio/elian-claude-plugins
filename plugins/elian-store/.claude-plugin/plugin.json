@@ -1,7 +1,7 @@
 {
   "name": "elian-store",
-  "description": "Daniel(Elian-Studio) 의 Claude Code 워크플로우 스킬 번들. 결정 대시보드 + /generate-teammate(Agent Team 생성기) + 14 개 도메인 전문 에이전트(엔지니어링·디자인·리서치·마케팅·비즈니스·비판적 검토) 를 한 번 설치로 사용 가능.",
-  "version": "2.1.0",
+  "description": "Daniel (Elian-Studio)'s Claude Code workflow skill bundle. One install gives you decision-dashboard, /generate-teammate, 14 domain-expert agents, the TDD family (/implement, /fix, /improve), and /brainstorm.",
+  "version": "2.2.0",
   "author": {
     "name": "Daniel (Elian-Studio)",
     "email": "danielmrbang@gmail.com"
@@ -15,8 +15,21 @@
     "dashboard",
     "agent-team",
     "subagent",
+    "tdd",
+    "brainstorm",
     "workflow",
-    "toolkit",
-    "korean"
-  ]
+    "toolkit"
+  ],
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/check-update.sh"
+          }
+        ]
+      }
+    ]
+  }
 }

@@ -35,15 +35,15 @@ jobs:
           set -euo pipefail
           BASE_SHA="${{ github.event.pull_request.base.sha }}"
           HEAD_SHA="${{ github.event.pull_request.head.sha }}"
-          # --no-renames: rename 을 (delete + add) 로 분해해서 새 경로가 'A' 로 잡히게 함.
-          # 이렇게 안 하면 git 의 rename 감지가 작동해 A/M 필터에서 누락됨 (기존 PR #3 사례).
+          # --no-renames: decompose a rename into (delete + add) so the new path is captured as 'A'.
+          # Without this, git's rename detection would hide the change from the A/M filter (the PR #3 incident).
           mapfile -t FILES < <(git diff --no-renames --name-only --diff-filter=AM "${BASE_SHA}" "${HEAD_SHA}" -- 'plugins/**/skills/**/SKILL.md')
           if [[ ${#FILES[@]} -eq 0 ]]; then
-            echo "변경된 SKILL.md 없음 — 게이트 스킵"
+            echo "No changed SKILL.md — gate skipped"
             echo "files=" >> "$GITHUB_OUTPUT"
             echo "count=0" >> "$GITHUB_OUTPUT"
           else
-            printf '변경된 스킬 (%d개):\n' "${#FILES[@]}"
+            printf 'Changed skills (%d):\n' "${#FILES[@]}"
             printf '  %s\n' "${FILES[@]}"
             echo "files=${FILES[*]}" >> "$GITHUB_OUTPUT"
             echo "count=${#FILES[@]}" >> "$GITHUB_OUTPUT"
@@ -86,31 +86,31 @@ jobs:
             const allPass = data.all_pass;
 
             let body = `## 🎯 Skill Quality Gate Result\n\n`;
-            body += `**통과 기준**: ${passScore}/100  •  **최종**: ${allPass ? '✅ PASS — 병합 가능' : '❌ FAIL — 개선 후 재제출'}\n\n`;
-            body += `_채점 방식_: stdlib 휴리스틱 (LLM 호출 없음, 외부 API 키 불필요, 결정적)\n\n`;
+            body += `**Pass threshold**: ${passScore}/100  •  **Verdict**: ${allPass ? '✅ PASS — mergeable' : '❌ FAIL — please improve and re-submit'}\n\n`;
+            body += `_Scoring_: stdlib heuristic (no LLM, no external API key, deterministic)\n\n`;
 
             for (const r of data.results) {
               if (r.error) {
-                body += `### ❌ \`${r.path}\` — 평가 실패\n\n\`\`\`\n${r.error}\n\`\`\`\n\n`;
+                body += `### ❌ \`${r.path}\` — evaluation failed\n\n\`\`\`\n${r.error}\n\`\`\`\n\n`;
                 continue;
               }
               const icon = r.verdict === 'PASS' ? '✅' : '❌';
               body += `### ${icon} \`${r.path}\` — ${r.total}/100 (${r.verdict})\n\n`;
               body += `> ${r.summary}\n\n`;
-              body += `| # | 축 | 점수 | 사유 |\n|---|---|---|---|\n`;
+              body += `| # | Axis | Score | Reason |\n|---|---|---|---|\n`;
               for (const ax of r.axes) {
                 const reason = (ax.reason || '').replace(/\|/g, '\\|');
                 body += `| ${ax.id} | ${ax.name} | ${ax.score}/${ax.max} | ${reason} |\n`;
               }
               if (r.top_improvements && r.top_improvements.length) {
-                body += `\n**점수 상승 포인트 (Top improvements)**:\n`;
+                body += `\n**Top improvements**:\n`;
                 for (const imp of r.top_improvements) body += `- ${imp}\n`;
               }
               body += `\n`;
             }
-            body += `\n---\n_루브릭_: [\`scripts/rubric.md\`](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/scripts/rubric.md) • _채점 스크립트_: [\`scripts/score_skill.py\`](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/scripts/score_skill.py)\n`;
+            body += `\n---\n_Rubric_: [\`scripts/rubric.md\`](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/scripts/rubric.md) • _Scorer_: [\`scripts/score_skill.py\`](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/scripts/score_skill.py)\n`;
 
-            // 동일 PR 의 기존 게이트 코멘트 찾아서 업데이트, 없으면 신규 작성
+            // Update existing gate comment on this PR; create one if absent.
             const { owner, repo } = context.repo;
             const issue_number = context.payload.pull_request.number;
             const marker = '## 🎯 Skill Quality Gate Result';
