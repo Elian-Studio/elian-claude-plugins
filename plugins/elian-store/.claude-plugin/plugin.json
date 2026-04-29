@@ -1,7 +1,7 @@
 {
   "name": "elian-store",
-  "description": "Daniel(Elian-Studio) 의 Claude Code 워크플로우 스킬 번들. 한 번의 설치로 결정 대시보드, (예정) 스킬 관리·브레인스토밍·커밋 등 다수 스킬을 함께 사용할 수 있습니다.",
-  "version": "2.0.0",
+  "description": "Daniel(Elian-Studio) 의 Claude Code 워크플로우 스킬 번들. 결정 대시보드 + /generate-teammate(Agent Team 생성기) + 14 개 도메인 전문 에이전트(엔지니어링·디자인·리서치·마케팅·비즈니스·비판적 검토) 를 한 번 설치로 사용 가능.",
+  "version": "2.1.0",
   "author": {
     "name": "Daniel (Elian-Studio)",
     "email": "danielmrbang@gmail.com"
@@ -13,6 +13,8 @@
     "elian",
     "decision",
     "dashboard",
+    "agent-team",
+    "subagent",
     "workflow",
     "toolkit",
     "korean"

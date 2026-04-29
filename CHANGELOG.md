@@ -10,6 +10,27 @@
 
 ## 마켓플레이스 (`elian`)
 
+### [2.1.0] — 2026-04-29
+
+#### Added
+- **`/generate-teammate` 스킬 추가** — Agent Team / Subagent / 직접 실행을 Phase 별로 독립 판정해 최적 전략을 결정하는 팀 생성기. Phase 분해 → 접근법 판정 (★ 적합 / 가능 / 부적합) → 단일 또는 하이브리드 전략 선택 → 팀 / 작업 설계 → 사용자 확인 → 실행 흐름. 공식 문서(Sub-agents, Agent Teams) 의 핵심 판별 질문 ("작업자 간 소통이 필요한가?") 을 1차 기준으로 사용.
+- **14 개 도메인 전문 에이전트 정의 번들** — `plugins/elian-store/agents/` 에 self-contained (외부 스킬 의존 0) 로 배포:
+  - 엔지니어링 8 개: `frontend-architect` (React / Vue / Angular / Svelte / Solid 멀티 프레임워크), `backend-architect` (Spring Boot / Express / NestJS / Django / FastAPI / Rails / Go / .NET 멀티 스택), `system-architect` (ADR · 도메인 모델), `security-engineer` (OWASP + AI · 클라우드), `performance-engineer` (측정 우선), `quality-engineer` (테스트 피라미드), `devops-architect` (Docker · K8s · Terraform · CI / CD), `requirements-analyst` (PRD · 인수기준)
+  - 디자인 / 리서치 / 전략 6 개: `ui-ux-designer` (디자인 토큰 · 컴포넌트 · a11y), `technical-writer` (Diátaxis), `ux-researcher` (인터뷰 · 페르소나 · 저니맵), `marketing-strategist` (포지셔닝 · GTM), `business-analyst` (단위 경제 · ROI · 의사결정 프레임), `devil-advocate` (사전 부검 · 가정 발굴 · 윤리 lens)
+- **references/ 디렉토리** — 입력 → Phase 분해 → 판정 → 팀 구성 → spawn prompt 까지 전체 trace 4 개 시나리오 (풀스택 신기능, 가설 경쟁 디버깅, 다관점 PR 리뷰, 비-개발 런치 전략).
+- **Documentation Team / Strategy Team 패턴 추가** — Design Team 은 기술 / UX 두 변형으로 확장. 단일 도메인 (스킬 빌더 · 분석가) 위주에서 풀 도메인 카탈로그로.
+- 모든 스킬 내부 문서 영어 통일 (마켓플레이스 사용자가 다국적임을 고려).
+
+#### Changed
+- 마켓플레이스 / 플러그인 description 업데이트하여 새 스킬 + 에이전트 카탈로그 반영.
+- `plugin.json` keywords 에 `agent-team`, `subagent` 추가.
+
+#### Notes
+- Agent Teams 는 실험적 기능. 사용 전 `settings.json` 또는 환경 변수에 `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` 필요. Claude Code v2.1.32 이상.
+- 14 에이전트는 `skills:` frontmatter 의존성 없음 — 본 플러그인 단독 설치만으로 동작.
+
+---
+
 ### [2.0.1] — 2026-04-28
 
 #### Fixed
