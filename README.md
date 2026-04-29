@@ -36,8 +36,8 @@ Then in Claude Code:
 | [fix](plugins/elian-store/skills/fix/) | ✅ v2.2.0 | Root-cause-first bug repair: regression test first, then fix, with sibling-site audit. | `/elian-store:fix` |
 | [improve](plugins/elian-store/skills/improve/) | ✅ v2.2.0 | Behavior-changing improvement to working features with quantified BEFORE/AFTER and Characterization Tests. | `/elian-store:improve` |
 | [brainstorm](plugins/elian-store/skills/brainstorm/) | ✅ v2.2.0 | Conversational discovery for fuzzy requests: Socratic probing → 3+ options → tradeoff matrix → decision → handoff. | `/elian-store:brainstorm` |
-| manage-skills | 🔮 planned | Auto-detect verify-skill drift after code changes and update skills to keep verification current. | `/elian-store:manage-skills` |
-| verify-implementation | 🔮 planned | Discover and run all verify-* skills before shipping; surface failures with concrete fixes. | `/elian-store:verify-implementation` |
+| [manage-skills](plugins/elian-store/skills/manage-skills/) | ✅ v2.3.0 | Auto-detect verify-skill drift after code changes and create/update verify-* skills so the project's verification stays current. Pairs with verify-implementation. | `/elian-store:manage-skills` |
+| [verify-implementation](plugins/elian-store/skills/verify-implementation/) | ✅ v2.3.0 | Discover and run all verify-* skills in the project before shipping; surface failures with concrete fix suggestions; auto-apply fixes and re-verify with approval. | `/elian-store:verify-implementation` |
 
 New skills land via `/plugin update elian-store@elian` — no separate install per skill.
 

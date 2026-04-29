@@ -10,6 +10,22 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## Marketplace (`elian`)
 
+### [2.3.0] — 2026-04-29
+
+#### Added
+- **Two new skills** in `elian-store`:
+  - `/manage-skills` — Auto-detect verify-skill drift after code changes and create or update verify-* skills so the project's verification stays current. Pairs with `/verify-implementation`. Self-contained, English, gate 97/100.
+  - `/verify-implementation` — Discover and run all verify-* skills in the current project, surface failures with concrete fix suggestions, and (with approval) auto-apply fixes + re-verify. One command instead of remembering which verify-* to run for which change. Self-contained, English, gate 97/100.
+
+#### Changed
+- Marketplace and plugin descriptions updated to mention the skill-meta pair.
+
+#### Notes
+- Both skills are self-contained (no external skill dependencies).
+- Self-validators (each skill's `scripts/check-*.py`): argparse + `--json`.
+
+---
+
 ### [2.2.0] — 2026-04-29
 
 #### Added
