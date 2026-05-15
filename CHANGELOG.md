@@ -10,6 +10,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## Marketplace (`elian`)
 
+### [2.4.0] — 2026-05-15
+
+#### Added
+- **New skill** in `elian-store`:
+  - `/on-call-elian` — Review a plan/design/document through a fixed persona lens (default `daniel`) with a **locked 5-block OUTPUT FORMAT** (결론 → 트레이드오프 표 → 운영 리스크 → 8가지 압박 질문 → 다음 질문). Read-only. Pairs with `/brainstorm` (발산) as the 수렴 압박 step. Persona body in `references/persona-daniel.md`; custom personas via `--persona <path>` or `${ON_CALL_ELIAN_DEFAULT}`. Self-contained, gate 98/100.
+
+#### Changed
+- Marketplace and plugin descriptions updated to mention `/on-call-elian`.
+
+#### Notes
+- Persona built from repo SKILL.md/hooks/agents patterns + user CLAUDE.md + general-conversation behavior cases + Claude/GPT persona analysis.
+- Self-validator (`scripts/validate_skill.py`): argparse + `--json` + `--quiet`, verifies the 5-block contract order.
+
+---
+
 ### [2.3.0] — 2026-04-29
 
 #### Added
