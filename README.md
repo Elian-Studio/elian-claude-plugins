@@ -44,6 +44,18 @@ New skills land via `/plugin update elian-store@elian` — no separate install p
 
 ---
 
+## 🤖 Codex CLI config (independent tree)
+
+This repo also ships an **independent** OpenAI Codex CLI config tree under [`codex/`](codex/) — separate from the Claude `plugins/` tree, with its own quality gate (`scripts/score_codex_prompt.py`) and CI (`codex-config-gate.yml`).
+
+| Skill | Status | Codex install |
+|-------|--------|---------------|
+| [on-call-elian](codex/prompts/on-call-elian.md) | ✅ reference port | `cp codex/prompts/*.md ~/.codex/prompts/` → `/on-call-elian <target> [--depth interview]` |
+
+Setup: see [`codex/README.md`](codex/README.md). ⚠️ The two trees have **no shared source** — editing skill logic on one side requires manually syncing the other (intentional trade-off; see `CONTRIBUTING.md` → "Claude vs Codex").
+
+---
+
 ## 🎯 decision-dashboard — what does it look like?
 
 ![decision-dashboard preview](docs/screenshots/decision-dashboard-overview.png)

@@ -1,0 +1,39 @@
+# ~/.codex/config.toml 샘플 — 복사 후 직접 편집
+#
+#   cp codex/config.toml.example ~/.codex/config.toml
+#
+# 이 샘플은 /on-call-elian 같은 read-only 리뷰 작업에 안전한 기본값을 깐다.
+# 코드를 쓰는 작업을 하려면 sandbox_mode / approval_policy 를 직접 올려야 한다.
+# (codex/ 트리는 plugins/ 와 독립 — Claude 쪽 .claude/settings 와 무관.)
+
+# 기본 모델. 조직 정책/구독에 맞게 교체.
+model = "gpt-5-codex"
+
+# 추론 강도: minimal | low | medium | high
+model_reasoning_effort = "high"
+
+# 승인 정책:
+#   untrusted   = 신뢰되지 않은 명령마다 승인 요청 (가장 안전)
+#   on-failure  = 샌드박스 실패 시에만 승인 요청
+#   on-request  = 모델이 필요할 때 요청
+#   never       = 승인 안 물음 (위험 — 자동화 전용)
+approval_policy = "untrusted"
+
+# 샌드박스:
+#   read-only            = 파일 읽기만. /on-call-elian 등 리뷰 작업 기본값 (read-only 계약과 일치)
+#   workspace-write      = 작업 디렉토리 쓰기 허용
+#   danger-full-access   = 제한 없음 (권장 안 함)
+sandbox_mode = "read-only"
+
+# AGENTS.md 로딩 상한 (바이트). 0 = 비활성.
+project_doc_max_bytes = 32768
+
+# workspace-write 로 올릴 때만 적용되는 세부 설정 (참고용, 주석 유지)
+# [sandbox_workspace_write]
+# network_access = false      # 기본 네트워크 차단 — supply-chain 정책과 일치
+# writable_roots = []
+
+# MCP 서버 (선택). 필요 시 추가.
+# [mcp_servers.example]
+# command = "npx"
+# args = ["-y", "@example/mcp-server"]

@@ -10,6 +10,29 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## Marketplace (`elian`)
 
+### Repo infra — Codex CLI config tree — 2026-05-19 (no plugin version bump)
+
+Not a plugin release. `codex/` is a sibling distributable tree, independent of the `elian-store` Claude plugin, so `plugin.json`/`marketplace.json` versions are unchanged.
+
+#### Added
+- **`codex/` independent config tree** (decision: independent 2-tree, no shared source — trade-off accepted in an `/on-call-elian` review):
+  - `codex/prompts/on-call-elian.md` — Codex-native port of `/on-call-elian` (reference; `AskUserQuestion` steps → ask-and-wait, no frontmatter, `$ARGUMENTS`).
+  - `codex/AGENTS.md` — Daniel standing-rules project-instruction template.
+  - `codex/config.toml.example` — `~/.codex/config.toml` sample (read-only-review-safe defaults).
+  - `codex/README.md` — identity, install, explicit drift warning.
+- **Independent Codex quality gate**: `scripts/score_codex_prompt.py` + `scripts/rubric-codex.md` (8 axes, stdlib-only, 90 gate; axes 1/2/5 = 5-block order + Phase consistency + counterpart cross-ref to catch tree-level drift). Reference scores 100/100.
+- **CI**: `.github/workflows/codex-config-gate.yml` (path-filtered to `codex/prompts/**`, mirrors the skill gate).
+
+#### Changed
+- `.gitignore`: Codex per-developer state (`.codex/`, `codex/config.toml`) + gate artifacts.
+- `CONTRIBUTING.md`: new "Claude vs Codex — 어디를 수정하나" section + directory tree; `README.md`: Codex CLI section.
+
+#### Notes
+- **No single source of truth.** `codex/prompts/on-call-elian.md` and `plugins/elian-store/skills/on-call-elian/SKILL.md` are separate files; cross-tree sync is a manual PR-author responsibility. This is the intentional cost of the independent-tree model.
+- Port scope: `on-call-elian` only (reference). Other skills deferred until the pattern proves out.
+
+---
+
 ### [2.5.0] — 2026-05-15
 
 #### Added

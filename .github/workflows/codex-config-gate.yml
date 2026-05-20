@@ -1,0 +1,119 @@
+name: Codex Config Gate
+
+on:
+  pull_request:
+    paths:
+      - 'codex/prompts/**/*.md'
+      - 'codex/AGENTS.md'
+      - 'scripts/rubric-codex.md'
+      - 'scripts/score_codex_prompt.py'
+      - '.github/workflows/codex-config-gate.yml'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: codex-config-gate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    name: Evaluate Codex prompts (90+ required)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect changed Codex prompt files
+        id: changes
+        run: |
+          set -euo pipefail
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          # --no-renames: decompose a rename into delete+add so the new path is captured (same fix as skill gate, PR #3).
+          mapfile -t FILES < <(git diff --no-renames --name-only --diff-filter=AM "${BASE_SHA}" "${HEAD_SHA}" -- 'codex/prompts/**/*.md')
+          if [[ ${#FILES[@]} -eq 0 ]]; then
+            echo "No changed Codex prompt — gate skipped"
+            echo "files=" >> "$GITHUB_OUTPUT"
+            echo "count=0" >> "$GITHUB_OUTPUT"
+          else
+            printf 'Changed Codex prompts (%d):\n' "${#FILES[@]}"
+            printf '  %s\n' "${FILES[@]}"
+            echo "files=${FILES[*]}" >> "$GITHUB_OUTPUT"
+            echo "count=${#FILES[@]}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Python
+        if: steps.changes.outputs.count != '0'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Score Codex prompts (heuristic, stdlib only — no API key)
+        if: steps.changes.outputs.count != '0'
+        env:
+          CODEX_EVAL_PASS_SCORE: '90'
+          CODEX_EVAL_OUTPUT: 'codex-evaluation-results.json'
+        run: |
+          set -euo pipefail
+          read -r -a FILES <<< "${{ steps.changes.outputs.files }}"
+          python3 scripts/score_codex_prompt.py "${FILES[@]}" | tee codex-evaluation-output.txt
+
+      - name: Upload evaluation artifact
+        if: always() && steps.changes.outputs.count != '0'
+        uses: actions/upload-artifact@v4
+        with:
+          name: codex-evaluation-results
+          path: |
+            codex-evaluation-results.json
+            codex-evaluation-output.txt
+          retention-days: 30
+
+      - name: Comment on PR with results
+        if: always() && steps.changes.outputs.count != '0' && hashFiles('codex-evaluation-results.json') != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const data = JSON.parse(fs.readFileSync('codex-evaluation-results.json', 'utf-8'));
+            const passScore = data.pass_score;
+            const allPass = data.all_pass;
+
+            let body = `## 🤖 Codex Config Gate Result\n\n`;
+            body += `**Pass threshold**: ${passScore}/100  •  **Verdict**: ${allPass ? '✅ PASS — mergeable' : '❌ FAIL — please improve and re-submit'}\n\n`;
+            body += `_Scoring_: stdlib heuristic (no LLM, no external API key, deterministic). Independent of the Claude skill gate.\n\n`;
+
+            for (const r of data.results) {
+              if (r.error) {
+                body += `### ❌ \`${r.path}\` — evaluation failed\n\n\`\`\`\n${r.error}\n\`\`\`\n\n`;
+                continue;
+              }
+              const icon = r.verdict === 'PASS' ? '✅' : '❌';
+              body += `### ${icon} \`${r.path}\` — ${r.total}/100 (${r.verdict})\n\n`;
+              body += `> ${r.summary}\n\n`;
+              body += `| # | Axis | Score | Reason |\n|---|---|---|---|\n`;
+              for (const ax of r.axes) {
+                const reason = (ax.reason || '').replace(/\|/g, '\\|');
+                body += `| ${ax.id} | ${ax.name} | ${ax.score}/${ax.max} | ${reason} |\n`;
+              }
+              if (r.top_improvements && r.top_improvements.length) {
+                body += `\n**Top improvements**:\n`;
+                for (const imp of r.top_improvements) body += `- ${imp}\n`;
+              }
+              body += `\n`;
+            }
+            body += `\n---\n_Rubric_: [\`scripts/rubric-codex.md\`](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/scripts/rubric-codex.md) • _Scorer_: [\`scripts/score_codex_prompt.py\`](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/scripts/score_codex_prompt.py)\n`;
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+            const marker = '## 🤖 Codex Config Gate Result';
+
+            const comments = await github.rest.issues.listComments({ owner, repo, issue_number, per_page: 100 });
+            const existing = comments.data.find(c => c.user.type === 'Bot' && c.body.startsWith(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
