@@ -38,7 +38,7 @@ Then in Claude Code:
 | [brainstorm](plugins/elian-store/skills/brainstorm/) | ✅ v2.2.0 | Conversational discovery for fuzzy requests: Socratic probing → 3+ options → tradeoff matrix → decision → handoff. | `/elian-store:brainstorm` |
 | [manage-skills](plugins/elian-store/skills/manage-skills/) | ✅ v2.3.0 | Auto-detect verify-skill drift after code changes and create/update verify-* skills so the project's verification stays current. Pairs with verify-implementation. | `/elian-store:manage-skills` |
 | [verify-implementation](plugins/elian-store/skills/verify-implementation/) | ✅ v2.3.0 | Discover and run all verify-* skills in the project before shipping; surface failures with concrete fix suggestions; auto-apply fixes and re-verify with approval. | `/elian-store:verify-implementation` |
-| [on-call-elian](plugins/elian-store/skills/on-call-elian/) | ✅ v2.4.0 | Review a plan/design/doc through a fixed persona lens (default `daniel`) with a locked 5-block OUTPUT FORMAT (결론 → 트레이드오프 → 운영 리스크 → 8 압박 질문 → 다음 질문). Read-only. Pairs with /brainstorm as 수렴 압박. | `/elian-store:on-call-elian` |
+| [on-call-elian](plugins/elian-store/skills/on-call-elian/) | ✅ v2.5.0 | Review a plan/design/doc through a fixed persona lens (default `daniel`) with a locked 5-block OUTPUT FORMAT (결론 → 트레이드오프 → 운영 리스크 → 8 압박 질문 → 다음 질문). Thin one-liners get ONE intent question first; optional `--depth interview` re-emits the 5-block up to 3 rounds re-interviewing the weakest points, then emits a read-only `/improve` handoff. Read-only. Pairs with /brainstorm as 수렴 압박. | `/elian-store:on-call-elian` |
 
 New skills land via `/plugin update elian-store@elian` — no separate install per skill.
 

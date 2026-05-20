@@ -10,6 +10,25 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## Marketplace (`elian`)
 
+### [2.5.0] — 2026-05-15
+
+#### Added
+- **`/on-call-elian` — `--depth interview` mode** (new option, MINOR):
+  - **Phase 4.5 convergence loop**: instead of a one-shot 5-block review, picks the 1–2 weakest points (압박 질문 `✗` > `△` > "상황에 따라 다름" branch var), re-interviews via `AskUserQuestion`, and re-emits the full 5 blocks. Terminates on any of: 결론 becomes 단정 / no `✗` left / user stops / **3-round hard cap** (infinite-loop guard). Round counter shown as `(interview R{n}/3)`.
+  - **Phase 5 handoff payload**: once converged, emits a ready-to-run `/improve` invocation + context block (결론 / 채택 옵션 / 잔여 리스크 / In·Out). **Emit-only** — on-call-elian never calls `/improve` itself, preserving the read-only axiom.
+- `references/example-review.md`: Example 3 (interview 1-round → converge → handoff).
+
+#### Changed
+- `argument-hint`, `--depth` table, `${ON_CALL_ELIAN_DEPTH}` enum now include `interview`.
+- Workflow diagram, "automated vs taste" table, Forbidden, Pitfalls, Pre-flight checklist extended with interview/handoff guards (3R cap, emit-only, ≤2 questions/round).
+- Marketplace + plugin descriptions mention the convergence loop.
+
+#### Notes
+- 5-block OUTPUT FORMAT contract unchanged — interview *repeats* the blocks, never alters the format. `quick`/`deep` behavior unchanged (default still `quick`).
+- Self-validator (`scripts/validate_skill.py`): unchanged, still passes (5-block order intact).
+
+---
+
 ### [2.4.0] — 2026-05-15
 
 #### Added
