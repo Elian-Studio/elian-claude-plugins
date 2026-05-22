@@ -48,7 +48,13 @@ def get_value(scope_stack: list, key: str):
     예: scope_stack = [{"cards": [...]}, {"card_id": "c1", "title": "..."}]
         key = "title" → 두 번째 스코프의 title
         key = "issue" → 첫 번째 스코프의 issue
+
+    특수 키:
+        "." / "_" → 가장 안쪽 스코프의 값 자체 (FOREACH 가 array of primitives 일 때
+                                                요소 자체를 가리킴).
     """
+    if key in (".", "_"):
+        return scope_stack[-1] if scope_stack else None
     parts = key.split(".")
     for scope in reversed(scope_stack):
         if not isinstance(scope, dict):

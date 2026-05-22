@@ -1,0 +1,117 @@
+{
+  "type": "object",
+  "required": ["team_name", "phase", "teammates"],
+  "properties": {
+    "team_name": { "type": "string", "minLength": 3 },
+    "phase":     { "type": "string", "minLength": 3 },
+    "context_summary": { "type": "string", "minLength": 20 },
+    "teammates": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "subagent_type",
+          "role",
+          "owned_files",
+          "tech_stack",
+          "task",
+          "interfaces",
+          "definition_of_done",
+          "communication"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 2,
+            "pattern": "^[a-z][a-z0-9-]*$"
+          },
+          "subagent_type": {
+            "type": "string",
+            "enum": [
+              "Explore",
+              "Plan",
+              "general-purpose",
+              "frontend-architect",
+              "backend-architect",
+              "system-architect",
+              "security-engineer",
+              "performance-engineer",
+              "quality-engineer",
+              "devops-architect",
+              "requirements-analyst",
+              "ui-ux-designer",
+              "technical-writer",
+              "ux-researcher",
+              "marketing-strategist",
+              "business-analyst",
+              "devil-advocate"
+            ]
+          },
+          "role": {
+            "type": "string",
+            "minLength": 15,
+            "forbid": [
+              "(?i)\\bhelp\\s+(build|make|do)\\b",
+              "(?i)\\bdo\\s+something\\b",
+              "(?i)\\bgeneral\\s+work\\b",
+              "TODO",
+              "FIXME"
+            ]
+          },
+          "owned_files": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "tech_stack": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "task": {
+            "type": "string",
+            "minLength": 30,
+            "mustMatch": [
+              "(?i)(implement|design|review|build|refactor|verify|write|test|analyze|generate|optimize|migrate)",
+              "구현|설계|작성|검증|리뷰|구축|테스트|리팩토링|분석|생성|최적화|마이그|반영|보강"
+            ],
+            "forbid": [
+              "(?i)\\bhelp\\s+(build|make|do)\\b",
+              "(?i)\\bdo\\s+something\\b",
+              "(?i)the\\s+(feature|task|thing)\\s*$",
+              "TODO",
+              "FIXME",
+              "\\.{3,}"
+            ]
+          },
+          "reference_docs": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "interfaces": {
+            "type": "string",
+            "minLength": 20,
+            "forbid": ["TODO", "FIXME", "\\.{3,}"]
+          },
+          "definition_of_done": {
+            "type": "string",
+            "minLength": 30,
+            "mustMatch": [
+              "(?i)(test|pass|verif|cover|lint|type|merge|deploy|integration|fixture|fix|gate)",
+              "테스트|통과|커버|린트|타입|머지|배포|통합|픽스처|픽스|검증|게이트"
+            ],
+            "forbid": ["TODO", "FIXME", "\\.{3,}"]
+          },
+          "communication": {
+            "type": "string",
+            "minLength": 15,
+            "forbid": ["TODO", "FIXME", "\\.{3,}"]
+          }
+        }
+      }
+    }
+  }
+}

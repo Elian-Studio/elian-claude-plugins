@@ -1,0 +1,58 @@
+{
+  "team_name": "notification-retry-build",
+  "phase": "Build",
+  "context_summary": "PROJ-123 알림 재발송 기능. Design Team 단계에서 API 계약과 데이터 모델이 확정됨. 이번 Build 단계는 FE/BE/Test 세 영역으로 파일 소유권을 나눠 병렬 진행한다.",
+  "teammates": [
+    {
+      "name": "backend-builder",
+      "subagent_type": "backend-architect",
+      "role": "Spring Boot 기반 알림 재발송 API 구현. 실패 신호 일관화와 재시도 상한 정책을 코드로 표현한다.",
+      "owned_files": [
+        "mobidoc-server/src/main/java/com/mobidoc/notification/",
+        "mobidoc-server/src/test/java/com/mobidoc/notification/"
+      ],
+      "tech_stack": ["Java 17", "Spring Boot 3", "PostgreSQL", "JUnit 5"],
+      "task": "재시도 큐 진입/소비 엔드포인트와 채널별 실패 판별 로직을 구현한다. 3회 상한, 지수 백오프, idempotency 보장 포함.",
+      "reference_docs": [
+        "claudedocs/PROJ-123/decisions-final.json",
+        "claudedocs/PROJ-123/api-spec.md"
+      ],
+      "interfaces": "POST /api/notifications/retry — body { channel, original_id }. 응답 { retry_id, status }. FE 가 호출, Test 가 검증한다.",
+      "definition_of_done": "단위/통합 테스트 90% 커버, lint/spotless 통과, API spec 의 모든 케이스 (성공/한도초과/중복) 통합 테스트 통과.",
+      "communication": "FE 와 API 변경은 contract 파일 갱신으로 알림. Test 와는 PR 코멘트로 fixture 변경 공유."
+    },
+    {
+      "name": "frontend-builder",
+      "subagent_type": "frontend-architect",
+      "role": "Vue 3 관리자 화면에서 재발송 트리거 UI 와 상태 표시를 구현한다.",
+      "owned_files": [
+        "mobidoc-front/src/views/notifications/",
+        "mobidoc-front/src/components/NotificationRetry/"
+      ],
+      "tech_stack": ["Vue 3 Composition API", "TypeScript", "Pinia", "SCSS"],
+      "task": "재발송 트리거 버튼, 진행 상태 polling, 실패 사유 표시 컴포넌트를 구현한다. i18n 키는 ko 기준 작성 후 /translate 로 분리.",
+      "reference_docs": [
+        "claudedocs/PROJ-123/design-spec.md"
+      ],
+      "interfaces": "Backend 의 /api/notifications/retry 호출. 응답을 Pinia store 에 캐싱. Test 가 component 렌더링을 검증.",
+      "definition_of_done": "vue-tsc 통과, 단위 테스트로 로딩/에러/성공 상태 모두 커버, accessibility 키보드 네비게이션 확인.",
+      "communication": "API spec 변경은 backend-builder 에게 즉시 PR 코멘트로 묻고, 사용자 시나리오 변경은 PO 에게 확인."
+    },
+    {
+      "name": "test-builder",
+      "subagent_type": "quality-engineer",
+      "role": "End-to-end 시나리오로 재발송 성공/실패/한도초과 흐름을 검증한다.",
+      "owned_files": [
+        "tests/e2e/notification-retry/"
+      ],
+      "tech_stack": ["Playwright", "TypeScript"],
+      "task": "관리자가 실패 알림을 재발송 트리거하고 결과를 확인하는 e2e 시나리오를 작성. 한도초과 케이스와 중복 트리거 케이스 포함.",
+      "reference_docs": [
+        "claudedocs/PROJ-123/qa-checklist.md"
+      ],
+      "interfaces": "Backend 와 Frontend 의 통합 동작을 검증. FE/BE 코드는 수정하지 않고 테스트만 작성.",
+      "definition_of_done": "Playwright 시나리오 3개 (성공/한도초과/중복) 모두 통과, CI 에 등록되어 PR 마다 실행됨.",
+      "communication": "테스트 실패 시 FE/BE 책임자에게 PR 코멘트로 reproduce 단계 공유."
+    }
+  ]
+}
