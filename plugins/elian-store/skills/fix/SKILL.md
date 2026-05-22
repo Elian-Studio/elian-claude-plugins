@@ -1,8 +1,8 @@
 ---
 name: fix
-description: "When the user reports a bug, asks to fix something, or runs /fix, drive the work through root-cause analysis → planning → user approval → TDD repair (regression test first) → verification → review → report, with conflict-free file ownership for multi-symptom fixes."
-when_to_use: "Use ONLY for bug repair invoked via /fix or explicit 'fix this bug', 'something broken', 'X is wrong' phrasing. Do NOT use for new features (use /implement) or behavior-preserving improvements (use /improve)."
-argument-hint: "<issue-id> [--side back|front|both] [--step N] [--skip-docs]"
+description: When the user reports a bug, asks to fix something, or runs /fix, drive the work through root-cause analysis → planning → user approval → TDD repair (regression test first) → verification → review → report, with conflict-free file ownership for multi-symptom fixes.
+when_to_use: Use ONLY for bug repair invoked via /fix or explicit 'fix this bug', 'something broken', 'X is wrong' phrasing. Do NOT use for new features (use /implement) or behavior-preserving improvements (use /improve).
+argument-hint: <issue-id> [--side back|front|both] [--step N] [--skip-docs]
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git status*), Bash(git branch*), Bash(git diff*), Bash(git log*), Bash(npm test*), Bash(npm run*), Bash(./gradlew test*), Bash(mvn test*), Bash(pytest*), Bash(go test*), Bash(rspec*), AskUserQuestion, Agent
 disable-model-invocation: true
 ---

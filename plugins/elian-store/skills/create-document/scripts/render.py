@@ -48,7 +48,13 @@ def get_value(scope_stack: list, key: str):
     예: scope_stack = [{"cards": [...]}, {"card_id": "c1", "title": "..."}]
         key = "title" → 두 번째 스코프의 title
         key = "issue" → 첫 번째 스코프의 issue
+
+    특수 키:
+        "." / "_" → 가장 안쪽 스코프의 값 자체 (FOREACH 가 array of primitives 일 때
+                                                요소 자체를 가리킴).
     """
+    if key in (".", "_"):
+        return scope_stack[-1] if scope_stack else None
     parts = key.split(".")
     for scope in reversed(scope_stack):
         if not isinstance(scope, dict):
@@ -84,6 +90,11 @@ def _render_with_scope(template: str, scope_stack: list) -> str:
             items = []
         if not isinstance(items, list):
             raise RuntimeError(f"FOREACH '{key}' — 배열이 아님 (실제: {type(items).__name__})")
+        # body 의 leading newline 한 개 제거 — FOREACH 마커가 자체 라인일 때
+        # iteration 사이에 빈 줄이 생기는 것 방지. 마크다운 표/리스트 row 가
+        # 끊어지지 않게 한다.
+        if body.startswith("\n"):
+            body = body[1:]
         rendered_items = []
         for item in items:
             rendered_items.append(_render_with_scope(body, scope_stack + [item]))

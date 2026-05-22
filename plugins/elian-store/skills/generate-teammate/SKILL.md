@@ -1,8 +1,8 @@
 ---
 name: generate-teammate
-description: "When the user explicitly invokes /generate-teammate or says 'create a team', 'build a team', or 'spawn teammates', decompose the work into phases, judge each phase independently (Agent Team / Subagent / direct), and produce a hybrid execution plan with file-conflict-free role assignment."
-when_to_use: "Use ONLY when the user explicitly invokes /generate-teammate or asks to 'create a team', 'build a team', or 'spawn teammates'. Do NOT use for simple single-step tasks or when a direct edit suffices."
-argument-hint: "<project description or task requirements>"
+description: When the user explicitly invokes /generate-teammate or says 'create a team', 'build a team', or 'spawn teammates', decompose the work into phases, judge each phase independently (Agent Team / Subagent / direct), and produce a hybrid execution plan with file-conflict-free role assignment. JSON-first spawn prompt rendering via create-document blocks vague language (help build, TODO, ...) before any teammate is spawned.
+when_to_use: Use ONLY when the user explicitly invokes /generate-teammate or asks to 'create a team', 'build a team', or 'spawn teammates'. Do NOT use for simple single-step tasks or when a direct edit suffices.
+argument-hint: <project description or task requirements>
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash(python3 *), Bash(ls *), Agent, TeamCreate, TaskCreate, TaskUpdate, TaskList, TaskGet, SendMessage, TeamDelete, AskUserQuestion
 disable-model-invocation: true
 ---
@@ -235,15 +235,45 @@ See [execution-guide.md](execution-guide.md) for output format, execution code, 
 ### Execution Summary
 
 1. **Phase 6**: AskUserQuestion confirms team composition (role + agent type + assigned tasks table)
-2. **Phase 7**: Execute phases in order
-   - Agent Team: `TeamCreate` → `TaskCreate` → `TaskUpdate(owner)` → `Agent(team_name)` spawn
-   - Subagent: parallel `Agent` tool calls
+2. **Phase 6.5 — Spawn prompt rendering**: Author each teammate as JSON → run `create-document/scripts/render.py --template teammate-spawn`. Validation must pass before Phase 7.
+3. **Phase 7**: Execute phases in order
+   - Agent Team: `TeamCreate` → `TaskCreate` → `TaskUpdate(owner)` → `Agent(team_name, prompt: <rendered slot from spawn-plan.md>)` spawn
+   - Subagent: parallel `Agent` tool calls with the same rendered slots
    - Hybrid: pass results across phases (preceding output → next prompt)
-3. **Shutdown**: `SendMessage(shutdown_request)` → `TeamDelete()`
+4. **Shutdown**: `SendMessage(shutdown_request)` → `TeamDelete()`
 
-### Required Items in Teammate Spawn Prompt
+### Required Items in Teammate Spawn Prompt (JSON-first since v2.6)
 
-Role / responsibility scope, owned files / directories, tech stack, definition of done, inter-teammate interfaces. See `execution-guide.md` for the standard template.
+**Do not hand-write spawn prompts.** Author each teammate as JSON, then render through `create-document`. The schema enforces every required slot and blocks vague language — no spawned teammate ships with missing context.
+
+7 required slots per teammate (enforced by `schemas/teammate-spawn.schema.json`):
+
+| Slot | Schema rule |
+|------|-------------|
+| `role` | minLength 15, forbid `help build` / `do something` |
+| `owned_files` | array, minItems 1 (file-conflict prevention) |
+| `tech_stack` | array, minItems 1 |
+| `task` | minLength 30, **mustMatch** action verb (`implement` / `구현` / `build` / `설계` / ...), forbid `TODO` / `...` |
+| `reference_docs` | array (can be empty if none) |
+| `interfaces` | minLength 20 (cross-teammate contract) |
+| `definition_of_done` | minLength 30, **mustMatch** measurable signal (`test` / `통과` / `lint` / `cover` / ...) |
+| `communication` | minLength 15 |
+
+#### Render command
+
+```bash
+CD="${CLAUDE_PLUGIN_ROOT}/skills/create-document"
+python3 "${CD}/scripts/render.py" \
+  --template teammate-spawn \
+  --data ./claudedocs/{team_name}/spawn.json \
+  --out ./claudedocs/{team_name}/spawn-plan.md
+```
+
+If validation fails, stderr lists every violation by `teammates[i].field`. Fix the JSON, re-render. **Do not** skip render and hand-write.
+
+Worked example: [example-teammate-spawn.json](../create-document/references/example-teammate-spawn.json) — 3 teammates (backend / frontend / test), all 7 slots, 43 fields validated.
+
+Standard template definition: [create-document/templates/teammate-spawn.md](../create-document/templates/teammate-spawn.md). For details on file-conflict prevention and parallel task design see [execution-guide.md](execution-guide.md).
 
 ## Error Handling
 
@@ -253,6 +283,9 @@ Role / responsibility scope, owned files / directories, tech stack, definition o
 | Cannot parallelize | Inform "single session is more efficient" |
 | File conflict detected | Reassign roles or switch to sequential |
 | Teammate count > 5 | Suggest role consolidation |
+| Spawn JSON schema fails | Read stderr, fix offending slot, re-render. Never hand-write the prompt. |
+
+See [references/known-issues.md#error-handling](references/known-issues.md#error-handling) for the same table with extended rationale.
 
 ## Examples
 
@@ -272,15 +305,18 @@ See [references/](references/) for end-to-end traces of each scenario (input →
 
 ## Standing Rules
 
-These rules apply throughout the skill — not as one-time procedure steps but as ongoing behavior.
+These rules apply throughout the skill — not as one-time procedure steps but as ongoing behavior. Headline list:
 
-- **Phase decomposition is non-optional.** Even if the user describes a single task, run Phase decomposition mentally. Skipping it produces wrong-shape teams.
-- **Per-phase independence beats whole-task judgment.** Composite work has phases that prefer different approaches. Forcing one approach across the whole task is the most common failure mode.
-- **The core question is "Do workers need to communicate with each other?"** — from the official docs. If no, Subagent. If yes-with-handoff, Subagent chain. If yes-with-debate, Agent Team.
-- **File ownership before parallelism.** Two teammates editing the same file is a data race in disguise. Validate ownership separation before spawning.
-- **Minimum viable team.** 2 teammates beat 5 if 2 suffice. Coordination cost grows non-linearly past 5.
-- **Always confirm with AskUserQuestion before spawning.** The user owns the decision; the skill produces the recommendation.
-- **Self-contained agents only.** This plugin's 14 agents work without external skills. Do not introduce dependencies on user-level skills the user may not have.
+- Phase decomposition is non-optional
+- Per-phase independence beats whole-task judgment
+- Core question: "Do workers need to communicate?" (No → Subagent, Handoff → chain, Debate → Agent Team)
+- File ownership before parallelism
+- Minimum viable team (2 over 5 if 2 suffice)
+- Always confirm via AskUserQuestion before spawning
+- Self-contained agents only (no dependency on user-level skills)
+- Spawn prompt is JSON-first (rendered via `create-document/teammate-spawn`)
+
+Full text with rationale: [references/standing-rules.md](references/standing-rules.md).
 
 ## Procedure (one-time)
 
@@ -298,30 +334,25 @@ Phase 1 → 2 → 3 → 4 → 5 → 6 → 7 (see flow diagram above). For each u
 
 > Do **not** do any of these. They are wrong by design, not preference.
 
-- ❌ Skip Phase decomposition for "obvious" tasks. The skill's core value is the per-phase judgment.
-- ❌ Pick an approach by phase **type** (e.g., "exploration is always Subagent"). Always judge by characteristics.
-- ❌ Spawn an Agent Team for independent work just because the task feels big. Token cost without benefit.
-- ❌ Spawn Subagents in parallel before an unsettled API contract. They will produce inconsistent shapes and re-work.
-- ❌ Allow two teammates to own the same file. This is a deterministic conflict, not a probabilistic one.
-- ❌ Skip the AskUserQuestion confirmation gate before spawning teammates. The user must own the team-shape decision.
-- ❌ Bundle `Bash(*)` or unrestricted destructive permissions in `allowed-tools`. Scope every tool.
-- ❌ Use `model:` parameter on `Agent({...})` calls. Resolve via env var → invocation override → definition → session.
-- ❌ Use legacy `Task({...})` syntax. Use `Agent({...})` (renamed in v2.1.63).
-- ❌ Set task dependencies inside `TaskCreate`. Use `TaskUpdate({ task_id, addBlockedBy: [...] })`.
+Top 5 (full list in [references/known-issues.md](references/known-issues.md#forbidden)):
+
+- ❌ Skip Phase decomposition for "obvious" tasks
+- ❌ Pick an approach by phase **type** instead of characteristics
+- ❌ Allow two teammates to own the same file
+- ❌ Skip the AskUserQuestion confirmation gate before spawning
+- ❌ Hand-write spawn prompts without going through `create-document/teammate-spawn` (vague language and missing slots cause inconsistent results)
 
 ## Pitfall / Known Issues
 
-| Pitfall | Why it happens | Fix |
-|---------|----------------|-----|
-| Lead starts implementing instead of waiting | Without delegate mode, the lead does work itself | Enable delegate mode (Shift+Tab); message lead "wait for teammates" |
-| Teammates idle, task list stalls | Tasks have unresolved `blockedBy` after upstream tasks completed but weren't marked done | Tell lead to mark stale tasks complete or rerun TaskList review |
-| TeamDelete fails with active members | Teammates didn't shut down cleanly | Always do `SendMessage(shutdown_request)` first; verify all teammates idle |
-| `/resume` after lead session restart loses teammates | In-process teammates aren't restored | Spawn fresh teammates with the same context summary |
-| Two teammates touched the same file | File ownership wasn't enforced | Re-design role boundaries; rerun Phase 5 ownership validation |
-| Agent Team token cost balloons | Each teammate keeps full context | Switch to Subagent for any phase that doesn't need real-time debate |
-| `tmux` split-pane mode breaks on Windows / VS Code terminal | Display mode unsupported on those terminals | Switch to `teammateMode: "in-process"` |
+Common failure modes (top 3 — full table in [references/known-issues.md](references/known-issues.md#pitfall--known-issues)):
 
-For failure-mode handling: every spawn includes a "verify completion" step. Tasks that fail to verify are reassigned, not silently skipped. Use rollback (revert produced files) when a phase produces unusable output.
+| Pitfall | Fix |
+|---------|-----|
+| Lead starts implementing instead of waiting | Enable delegate mode (Shift+Tab); message lead "wait for teammates" |
+| Two teammates touched the same file | Re-design role boundaries; rerun Phase 5 ownership validation |
+| `create-document` schema fails on spawn JSON | Read stderr — every error names field + violation. Fix JSON, re-render. Do **not** hand-write the prompt. |
+
+Failure-mode recovery: every spawn includes a verify step. Failed verifications are reassigned, not silently skipped. See [known-issues.md](references/known-issues.md#failure-mode-recovery).
 
 ## Where this fits in the workflow
 
@@ -384,59 +415,12 @@ Persistent artifacts make the workflow resumable across sessions and give downst
 
 ## BEFORE / AFTER patterns
 
-### Approach selection
+Four BEFORE/AFTER comparisons live in [references/before-after-patterns.md](references/before-after-patterns.md):
 
-❌ **BEFORE — phase-type-based selection** (anti-pattern):
-
-> "It's a build phase, so spawn a fullstack team of 4."
-
-This produces a team where every phase forces the same shape. The build phase doesn't need cross-perspective debate; it needs files split. Result: 4 teammates idle waiting for synchronization that doesn't exist.
-
-✅ **AFTER — characteristic-based per-phase selection** (correct):
-
-> "Build phase: file ownership clear, no debate needed → Subagent (parallel). Design phase before it: API contract unsettled, FE/BE need to negotiate → Agent Team."
-
-This matches each phase's coordination requirement. Build runs cheaply in parallel; design uses the heavy-coordination tool only where it pays.
-
-### File ownership
-
-❌ **BEFORE — overlapping ownership**:
-
-```
-frontend-dev → src/components/, src/app.tsx, src/api-client.ts
-backend-dev  → src/api/, src/api-client.ts (shared client config)
-```
-
-Two teammates own `src/api-client.ts`. The last writer wins; bug discovered at integration.
-
-✅ **AFTER — strict ownership**:
-
-```
-frontend-dev → src/components/, src/app.tsx
-backend-dev  → src/api/
-api-contract → src/api-client.ts (single owner — could be either, decided up front)
-```
-
-Every file has exactly one owner. Conflicts are impossible.
-
-### Spawn prompt completeness
-
-❌ **BEFORE — vague prompt**:
-
-```
-"Help build the notification feature."
-```
-
-Teammate has no role, no scope, no DoD. Will produce something but it will not match the team's plan.
-
-✅ **AFTER — full template** (see [execution-guide.md](execution-guide.md)):
-
-```
-[ROLE] [OWNED FILES] [TECH STACK] [TASK]
-[REFERENCE DOCS] [INTERFACES] [DEFINITION OF DONE] [COMMUNICATION]
-```
-
-Every slot filled. Teammate knows what to do, what to touch, and what "done" means.
+1. **Approach selection** — phase-type-based (❌) vs characteristic-based (✅)
+2. **File ownership** — overlapping (❌) vs strict single-owner (✅)
+3. **Spawn prompt completeness** — hand-written vague (❌) vs JSON-first via `create-document/teammate-spawn` (✅)
+4. **Spawn prompt slot completeness** — silent missing slot (❌) vs schema-enforced 7 required fields (✅)
 
 ## Skill verification
 

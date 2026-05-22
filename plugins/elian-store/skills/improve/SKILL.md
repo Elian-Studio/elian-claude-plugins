@@ -1,8 +1,8 @@
 ---
 name: improve
-description: "When the user asks to improve an existing feature, optimize behavior, harden edge cases, or runs /improve, drive a BEFORE/AFTER analysis → plan → user approval → TDD improvement protecting existing tests → quantified before/after verification → review → report."
-when_to_use: "Use ONLY for behavior-changing improvements to working features (UX polish, perf optimization, edge-case hardening, API extension) invoked via /improve. Do NOT use for new features (use /implement), bugs (use /fix), or behavior-preserving renames / restructures."
-argument-hint: "<issue-id> [--side back|front|both] [--step N] [--skip-docs]"
+description: When the user asks to improve an existing feature, optimize behavior, harden edge cases, or runs /improve, drive a BEFORE/AFTER analysis → plan → user approval → TDD improvement protecting existing tests → quantified before/after verification → review → report.
+when_to_use: Use ONLY for behavior-changing improvements to working features (UX polish, perf optimization, edge-case hardening, API extension) invoked via /improve. Do NOT use for new features (use /implement), bugs (use /fix), or behavior-preserving renames / restructures.
+argument-hint: <issue-id> [--side back|front|both] [--step N] [--skip-docs]
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git status*), Bash(git branch*), Bash(git diff*), Bash(git log*), Bash(npm test*), Bash(npm run*), Bash(./gradlew test*), Bash(mvn test*), Bash(pytest*), Bash(go test*), Bash(rspec*), AskUserQuestion, Agent
 disable-model-invocation: true
 ---
