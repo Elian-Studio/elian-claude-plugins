@@ -46,10 +46,22 @@ REQUIRED_SECTIONS = [
 ]
 
 # The 5-block locked contract. Order matters — these must appear in this
-# sequence inside the OUTPUT FORMAT fenced block.
-OUTPUT_BLOCKS = ["## 결론", "## 트레이드오프", "## 운영 리스크", "## 페르소나 압박 질문", "## 다음 질문"]
+# sequence inside the OUTPUT FORMAT fenced block. Each "block" is a list of
+# accepted headers (default persona uses Korean; English custom personas use
+# the English fallbacks). The check passes if ANY header from each list is
+# found, and the chosen headers appear in document order.
+OUTPUT_BLOCK_VARIANTS: list[list[str]] = [
+    ["## 결론", "## Conclusion"],
+    ["## 트레이드오프", "## Trade-offs", "## Tradeoffs"],
+    ["## 운영 리스크", "## Operational risks", "## Operational Risk"],
+    ["## 페르소나 압박 질문", "## Pressure questions", "## Pressure Questions"],
+    ["## 다음 질문", "## Next question", "## Next Question"],
+]
 
-REQUIRED_REFERENCES = ["persona-daniel.md", "example-review.md"]
+# Persona file pattern (glob). Any file matching persona-*.md is accepted as
+# the default persona; the skill only requires that at least one exists.
+PERSONA_GLOB = "persona-*.md"
+REQUIRED_REFERENCE_FILES = ["example-review.md"]  # additional fixed references
 
 
 @dataclass
@@ -113,20 +125,34 @@ def check_required_sections() -> CheckResult:
 
 
 def check_output_format_contract() -> CheckResult:
-    """The 5 blocks must appear, in order, in the SKILL.md body."""
+    """The 5 blocks must appear, in order, in the SKILL.md body.
+
+    Each block accepts multiple header variants (e.g., Korean default +
+    English fallback). At least one variant from each block must be found,
+    and the chosen variants must appear in document order.
+    """
     text = _read(SKILL_FILE)
-    positions = []
-    for block in OUTPUT_BLOCKS:
-        idx = text.find(block)
-        positions.append(idx)
-    found_all = all(p != -1 for p in positions)
+    chosen: list[tuple[str, int]] = []
+    missing_blocks: list[int] = []
+    for i, variants in enumerate(OUTPUT_BLOCK_VARIANTS):
+        first_hit: tuple[str, int] | None = None
+        for v in variants:
+            idx = text.find(v)
+            if idx != -1 and (first_hit is None or idx < first_hit[1]):
+                first_hit = (v, idx)
+        if first_hit is None:
+            missing_blocks.append(i)
+        else:
+            chosen.append(first_hit)
+    found_all = not missing_blocks
+    positions = [p for _, p in chosen]
     in_order = found_all and positions == sorted(positions)
     return CheckResult(
         name="5-block LOCKED OUTPUT FORMAT documented in order",
         passed=found_all and in_order,
         detail=(
-            "ok" if (found_all and in_order)
-            else f"found_all={found_all}, in_order={in_order}, positions={positions}"
+            f"ok ({', '.join(h for h, _ in chosen)})" if (found_all and in_order)
+            else f"found_all={found_all}, in_order={in_order}, missing={missing_blocks}, chosen={chosen}"
         ),
     )
 
@@ -134,24 +160,44 @@ def check_output_format_contract() -> CheckResult:
 def check_references_dir() -> CheckResult:
     refs = SKILL_DIR / "references"
     if not refs.is_dir():
-        return CheckResult(name="references/ has persona + example files", passed=False, detail="missing dir")
+        return CheckResult(name="references/ has persona-*.md + example files", passed=False, detail="missing dir")
     present = {p.name for p in refs.iterdir()}
-    missing = [f for f in REQUIRED_REFERENCES if f not in present]
+    personas = sorted(p for p in present if p.startswith("persona-") and p.endswith(".md"))
+    missing_fixed = [f for f in REQUIRED_REFERENCE_FILES if f not in present]
+    missing_persona = not personas
+    passed = not missing_fixed and not missing_persona
+    if passed:
+        detail = f"{len(present)} file(s); persona(s): {personas}"
+    else:
+        parts = []
+        if missing_persona:
+            parts.append(f"no '{PERSONA_GLOB}' found")
+        if missing_fixed:
+            parts.append(f"missing fixed: {missing_fixed}")
+        detail = "; ".join(parts)
     return CheckResult(
-        name="references/ has persona + example files",
-        passed=not missing,
-        detail=f"missing={missing}" if missing else f"{len(present)} file(s)",
+        name="references/ has persona-*.md + example files",
+        passed=passed,
+        detail=detail,
     )
 
 
 def check_references_linked() -> CheckResult:
+    """SKILL.md must link example-review.md AND at least one persona-*.md."""
     text = _read(SKILL_FILE)
-    linked = [f for f in REQUIRED_REFERENCES if re.search(rf"references/{re.escape(f)}", text)]
-    missing = [f for f in REQUIRED_REFERENCES if f not in linked]
+    fixed_linked = [f for f in REQUIRED_REFERENCE_FILES if re.search(rf"references/{re.escape(f)}", text)]
+    fixed_missing = [f for f in REQUIRED_REFERENCE_FILES if f not in fixed_linked]
+    persona_link = re.search(r"references/persona-[\w-]+\.md", text)
+    parts = []
+    if fixed_missing:
+        parts.append(f"missing_fixed_links={fixed_missing}")
+    if not persona_link:
+        parts.append("no persona-*.md link found")
+    passed = not fixed_missing and persona_link is not None
     return CheckResult(
-        name="SKILL.md explicitly links each reference file",
-        passed=not missing,
-        detail=f"missing_links={missing}" if missing else "all linked",
+        name="SKILL.md explicitly links example + at least one persona file",
+        passed=passed,
+        detail="all linked" if passed else "; ".join(parts),
     )
 
 
