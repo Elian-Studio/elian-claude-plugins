@@ -334,9 +334,51 @@
     </div>
   </section>
 
-  <!-- ══════════ Transition: page-2 → page-1 (back) ══════════ -->
+  <!-- ══════════ Transition: page-2 → page-3 ══════════ -->
   <div class="wf-transition">
-    <span class="trigger arrow-down">[실행 또는 취소 → page-1 복귀]</span>
+    <span class="trigger arrow-down">[실행 후 결과/상세 페이지로 이동]</span>
+  </div>
+
+  <!-- ══════════ PAGE 3 ══════════
+       Default scaffold matches flow.html and visual.html, which both reserve
+       a 3rd page. Delete this whole <section> + the surrounding transitions
+       if the flow only has two pages — keep page slugs consistent across
+       flow.html, wireframe.html, visual.html. -->
+  <section class="wf-page" id="page-3">
+    <div class="wf-page-header">
+      <span class="slug">page-3</span>
+      <span class="name">[Page 3 name]</span>
+      <span class="purpose">[Purpose — 한 줄]</span>
+    </div>
+
+    <div class="wf-stack">
+      <section class="wf-section">
+        <div class="wf-box short">
+          <span class="wf-order">1</span>
+          [Top bar with back to page-1]
+        </div>
+        <div class="wf-meta">
+          <span class="intent"><b>Intent:</b> 어디서든 entry 로 복귀 가능 — 갇힘 방지</span>
+          <span class="why"><b>Why here:</b> 모든 페이지 1번은 entry 복귀 경로 (consistency)</span>
+        </div>
+      </section>
+
+      <section class="wf-section">
+        <div class="wf-box tall">
+          <span class="wf-order">2</span>
+          [Result / detail content for page-3]
+        </div>
+        <div class="wf-meta">
+          <span class="intent"><b>Intent:</b> 페이지 목적의 핵심 영역 — Intent 를 채울 때 비워두지 말 것</span>
+          <span class="why"><b>Why here:</b> 사용자가 page-2 결정을 마친 직후 보는 결과/상세</span>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ══════════ Transition: page-3 → page-1 (back) ══════════ -->
+  <div class="wf-transition">
+    <span class="trigger arrow-down">[페이지 종료 → page-1 복귀]</span>
   </div>
 
 </body>
