@@ -1,0 +1,120 @@
+{
+  "type": "object",
+  "required": ["target", "persona", "date", "depth", "rounds"],
+  "properties": {
+    "target":  { "type": "string", "minLength": 1 },
+    "persona": { "type": "string", "minLength": 1 },
+    "date":    { "type": "string", "minLength": 1 },
+    "depth":   { "type": "string", "enum": ["quick", "deep", "interview"] },
+    "rounds": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "required": [
+          "round",
+          "conclusion",
+          "tradeoffs",
+          "operational_risks",
+          "pressure_questions",
+          "next_question"
+        ],
+        "properties": {
+          "round": { "type": "number" },
+          "conclusion": {
+            "type": "string",
+            "minLength": 10,
+            "forbid": [
+              "(?i)\\b(아마도|보통은|maybe|probably)\\b",
+              "TODO",
+              "FIXME",
+              "\\.{3,}",
+              "(?i)(죄송|sorry|apologize)"
+            ]
+          },
+          "tradeoffs": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "object",
+              "required": ["option", "pros", "cons", "fit"],
+              "properties": {
+                "option": { "type": "string", "minLength": 2, "forbid": ["TODO", "\\.{3,}"] },
+                "pros":   { "type": "string", "minLength": 5, "forbid": ["TODO", "\\.{3,}"] },
+                "cons":   { "type": "string", "minLength": 5, "forbid": ["TODO", "\\.{3,}"] },
+                "fit":    { "type": "string", "minLength": 5, "forbid": ["TODO", "\\.{3,}"] }
+              }
+            }
+          },
+          "operational_risks": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 5,
+              "forbid": ["TODO", "FIXME", "\\.{3,}"]
+            }
+          },
+          "pressure_questions": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 12,
+            "items": {
+              "type": "object",
+              "required": ["id", "question", "score", "rationale"],
+              "properties": {
+                "id":       { "type": "number" },
+                "question": { "type": "string", "minLength": 5 },
+                "score":    { "type": "string", "enum": ["✓", "△", "✗", "N"] },
+                "rationale": {
+                  "type": "string",
+                  "minLength": 3,
+                  "forbid": [
+                    "(?i)\\b(아마도|보통은|maybe|probably)\\b",
+                    "TODO",
+                    "\\.{3,}"
+                  ]
+                }
+              }
+            }
+          },
+          "next_question": {
+            "type": "string",
+            "minLength": 5,
+            "endsWith": "?",
+            "forbid": ["TODO", "\\.{3,}"]
+          }
+        }
+      }
+    },
+    "handoff": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["to", "conclusion", "adopted_option", "scope_in", "scope_out"],
+        "properties": {
+          "to": {
+            "type": "string",
+            "enum": [
+              "/improve",
+              "/decision-dashboard",
+              "/implement",
+              "/fix",
+              "/brainstorm"
+            ]
+          },
+          "conclusion":     { "type": "string", "minLength": 10 },
+          "adopted_option": { "type": "string", "minLength": 5 },
+          "remaining_risks": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 5 }
+          },
+          "scope_in":  { "type": "string", "minLength": 5 },
+          "scope_out": { "type": "string", "minLength": 5 }
+        }
+      }
+    }
+  }
+}

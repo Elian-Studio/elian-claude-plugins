@@ -77,15 +77,26 @@ create-document/
 │   ├── render.py        # 메인 엔트리 — JSON + template → 출력
 │   └── validate.py      # 스키마 검증 단독 호출도 가능
 ├── schemas/
-│   └── decision-dashboard.schema.json
+│   ├── decision-dashboard.schema.json  # 결정 카드 (decision-dashboard 호출)
+│   ├── teammate-spawn.schema.json      # 7-slot teammate spawn (generate-teammate 호출)
+│   └── review-output.schema.json       # 5블록 페르소나 review (on-call-elian 양식)
 ├── templates/
-│   └── decision-dashboard.html
+│   ├── decision-dashboard.html         # HTML 결정 대시보드
+│   ├── teammate-spawn.md               # Markdown teammate spawn plan
+│   └── review-output.md                # Markdown 페르소나 review
 └── references/
-    ├── before-after-card-authoring.md   # BEFORE/AFTER 비교 예시
-    └── example-decision-card.json       # 좋은 JSON 데이터 예시
+    ├── before-after-card-authoring.md  # BEFORE/AFTER 비교 예시
+    ├── example-decision-card.json      # 결정 카드 데이터 예시
+    ├── example-teammate-spawn.json     # 3 teammate spawn 예시
+    └── example-review-output.json      # daniel 페르소나 review 예시
 ```
 
-템플릿과 스키마는 **같은 이름**으로 짝지어진다.
+템플릿과 스키마는 **같은 이름**으로 짝지어진다. 같은 이름의 `<name>.html` 또는 `<name>.md` 둘 다 자동 탐색.
+
+현재 지원하는 use case:
+- `decision-dashboard` — `/decision-dashboard` 가 호출. PO 5-min 결정 카드.
+- `teammate-spawn` — `/generate-teammate` 가 호출. 7-slot 일관 spawn prompt.
+- `review-output` — `/on-call-elian` 양식. 5블록 (Conclusion / Trade-offs / Operational risks / 8 pressure questions / Next question) + interview rounds + handoff payload.
 
 ---
 
