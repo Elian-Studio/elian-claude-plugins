@@ -95,6 +95,29 @@ plugins/elian-store/
 
 ---
 
+## Claude vs Codex — 어디를 수정하나
+
+이 repo 는 두 도구용 설정을 **독립 2-트리**로 관리합니다. 단일 진실원이 **없습니다** (의식적 결정 — `/on-call-elian` 리뷰에서 trade-off 인지 후 채택).
+
+| | Claude Code | Codex CLI |
+|---|---|---|
+| 트리 | `plugins/elian-store/skills/*/SKILL.md` | `codex/prompts/*.md` |
+| 진입 포맷 | YAML frontmatter + 마크다운 | 순수 마크다운 (파일명 = `/명령`), `$ARGUMENTS` |
+| 프로젝트 지침 | `CLAUDE.md` / `.claude/` | `codex/AGENTS.md` / `~/.codex/config.toml` |
+| 권한 모델 | frontmatter `allowed-tools` | `config.toml` `approval_policy`/`sandbox_mode` |
+| 품질 게이트 | `scripts/score_skill.py` + `rubric.md` (10축) | `scripts/score_codex_prompt.py` + `rubric-codex.md` (8축) |
+| CI | `.github/workflows/skill-quality-gate.yml` | `.github/workflows/codex-config-gate.yml` |
+
+**핵심 규칙 (드리프트 책임):**
+
+1. 한 도구의 로직을 바꾸면 다른 트리 동기화는 **PR 작성자 수동 책임**. 게이트가 자동 동기화해 주지 않는다.
+2. 같은 스킬이 양쪽에 있으면 **PR 에서 두 파일 diff 를 함께** 확인. (v2.5.0 에서 잡은 "산문↔절차 drift" 의 트리-레벨 버전이 정확히 이 위험.)
+3. Codex 게이트의 축 1·2·5(5블록 순서·Phase 정합·카운터파트 상호참조)가 이 드리프트를 결정적으로 검사한다 — 우회하지 말 것.
+4. 새 스킬을 Codex 로도 포팅할 때: `codex/prompts/<skill>.md` 작성 → `python3 scripts/score_codex_prompt.py codex/prompts/<skill>.md` 90점 확인 → `codex/README.md` 포팅 목록 갱신.
+5. `codex/` 추가는 elian-store **플러그인 버전과 무관** (마켓플레이스 플러그인이 아닌 sibling 배포 트리). `plugin.json`/`marketplace.json` version bump 대상 아님.
+
+---
+
 ## 메인테이너용 — 1회 셋업 (저장소 운영)
 
 게이트는 stdlib 만 사용하는 휴리스틱이라 **API 키 / Secret 셋업 불필요**. 브랜치 보호 규칙만 적용하면 즉시 작동.
@@ -172,9 +195,10 @@ elian-claude-plugins/
 │   └── marketplace.json          # 마켓플레이스 카탈로그 (단일 elian-store entry)
 ├── .github/
 │   ├── workflows/
-│   │   └── skill-quality-gate.yml  # PR 자동 평가
+│   │   ├── skill-quality-gate.yml  # Claude SKILL.md PR 자동 평가
+│   │   └── codex-config-gate.yml   # Codex prompt PR 자동 평가 (독립)
 │   └── pull_request_template.md
-├── plugins/
+├── plugins/                       # ── Claude Code 트리 ──
 │   └── elian-store/              # 단일 번들 플러그인
 │       ├── .claude-plugin/
 │       │   └── plugin.json
@@ -185,9 +209,17 @@ elian-claude-plugins/
 │           │   ├── references/
 │           │   └── template.html
 │           └── (추가 스킬은 같은 skills/ 하위에)
+├── codex/                         # ── Codex CLI 트리 (plugins/ 와 독립) ──
+│   ├── README.md                 # 정체성 + 설치 + drift 경고
+│   ├── AGENTS.md                 # Codex 프로젝트 지침 템플릿
+│   ├── prompts/
+│   │   └── on-call-elian.md      # 레퍼런스 포팅 (~/.codex/prompts/ 드롭인)
+│   └── config.toml.example       # ~/.codex/config.toml 샘플
 ├── scripts/                       # 마켓플레이스 레벨 도구
-│   ├── rubric.md                 # 평가 루브릭 (100점, 휴리스틱)
-│   └── score_skill.py            # 휴리스틱 채점 (stdlib only)
+│   ├── rubric.md                 # Claude 평가 루브릭 (100점)
+│   ├── score_skill.py            # Claude SKILL.md 채점 (stdlib only)
+│   ├── rubric-codex.md           # Codex 평가 루브릭 (100점, 독립)
+│   └── score_codex_prompt.py     # Codex prompt 채점 (stdlib only)
 ├── docs/
 │   └── screenshots/              # README 용 시각 자료
 ├── CHANGELOG.md

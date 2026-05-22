@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ISSUE_ID}} 결정 대시보드</title>
+<title>{{issue}} 결정 대시보드</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -805,29 +805,27 @@
   <!-- ── Nav ── -->
   <nav class="nav">
     <div class="nav-brand">
-      <h1>{{ISSUE_ID}}</h1>
+      <h1>{{issue}}</h1>
       <div class="meta">
-        <span>{{BRANCH}}</span>
+        <span>{{branch}}</span>
         <span class="dot-sep"></span>
-        <span>{{DATE}}</span>
+        <span>{{date}}</span>
       </div>
     </div>
 
     <!-- NAV_GROUPS:START -->
-    <!--
-      각 그룹은 아래 패턴으로 생성:
-      <div class="nav-group">
-        <div class="nav-group-label">P0 착수 차단</div>
-        <a class="nav-link" href="#c1" data-id="c1">
-          <span class="pip pip-p0">1</span>
-          <span>짧은 라벨</span>
-          <span class="check-indicator" id="ci-c1"></span>
-        </a>
-        ...
-      </div>
-      pip-p0 / pip-p1 / pip-p2 로 우선순위 색 결정
-    -->
-    {{NAV_GROUPS}}
+    <!-- FOREACH priority_groups -->
+    <div class="nav-group">
+      <div class="nav-group-label">{{label}}</div>
+      <!-- FOREACH cards -->
+      <a class="nav-link" href="#{{card_id}}" data-id="{{card_id}}">
+        <span class="pip pip-{{priority}}">{{num}}</span>
+        <span>{{title}}</span>
+        <span class="check-indicator" id="ci-{{card_id}}"></span>
+      </a>
+      <!-- END -->
+    </div>
+    <!-- END -->
     <!-- NAV_GROUPS:END -->
 
     <div class="nav-footer">
@@ -852,69 +850,63 @@
   <!-- ── Content ── -->
   <main class="content">
     <div class="content-header">
-      <h2>{{DASHBOARD_TITLE}}</h2>
-      <p>{{DASHBOARD_SUBTITLE}}</p>
+      <h2>{{title}}</h2>
+      <p>{{subtitle}}</p>
     </div>
 
     <!-- DECISION_SECTIONS:START -->
-    <!--
-      각 우선순위 그룹은 <section class="pri-section"> 블록:
-        <section class="pri-section">
-          <div class="pri-header">
-            <span class="pri-tag pri-tag-p0">P0 — 라벨</span>
-            <span class="pri-line"></span>
-          </div>
-          [카드들]
-        </section>
-
-      카드 한 장의 구조 (id=cN 유일, data-key 동일):
-        <div class="card [open]" id="cN" data-key="cN">
-          <div class="card-head" onclick="toggleCard(this)">
-            <span class="card-num">N</span>
-            <div class="card-head-text"><div class="card-title">제목 <code>코드</code></div></div>
-            <span class="card-chevron">▶</span>
-          </div>
-          <div class="card-body"><div class="card-inner">
-            <div class="info-block">
-              <div class="info-label">배경</div>
-              <div class="info-box box-context">왜 지금 결정해야 하는가 + 방치 비용.</div>
-            </div>
-            <div class="info-block">
-              <div class="info-label">판단 축</div>
-              <div class="info-box box-judge">한 문장 기준. <b>핵심 대비</b> 강조.</div>
-            </div>
-            (선택) 상세 비교표 — 2x2 초과일 때만
-            <button class="detail-trigger" onclick="toggleDetail(this)"><span class="tri">▶</span> 선택지 상세 비교</button>
-            <div class="detail-panel"><div>
-              <table class="cmp">
-                <tr><th>축</th><th>A</th><th>B</th></tr>
-                <tr><td>라벨</td><td class="w">✅ 우세</td><td class="l">❌ 열세</td></tr>
-              </table>
-            </div></div>
-            <div class="choices">
-              <div class="choices-label"><span class="req-dot"></span> 결정</div>
-              <div class="opt-list" data-group="cN">
-                <button class="opt" data-val="A" onclick="pick(this)">
-                  <span class="circle"></span>
-                  <span><span class="key">A.</span> 선택지 요약 + 얻는 것/잃는 것.</span>
-                  <span class="rec-badge">권고</span>  (권고 선택지에만)
-                </button>
-                <button class="opt" data-val="B" onclick="pick(this)">
-                  <span class="circle"></span>
-                  <span><span class="key">B.</span> 대안 요약.</span>
-                </button>
-              </div>
-              <div class="memo"><textarea placeholder="결정 사유나 보충 메모 (선택)" data-memo="cN"></textarea></div>
-            </div>
-          </div></div>
+    <!-- FOREACH priority_groups -->
+    <section class="pri-section">
+      <div class="pri-header">
+        <span class="pri-tag pri-tag-{{priority}}">{{label}}</span>
+        <span class="pri-line"></span>
+      </div>
+      <!-- FOREACH cards -->
+      <div class="card{{open_class}}" id="{{card_id}}" data-key="{{card_id}}">
+        <div class="card-head" onclick="toggleCard(this)">
+          <span class="card-num">{{num}}</span>
+          <div class="card-head-text"><div class="card-title">{{title}}</div></div>
+          <span class="card-chevron">▶</span>
         </div>
-
-      규칙:
-      - 첫 카드에만 class="card open" 으로 펼친 상태 시작
-      - pip-p0/p1/p2, pri-tag-p0/p1/p2, box-context/judge/rec 색상 통일
-      - data-group 과 data-memo 는 카드 id(cN)와 일치
-    -->
-    {{DECISION_SECTIONS}}
+        <div class="card-body"><div class="card-inner">
+          <div class="info-block">
+            <div class="info-label">배경</div>
+            <div class="info-box box-context">
+              {{background.situation}}
+              {{background.pain}}
+              {{background.divergence}}
+            </div>
+          </div>
+          <div class="info-block">
+            <div class="info-label">판단 질문</div>
+            <div class="info-box box-judge">
+              {{judgment_question}}
+            </div>
+          </div>
+          <div class="choices">
+            <div class="choices-label"><span class="req-dot"></span> 결정</div>
+            <div class="opt-list" data-group="{{card_id}}">
+              <!-- FOREACH options -->
+              <button class="opt" data-val="{{key}}" onclick="pick(this)">
+                <span class="circle"></span>
+                <span><span class="key">{{key}}.</span> {{label}}</span>
+                {{{rec_badge}}}
+              </button>
+              <!-- END -->
+              <button class="opt" data-val="D" onclick="pick(this)">
+                <span class="circle"></span>
+                <span><span class="key">D.</span> 기타 — 아래 메모에 직접 입력</span>
+              </button>
+            </div>
+            <div class="memo">
+              <textarea placeholder="결정 사유나 보충 메모 (선택)" data-memo="{{card_id}}"></textarea>
+            </div>
+          </div>
+        </div></div>
+      </div>
+      <!-- END -->
+    </section>
+    <!-- END -->
     <!-- DECISION_SECTIONS:END -->
   </main>
 </div>
@@ -941,8 +933,8 @@
       else prios[id] = '-';
     } else prios[id] = '-';
   });
-  const ISSUE_ID = '{{ISSUE_ID}}';
-  const BRANCH = '{{BRANCH}}';
+  const ISSUE_ID = '{{issue}}';
+  const BRANCH = '{{branch}}';
   let fmt = 'md';
 
   // Card toggle
