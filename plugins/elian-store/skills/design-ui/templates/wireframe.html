@@ -93,6 +93,29 @@
     .wf-meta .intent { display: block; padding: 2px 0 0 8px; border-left: 2px solid #888; }
     .wf-meta .why    { display: block; padding: 2px 0 0 8px; border-left: 2px solid var(--wf-line); color: var(--wf-ink-soft); }
 
+    /* === Multi-page stack === */
+    .wf-page {
+      max-width: 1280px; margin: 0 auto 0; background: white;
+      border: 1px dashed var(--wf-line); padding: var(--wf-pad);
+    }
+    .wf-page-header {
+      display: flex; align-items: baseline; gap: 12px;
+      margin: -4px -4px 16px; padding: 6px 12px;
+      background: var(--wf-ink); color: white; border-radius: 4px;
+    }
+    .wf-page-header .slug { font-size: 11px; letter-spacing: 0.08em; opacity: .8; }
+    .wf-page-header .name { font-size: 14px; font-weight: 600; }
+    .wf-page-header .purpose { font-size: 12px; opacity: .8; margin-left: auto; }
+
+    .wf-transition {
+      max-width: 1280px; margin: 0 auto; padding: 16px 0;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-size: 11px; color: var(--wf-ink-soft); letter-spacing: 0.08em; text-transform: uppercase;
+    }
+    .wf-transition::before, .wf-transition::after { content: ""; flex: 1; height: 1px; background: var(--wf-line); }
+    .wf-transition .trigger { padding: 2px 10px; border: 1px dashed var(--wf-line); border-radius: 12px; background: white; }
+    .wf-transition .arrow-down::after { content: " ▼"; }
+
     .wf-grid { display: grid; gap: var(--wf-gap); }
     .wf-grid.cols-12 { grid-template-columns: repeat(12, 1fr); }
     .wf-grid.cols-8  { grid-template-columns: repeat(8, 1fr); }
@@ -161,18 +184,24 @@
 <body>
   <h1 class="wf-title">Wireframe · {{FEATURE_NAME}} · {{TODAY}}</h1>
 
-  <div class="wf-frame">
+  <!--
+    Multi-page stack. Each <section class="wf-page" id="page-N"> is one page.
+    Between pages, drop a <div class="wf-transition"> describing the trigger.
+    Page slugs (page-1, page-2…) must match flow.html and visual.html.
+    Required for every .wf-section inside a page:
+      - .wf-order badge (1, 2, 3 … reading order — restarts per page)
+      - .wf-box with [Label]
+      - .wf-meta with Intent + Why here
+    Drop one .wf-fold marker per page after the section that must complete without scrolling.
+  -->
 
-    <!--
-      Replace this scaffold with the real screen.
-      Required for every .wf-section:
-        - .wf-order badge (1, 2, 3 … intended reading order)
-        - .wf-box with [Label]
-        - .wf-meta with Intent + Why here
-
-      Drop the .wf-fold marker right after the section the user must complete
-      without scrolling. There is exactly ONE fold marker.
-    -->
+  <!-- ══════════ PAGE 1 ══════════ -->
+  <section class="wf-page" id="page-1">
+    <div class="wf-page-header">
+      <span class="slug">page-1</span>
+      <span class="name">[Page 1 name]</span>
+      <span class="purpose">[Purpose — 한 줄]</span>
+    </div>
 
     <div class="wf-stack">
 
@@ -254,6 +283,61 @@
       </section>
 
     </div>
+  </section>
+
+  <!-- ══════════ Transition: page-1 → page-2 ══════════ -->
+  <div class="wf-transition">
+    <span class="trigger arrow-down">[Primary CTA 클릭]</span>
   </div>
+
+  <!-- ══════════ PAGE 2 ══════════ -->
+  <section class="wf-page" id="page-2">
+    <div class="wf-page-header">
+      <span class="slug">page-2</span>
+      <span class="name">[Page 2 name]</span>
+      <span class="purpose">[Purpose — 한 줄]</span>
+    </div>
+
+    <div class="wf-stack">
+      <section class="wf-section">
+        <div class="wf-box short">
+          <span class="wf-order">1</span>
+          [Top bar with back to page-1]
+        </div>
+        <div class="wf-meta">
+          <span class="intent"><b>Intent:</b> page-1로 돌아가는 길이 즉시 보임 — 갇힘 방지</span>
+          <span class="why"><b>Why here:</b> 모든 페이지의 1번은 entry로 복귀하는 경로를 포함</span>
+        </div>
+      </section>
+
+      <section class="wf-section">
+        <div class="wf-box tall">
+          <span class="wf-order">2</span>
+          [Confirm content / page-1에서 받아온 데이터 표시]
+        </div>
+        <div class="wf-meta">
+          <span class="intent"><b>Intent:</b> page-1의 선택을 그대로 확인 — 의외성 없음</span>
+          <span class="why"><b>Why here:</b> 페이지 간 state 전달의 가시화 — 사용자가 "이게 내가 선택한 게 맞나" 즉시 확인</span>
+        </div>
+      </section>
+
+      <section class="wf-section">
+        <div class="wf-box short">
+          <span class="wf-order">3</span>
+          [Primary CTA: 실행] · [Secondary: 취소 → page-1]
+        </div>
+        <div class="wf-meta">
+          <span class="intent"><b>Intent:</b> 마지막 결정 — 돌이킬 수 없는 액션 직전 명확한 단독 CTA</span>
+          <span class="why"><b>Why here:</b> 페이지 하단, 정독 후 결정. 취소는 secondary로 약하게 표시.</span>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ══════════ Transition: page-2 → page-1 (back) ══════════ -->
+  <div class="wf-transition">
+    <span class="trigger arrow-down">[실행 또는 취소 → page-1 복귀]</span>
+  </div>
+
 </body>
 </html>

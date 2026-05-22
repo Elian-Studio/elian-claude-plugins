@@ -49,6 +49,17 @@ Signed off by user on {{TODAY}}.
 
 (`reused: <path>` 또는 `newly created`)
 
+## Pages — 페이지 단위 분할 (1~5개)
+
+| slug | 페이지 이름 | 한 줄 목적 | Entry (어떻게 들어오나) | Exit (어디로 나가나) |
+|---|---|---|---|---|
+| page-1 | {{PAGE_1_NAME}} | {{PAGE_1_PURPOSE}} | {{PAGE_1_ENTRY}} | {{PAGE_1_EXIT}} |
+| page-2 | {{PAGE_2_NAME}} | {{PAGE_2_PURPOSE}} | {{PAGE_2_ENTRY}} | {{PAGE_2_EXIT}} |
+| page-3 | {{PAGE_3_NAME}} | {{PAGE_3_PURPOSE}} | {{PAGE_3_ENTRY}} | {{PAGE_3_EXIT}} |
+
+> **Entry page**: page-1 (사용자가 가장 자주 시작하는 페이지)
+> 모든 페이지는 entry로 돌아갈 길이 있어야 함.
+
 ---
 
 ## Sign-off log

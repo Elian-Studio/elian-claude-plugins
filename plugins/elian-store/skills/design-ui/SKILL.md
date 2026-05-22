@@ -9,7 +9,7 @@ disable-model-invocation: false
 
 # /design-ui — Wireframe → Visual 2단계 UI/UX 설계
 
-새 화면/플로우의 디자인을 설계할 때, **회색 와이어프레임으로 레이아웃·정보구조를 먼저 합의**한 뒤에야 **타이포·색·여백을 입혀 비주얼**로 진입한다. 게이트 하나 사이에 두는 것만으로 "색·폰트부터 정하고 본다"는 편향이 사라지고, 사용자가 정말 봐야 할 것(정보 위계, 사용자 경험)에 집중하게 된다.
+새 기능/플로우의 디자인을 **페이지 단위**로 설계한다. 한 기능은 보통 1~5개 페이지로 나뉜다(예: 메인 리스트 + 상세 + 일괄 확인 + 결과 요약). **회색 와이어프레임으로 레이아웃·정보구조·페이지 간 흐름을 먼저 합의**한 뒤에야 **타이포·색·여백을 입혀 비주얼**로 진입한다. 게이트 하나 사이에 두는 것만으로 "색·폰트부터 정하고 본다"는 편향이 사라지고, 사용자가 정말 봐야 할 것(정보 위계, 사용자 경험, 페이지 간 동선)에 집중하게 된다.
 
 ---
 
@@ -20,17 +20,17 @@ disable-model-invocation: false
         ↓
    ▶ /design-ui  ◀
         ↓
-   Phase 1: Interview            (반복 — brief 합의될 때까지)
+   Phase 1: Interview            (반복 — brief + 페이지 목록 합의)
         ↓
-   Phase 2: Reference            (2~3개 경쟁사/유사 제품 패턴 수집)
+   Phase 2: Reference            (2~3개 경쟁사/유사 제품 — 페이지 분할 패턴 포함)
         ↓
-   Phase 3: Wireframe            (회색 + UX 의도 주석 + 읽기 순서 번호)
+   Phase 3: Wireframe            (flow.html 사이트맵 + wireframe.html 다중 페이지 스택)
         ↓
-   ★ Gate: 와이어프레임 OK? ★    ← --skip-gate로 끌 수 있음
+   ★ Gate: 페이지 + 와이어프레임 OK? ★    ← --skip-gate로 끌 수 있음
         ↓
-   Phase 4: Visual               (타이포·색·여백·모션 적용)
+   Phase 4: Visual               (타이포·색·여백·모션 + 페이지 간 인터랙티브 이동)
         ↓
-   Phase 5: Deliver              (HTML + DESIGN.md + references.md)
+   Phase 5: Deliver              (flow + wireframe + visual + DESIGN.md + references.md)
         ↓
    frontend-design / 실구현      ← 다음 스킬
 ```
@@ -98,6 +98,14 @@ loop:
 | 4 | **사용 상황** — "언제, 어디서, 어떤 마음 상태에서 이 화면에 오나요?" | 트리거·맥락·감정 |
 | 5 | **성공 상태** — "이 화면을 잘 썼다면 사용자는 어떤 상태가 돼 있어야 하나요?" | success criteria |
 | 6 | **금기·제약** — "절대 하면 안 되는 것 / 기술·정책 제약은?" | guardrails |
+| 7 | **페이지 분할** — "이 기능이 몇 개의 페이지/뷰로 나뉠 것 같나요? 각 페이지의 한 줄 목적은?" | 페이지 목록 1~5개 (이름 + 목적) |
+
+**페이지 자동 추론 가이드** (사용자가 7번에 "잘 모르겠다" 답할 때):
+- task가 1개고 단순 조회/입력이면 → 1페이지
+- task에 "검토 → 확정" 같은 2단계 의사결정이 있으면 → 메인 + 확인 페이지
+- task에 "여러 항목 일괄 처리"가 있으면 → 메인 + 선택 확인 페이지
+- task에 "결과 공유/리포트"가 있으면 → 결과 요약 페이지 추가
+- 항상 사용자에게 "이렇게 N개 페이지로 보면 될까요?" 확인받음. 자의로 결정 금지.
 
 #### 자동 컨텍스트 수집 (질문 줄이기)
 
@@ -116,7 +124,13 @@ Context:  <언제·어디서·어떤 마음>
 Success:  <한 줄>
 Guard:    <금기·제약 bullet>
 System:   <탐지된 디자인 시스템 / 없으면 "신규 토큰 생성">
+Pages:
+  - page-1 (<short-slug>): <한 줄 목적>
+  - page-2 (<short-slug>): <한 줄 목적>
+  - ...
 ```
+
+`page-N`은 Phase 3 이후 모든 산출물에서 동일한 slug로 참조된다 (flow.html, wireframe.html `<section id="page-N">`, visual.html hash `#page-N`).
 
 이 brief에 사용자가 "OK"라고 답하기 전에는 Phase 2로 절대 진입하지 않는다.
 
@@ -152,28 +166,55 @@ WebFetch 실패 / 사용자가 URL 제공 거부 시: 사용자가 "skip"이라�
 
 ---
 
-### Phase 3: Wireframe — UX 경험과 배치 순서가 1급 시민
+### Phase 3: Wireframe — 페이지 단위 사이트맵 + 다중 페이지 와이어프레임
 
-**와이어프레임은 박스 배치가 아니다. "이 화면에 들어온 사용자가 무엇을 먼저 보고, 어떤 감정으로, 어떤 순서로 행동하는가"의 시각화다.**
+**와이어프레임은 박스 배치가 아니다. "사용자가 어느 페이지에서 시작해, 어떤 트리거로, 어느 페이지로 이동하며, 어떤 감정으로 임무를 끝내는가"의 시각화다.**
 
-#### 모든 박스가 가져야 하는 4개 슬롯
+#### 3-A. Sitemap — `flow.html` 먼저
 
-`templates/wireframe.html`의 `.wf-section` 패턴을 그대로 쓴다. 각 박스는 다음을 반드시 표시:
+`templates/flow.html`을 베이스로 페이지 박스와 화살표(전이 트리거)를 그린다:
+
+```
+   [page-1: Watchlist]  ──[행 클릭]──▶  [page-2: Patient Detail]
+         │                                      │
+         │ [batch 버튼]                          │ [닫기]
+         ▼                                      └──▶ page-1 복귀
+   [page-3: Batch SMS Confirm]
+         │ [전송] → toast → page-1
+         │ [취소] → page-1
+```
+
+각 화살표는 **트리거(클릭 대상)** + **결과 페이지**를 명시. 막다른 길이 없어야 한다 (사용자가 항상 page-1로 돌아갈 길이 있어야 함). 첫 진입 페이지(entry)를 분명히 표시.
+
+#### 3-B. Wireframe — `wireframe.html` 다중 페이지 스택
+
+한 파일 안에 모든 페이지를 세로로 쌓는다. 각 페이지는 `<section class="wf-page" id="page-N">`로 감싸고, 페이지 사이에는 flow.html의 화살표를 그대로 옮겨 적은 transition strip을 둔다.
+
+#### 모든 박스가 가져야 하는 4개 슬롯 (페이지 내부, 변경 없음)
+
+`templates/wireframe.html`의 `.wf-section` 패턴. 각 박스는 다음을 반드시 표시:
 
 | 슬롯 | 무엇 | 예시 |
 |---|---|---|
-| **Order** | 의도된 읽기 순서 번호 (1, 2, 3 …) | `1` |
+| **Order** | 의도된 읽기 순서 번호 (1, 2, 3 …) — **페이지마다 1부터 다시 시작** | `1` |
 | **Label** | 박스 이름 | `[ResultList]` |
 | **Intent** | 이 자리에서 사용자가 느껴야 할 것 | "탐색 중 안심 — 결과가 얼마나 있는지 즉시 보임" |
 | **Why here** | 이 위치인 이유 (refs 역참조 또는 휴리스틱) | "ref-2 Steal: above-fold에 결과 수 노출" |
 
-#### 배치 순서 결정 원칙
+#### 페이지 단위 결정 원칙
 
-1. **읽기 순서 번호를 먼저 정하고 박스를 그린다.** "1번이 뭔지" 정하지 못하면 박스를 그리지 않는다.
-2. **F-pattern / Z-pattern을 의식한다.** 좌상단이 1번, 그다음 시선이 어디로 떨어지는지 명시.
-3. **Primary action은 단독 배치.** 1차 CTA 옆에 다른 CTA를 두지 않는다 (선택의 마비 방지).
-4. **Above the fold에 핵심 작업 1개만.** 스크롤 없이 끝낼 수 있는 작업이 무엇인지 명시.
-5. **모바일에서 순서가 바뀌면 그 변경도 번호로 표시.** 그냥 column 무너뜨리는 게 아님.
+1. **모든 페이지의 entry/exit를 명시.** 이 페이지로 어떻게 들어오는가, 어떻게 나가는가.
+2. **각 페이지에 독립적인 above-the-fold가 있다.** 페이지마다 자기만의 fold 마커.
+3. **페이지 간 데이터 의존성.** page-2는 page-1의 어느 정보를 받아오는지 명시.
+4. **돌아갈 길 보장.** 모든 페이지에서 entry로 복귀하는 경로가 있어야 한다. 막다른 사이드 페이지 금지.
+
+#### 페이지 내부 배치 순서 결정 원칙 (변경 없음)
+
+1. 읽기 순서 번호를 먼저 정하고 박스를 그린다.
+2. F-pattern / Z-pattern을 의식한다.
+3. Primary action은 단독 배치.
+4. Above the fold에 핵심 작업 1개만.
+5. 모바일에서 순서가 바뀌면 그 변경도 번호로 표시.
 
 #### 회색 규칙 (변경 없음)
 
@@ -181,7 +222,7 @@ WebFetch 실패 / 사용자가 URL 제공 거부 시: 사용자가 "skip"이라�
 - 데이터 영역은 `default | empty | loading | error` 4상태 변종 자리 모두 표시.
 - 반응형: 360 / 768 / 1280에서 어떻게 재배치되는지 명시.
 
-산출: `wireframe.html` (브라우저에서 더블클릭으로 열림).
+산출: `flow.html` + `wireframe.html` 두 파일 (둘 다 브라우저에서 더블클릭으로 열림).
 
 ---
 
@@ -198,7 +239,7 @@ WebFetch 실패 / 사용자가 URL 제공 거부 시: 사용자가 "skip"이라�
 
 ---
 
-### Phase 4: Visual — 타이포·색·여백·모션
+### Phase 4: Visual — 타이포·색·여백·모션 + **클릭 가능한 프로토타입**
 
 1. **토큰 결정**(기존 시스템 있으면 그대로 사용, 없으면 신규):
    - **Typography**: display font + body font 페어. **Inter/Roboto/Arial/system-ui fallback 금지**. 본문 ≥16px, line-height 1.5, 본문 line-length 45~75ch.
@@ -206,8 +247,20 @@ WebFetch 실패 / 사용자가 URL 제공 거부 시: 사용자가 "skip"이라�
    - **Spacing**: 4 또는 8 base scale.
    - **Motion**: 100~200ms ease-out 중심. `prefers-reduced-motion` 대응 토큰 포함.
 2. **Aesthetic direction** 한 줄 선언 (예: "차분한 에디토리얼", "도구적·산업적", "절제된 미니멀"). 흐릿한 "modern clean" 같은 표현 금지. **이 한 줄은 Phase 2의 refs Steal/Reject 결정과 일관되어야 한다.**
-3. `templates/visual.html`을 베이스로 와이어프레임의 박스를 실제 컴포넌트로 채움. **읽기 순서와 Intent를 보존**해야 한다 — 시각 디자인이 와이어프레임 의도를 뒤집으면 안 됨.
-4. 산출 직전 **UX 체크리스트 통과 확인** — `references/ux-checklist.md`의 항목을 모두 점검.
+3. `templates/visual.html`을 베이스로 와이어프레임의 박스를 실제 컴포넌트로 채움. **모든 페이지의 읽기 순서와 Intent를 보존**해야 한다 — 시각 디자인이 와이어프레임 의도를 뒤집으면 안 됨.
+4. **다중 페이지 → 하나의 visual.html에 hash 라우팅으로 묶는다.**
+   - 모든 페이지는 한 파일 안에 `<section class="page-mock" id="page-N">`로 stack.
+   - 한 번에 하나만 `display:block`, 나머지는 `display:none`. 현재 페이지는 `location.hash`로 결정.
+   - 페이지 전이 트리거(버튼/링크/행 클릭)는 `location.hash = '#page-N'`으로 이동. flow.html의 화살표가 visual.html에서 실제 동작.
+   - 상단 banner에 페이지 점프 셀렉터(`<select>` 또는 chip 그룹) 추가 — 리뷰어가 임의 페이지로 즉시 점프.
+5. **클릭 가능한 프로토타입으로 만든다** — 정적 렌더 금지. 아래를 vanilla JS(외부 의존 없음)로 wire:
+   - **brief.md의 모든 primary task마다 시연 경로 1개** — 클릭하면 시각 피드백(상태 변경 / toast / 다음 페이지로 hash 이동). 시연 못 하면 그 task의 디자인은 아직 끝나지 않은 것.
+   - **상태 스위처** — 상단 banner에 `default | empty | loading | error` 즉시 전환. 페이지별로 상태가 다르면 페이지마다 독립.
+   - **시간/카운트다운/타이머** — `setInterval`로 실제 tick. 정지된 숫자는 작동 환경의 압박감을 전달 못 함.
+   - **모든 토글 (마스킹·필터·체크박스)** — 실제로 토글 동작.
+   - **페이지 간 상태 전달** — page-1에서 선택한 N명이 page-2(확인 화면)에 실제 N명으로 보여야 함. 글로벌 `state` 객체로 페이지 간 공유.
+   - **모의 데이터 명시** — 상단 "프로토타입 모드" 배너 + 현재 페이지 이름.
+6. 산출 직전 **UX 체크리스트 통과 확인** — `references/ux-checklist.md`의 항목을 모두 점검. 신규 항목 16~21 (시연 경로 / 상태 스위처 / 라이브 토글 / 사이트맵 일관 / 페이지 간 상태 / 돌아갈 길) 통과 필수.
 
 ### Phase 5: Deliver
 
@@ -215,11 +268,12 @@ WebFetch 실패 / 사용자가 URL 제공 거부 시: 사용자가 "skip"이라�
 
 ```
 <out>/
-├── brief.md            # Phase 1 사인오프된 brief
+├── brief.md            # Phase 1 사인오프된 brief (페이지 목록 포함)
 ├── references.md       # Phase 2 레퍼런스 카드 (Steal/Adapt/Reject)
-├── wireframe.html      # Phase 3 결과 (UX 의도 + 읽기 순서 주석 포함)
-├── visual.html         # Phase 4 결과
-└── DESIGN.md           # 토큰·근거·체크리스트·다음 단계
+├── flow.html           # Phase 3-A 사이트맵 (페이지 박스 + 화살표)
+├── wireframe.html      # Phase 3-B 다중 페이지 와이어프레임 (페이지 세로 스택)
+├── visual.html         # Phase 4 결과 (hash 라우팅 + 페이지 간 상태 공유)
+└── DESIGN.md           # 토큰·근거·페이지별 Order 보존표·체크리스트·다음 단계
 ```
 
 마지막에 한 줄 안내:
@@ -245,6 +299,10 @@ WebFetch 실패 / 사용자가 URL 제공 거부 시: 사용자가 "skip"이라�
 - **세 가지 상태.** 데이터를 보여주는 모든 영역은 `default + empty + loading + error` 네 변종이 정의되어야 한다. 와이어프레임에 주석으로, 비주얼에 실제 마크업으로.
 - **접근성 하한선.** 본문 ≥16px / line-height 1.5 / contrast ≥4.5:1 / 터치 타깃 ≥44×44px / focus state 가시. 이건 양보 안 함.
 - **stdlib only HTML.** 산출 HTML은 외부 CSS·JS·폰트 호스팅 없이 한 파일에서 열린다(폰트는 `<link rel="stylesheet">` 한 줄 허용). 사용자가 미리보기 환경 없이도 더블클릭해서 본다.
+- **시안이 아니라 프로토타입.** Phase 4 산출 visual.html은 클릭하면 동작해야 한다. 그래야 사용자가 "이 흐름이 진짜 손에 맞나"를 5분 안에 검증 가능. 정적 렌더만 주면 리뷰가 "이거 색 좋다 나쁘다"로 빠지고 정작 task ②/③ 같은 핵심 흐름 결함은 구현 단계까지 발견 안 된다.
+- **페이지 단위로 설계한다.** 1~5개 페이지. 한 페이지에 다 욱여넣지 않는다 — 사용자가 "검토 → 확정"이나 "선택 → 일괄 확인" 같은 2단계 의사결정을 하면 페이지를 나누는 게 정직하다. 반대로 페이지를 과하게 쪼개도 동선이 길어진다. Phase 1에서 페이지 수를 명시적으로 합의한다.
+- **flow.html ⇆ wireframe.html ⇆ visual.html 페이지 ID 일관.** 세 파일은 같은 `page-N` slug를 공유한다. flow의 화살표가 wireframe의 transition strip, visual의 hash 라우팅과 1:1 대응해야 함. 일관성이 깨지면 리뷰어가 무엇이 정본인지 모름.
+- **모든 페이지는 돌아갈 길이 있다.** 막다른 사이드 페이지 금지. 사용자가 의도치 않게 빠져나갈 수 없는 페이지에 갇히는 게 가장 흔한 UX 사고.
 
 ---
 
@@ -284,12 +342,13 @@ WebFetch 실패 / 사용자가 URL 제공 거부 시: 사용자가 "skip"이라�
 
 | File | Purpose |
 |---|---|
-| [templates/brief.md](templates/brief.md) | Phase 1 산출 — 사용자 사인오프된 problem brief |
+| [templates/brief.md](templates/brief.md) | Phase 1 산출 — 사용자 사인오프된 problem brief (페이지 목록 포함) |
 | [templates/references.md](templates/references.md) | Phase 2 산출 — Steal/Adapt/Reject 카드 2~3개 |
-| [templates/wireframe.html](templates/wireframe.html) | Phase 3 회색 와이어프레임 — `.wf-section` 4슬롯 패턴 (Order/Label/Intent/Why here) |
-| [templates/visual.html](templates/visual.html) | Phase 4 비주얼 베이스 — 토큰 변수 placeholder, 본문/헤딩/버튼 기본 마크업 |
-| [templates/DESIGN.md](templates/DESIGN.md) | Phase 5 산출 — 토큰 표, refs 요약, UX 체크 결과, 다음 단계 |
-| [references/ux-checklist.md](references/ux-checklist.md) | Phase 4 직전 강제 점검 항목 (12개) |
+| [templates/flow.html](templates/flow.html) | Phase 3-A 사이트맵 — 페이지 박스 + 전이 화살표 |
+| [templates/wireframe.html](templates/wireframe.html) | Phase 3-B 다중 페이지 와이어프레임 — `.wf-page` 스택 + 페이지 내부 `.wf-section` 4슬롯 |
+| [templates/visual.html](templates/visual.html) | Phase 4 비주얼 베이스 — `.page-mock` 스택 + hash 라우팅 + 페이지 간 state 공유 |
+| [templates/DESIGN.md](templates/DESIGN.md) | Phase 5 산출 — 토큰 표, refs 요약, 페이지별 Order 보존표, UX 체크 결과 |
+| [references/ux-checklist.md](references/ux-checklist.md) | Phase 4 직전 강제 점검 항목 (21개) |
 | [scripts/validate_skill.py](scripts/validate_skill.py) | 스킬 자가 검증 (frontmatter, 5 Phases, templates, references, override) |
 
 ---
@@ -304,6 +363,11 @@ WebFetch 실패 / 사용자가 URL 제공 거부 시: 사용자가 "skip"이라�
 - ❌ 기존 DESIGN.md를 무시하고 새 토큰 만들기 → 디자인 시스템 파편화
 - ❌ "loading 상태는 나중에" 미루기 → 실구현 단계에서 다시 디자인
 - ❌ "modern, clean, minimal" 같은 흐릿한 톤 선언 → Phase 4에서 결정이 안 내려짐
+- ❌ 한 페이지에 모든 task 욱여넣기 → 의사결정이 흐려지고 above-the-fold 경쟁
+- ❌ 페이지를 6개 이상 쪼개기 → 동선 과다, 사용자가 길을 잃음. 의심스러우면 3개로 시작
+- ❌ flow.html과 wireframe.html에서 페이지 이름/slug 불일치 → 리뷰어가 정본을 모름
+- ❌ visual.html에서 페이지 전이를 새 탭/페이지 이동으로 처리 → 프로토타입성 깨짐. hash 라우팅으로 한 파일에 유지
+- ❌ 막다른 페이지 (돌아갈 길 없음) → 사용자 갇힘. 모든 페이지에 entry로 복귀 경로 명시
 
 ---
 

@@ -138,10 +138,49 @@
       border-radius: var(--r-sm);
     }
     @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+    /* === Multi-page hash routing === */
+    .page-mock { display: none; }
+    .page-mock.active { display: block; }
+
+    .proto-banner {
+      background: #fff8db; border-bottom: 1px solid #e4d27a;
+      padding: 8px var(--sp-5); font-size: 13px; color: #6b5400;
+      display: flex; justify-content: space-between; align-items: center; gap: var(--sp-4);
+      position: sticky; top: 0; z-index: 50;
+    }
+    .proto-banner b { font-weight: 600; }
+    .proto-controls { display: flex; gap: 12px; align-items: center; }
+    .proto-controls label { font-size: 12px; color: var(--ink-soft); }
+    .proto-controls select {
+      font: 500 12px var(--font-body); padding: 4px 8px;
+      border: 1px solid var(--line); border-radius: var(--r-sm); background: white;
+    }
   </style>
 </head>
 <body>
-  <main class="container">
+
+  <div class="proto-banner">
+    <span><b>프로토타입 모드</b> · <span id="proto-current">page-1</span></span>
+    <span class="proto-controls">
+      <label for="page-jump">Jump to:</label>
+      <select id="page-jump">
+        <option value="page-1">page-1 (Entry)</option>
+        <option value="page-2">page-2</option>
+      </select>
+      <label for="state-switch">State:</label>
+      <select id="state-switch">
+        <option value="default">default</option>
+        <option value="empty">empty</option>
+        <option value="loading">loading</option>
+        <option value="error">error</option>
+      </select>
+    </span>
+  </div>
+
+  <!-- ══════════ PAGE 1 ══════════ -->
+  <section class="page-mock active" id="page-1">
+    <main class="container">
 
     <header style="display:flex; align-items:center; justify-content:space-between; margin-bottom: var(--sp-6);">
       <strong style="font-family: var(--font-display); font-size: var(--fs-h3);">{{APP_NAME}}</strong>
@@ -187,6 +226,61 @@
       </div>
     </details>
 
-  </main>
+    </main>
+  </section>
+
+  <!-- ══════════ PAGE 2 ══════════ -->
+  <section class="page-mock" id="page-2">
+    <main class="container">
+      <header style="display:flex; align-items:center; gap: var(--sp-4); margin-bottom: var(--sp-6);">
+        <a href="#page-1" class="btn btn-secondary" aria-label="page-1로 돌아가기">← 돌아가기</a>
+        <h1 style="margin:0;">{{PAGE_2_TITLE}}</h1>
+      </header>
+      <section class="card">
+        <h2>{{PAGE_2_BODY_TITLE}}</h2>
+        <p>{{PAGE_2_BODY}}</p>
+        <!-- page-1에서 받은 state를 여기서 렌더 (JS에서 주입) -->
+        <div id="page-2-from-state"></div>
+      </section>
+      <div style="display:flex; gap: var(--sp-3); margin-top: var(--sp-5);">
+        <button class="btn btn-primary" id="page-2-confirm">{{PAGE_2_CONFIRM_CTA}}</button>
+        <a href="#page-1" class="btn btn-secondary">취소</a>
+      </div>
+    </main>
+  </section>
+
+  <script>
+    // ============================================================
+    // Hash routing — single-file multi-page prototype
+    // Pages: page-1 (entry), page-2, …
+    // ============================================================
+    const sharedState = {
+      // Put cross-page state here. Example: selectedItems: new Set(),
+    };
+
+    function routeToHash() {
+      const hash = (location.hash || '#page-1').replace('#', '');
+      document.querySelectorAll('.page-mock').forEach(p => {
+        p.classList.toggle('active', p.id === hash);
+      });
+      const sel = document.getElementById('page-jump');
+      if (sel) sel.value = hash;
+      const cur = document.getElementById('proto-current');
+      if (cur) cur.textContent = hash;
+      window.scrollTo(0, 0);
+      // Optional: hydrate page-N from sharedState here
+    }
+    window.addEventListener('hashchange', routeToHash);
+    document.getElementById('page-jump')?.addEventListener('change', (e) => {
+      location.hash = '#' + e.target.value;
+    });
+    routeToHash();
+
+    // Per-page action handlers go here. Use location.hash = '#page-N' to navigate.
+    document.getElementById('page-2-confirm')?.addEventListener('click', () => {
+      // perform action, then return to entry
+      location.hash = '#page-1';
+    });
+  </script>
 </body>
 </html>
