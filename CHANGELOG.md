@@ -10,6 +10,30 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## Marketplace (`elian`)
 
+### 2.6.0 — 2026-05-22
+
+#### Added
+- **`/create-document`** — new skill at `plugins/elian-store/skills/create-document/`. JSON content → schema validation → HTML/MD template substitution engine. stdlib-only. Schema-level `forbid` patterns block identifier leakage (`#143`, `*.class`, `*Entity`, snake_case columns) before any output is written. Supports `{{key}}`, `{{{key}}}` (raw), `{{.}}` / `{{_}}` (primitive element in FOREACH), and nested `<!-- FOREACH key --> ... <!-- END -->` blocks.
+- **`teammate-spawn` schema + template** under `create-document/schemas/` and `create-document/templates/`. Enforces 7 required slots (ROLE / OWNED FILES / TECH STACK / TASK / REFERENCE DOCS / INTERFACES / DEFINITION OF DONE / COMMUNICATION) with bilingual `mustMatch` (en/ko action verbs) and vague-language `forbid` (`help build`, `do something`, `TODO`, `...`).
+- **`/design-ui` scripts/validate_skill.py** — self-validation: frontmatter, 5 Phases, templates, references, override mechanism.
+
+#### Changed
+- **`/decision-dashboard`** SKILL.md rewritten: sed+Edit handwritten HTML blocks → JSON authoring + `create-document` call. `template.html` moved to `create-document/templates/decision-dashboard.html`. Card body identifiers (`#N`, `*.class`, `*Entity`) now blocked structurally by the schema.
+- **`/generate-teammate`** spawn prompts: hand-written 7-slot template → JSON-first authoring rendered via `create-document --template teammate-spawn`. SKILL.md sections (Standing Rules / Forbidden / Pitfall / Error Handling / BEFORE-AFTER) split into `references/{standing-rules,known-issues,before-after-patterns}.md`; SKILL.md keeps headlines + links.
+- **`/on-call-elian`** frontmatter description: Korean tokens inside English sentences translated to English for consistency. (Conclusion / Trade-offs / Operational risks / 8 pressure questions / Next question.) Korean user-utterance triggers in `when_to_use` preserved.
+- **`/design-ui`** SKILL.md: `$ARGUMENTS` + `${CLAUDE_PLUGIN_ROOT}` / `${CLAUDE_SKILL_DIR}` / `${DESIGN_UI_OUT}` env overrides documented; templates/references/scripts now use Markdown links; "Failure modes" renamed to "Pitfall / Failure modes"; Pre-flight checklist added. Score 76 → 98.
+- **All 11 skills** frontmatter `description` / `when_to_use` / `argument-hint`: quoted → unquoted (consistency + `score_skill.py` axis2 alignment).
+
+#### Removed
+- `plugins/elian-store/skills/decision-dashboard/template.html` — canonical version moved to `create-document/templates/decision-dashboard.html`.
+
+#### Notes
+- All 11 skills pass `score_skill.py` 90-point gate (range 92–100).
+- `create-document` is dual-use: callable directly by users or by other skills (currently `decision-dashboard` and `generate-teammate`).
+- `design-ui` shipped without version bump in 2.5.x — first release in this changelog at 2.6.0.
+
+---
+
 ### Repo infra — Codex CLI config tree — 2026-05-19 (no plugin version bump)
 
 Not a plugin release. `codex/` is a sibling distributable tree, independent of the `elian-store` Claude plugin, so `plugin.json`/`marketplace.json` versions are unchanged.

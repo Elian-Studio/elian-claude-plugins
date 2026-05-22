@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{FEATURE_NAME}}</title>
+
+  <!--
+    Visual stage. Replace token values below with the system you chose.
+    Do NOT keep Inter / Roboto / Arial / system-ui as fallback families.
+    Pick a real display font + body font pair before shipping.
+  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="{{FONT_HREF}}" />
+
+  <style>
+    :root {
+      /* === Typography === */
+      --font-display: {{FONT_DISPLAY}};
+      --font-body:    {{FONT_BODY}};
+      --fs-body:   16px;   /* baseline — do not drop below 16 */
+      --fs-small:  14px;
+      --fs-h3:     20px;
+      --fs-h2:     28px;
+      --fs-h1:     40px;
+      --lh-tight:  1.2;
+      --lh-body:   1.6;
+      --measure:   65ch;   /* line length — keep 45–75ch */
+
+      /* === Color === */
+      --ink:        {{COLOR_INK}};
+      --ink-soft:   {{COLOR_INK_SOFT}};
+      --bg:         {{COLOR_BG}};
+      --bg-elev:    {{COLOR_BG_ELEV}};
+      --accent:     {{COLOR_ACCENT}};
+      --accent-ink: {{COLOR_ACCENT_INK}};
+      --line:       {{COLOR_LINE}};
+      --danger:     {{COLOR_DANGER}};
+      --success:    {{COLOR_SUCCESS}};
+
+      /* === Space (8-base) === */
+      --sp-1: 4px; --sp-2: 8px; --sp-3: 12px;
+      --sp-4: 16px; --sp-5: 24px; --sp-6: 32px;
+      --sp-7: 48px; --sp-8: 64px;
+
+      /* === Radius + motion === */
+      --r-sm: 4px; --r-md: 8px; --r-lg: 16px;
+      --easing: cubic-bezier(.2,.7,.2,1);
+      --dur-fast: 120ms;
+      --dur-base: 180ms;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-body);
+      font-size: var(--fs-body);
+      line-height: var(--lh-body);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1, h2, h3 {
+      font-family: var(--font-display);
+      line-height: var(--lh-tight);
+      margin: 0 0 var(--sp-3);
+      color: var(--ink);
+    }
+    h1 { font-size: var(--fs-h1); }
+    h2 { font-size: var(--fs-h2); }
+    h3 { font-size: var(--fs-h3); }
+    p  { max-width: var(--measure); margin: 0 0 var(--sp-4); }
+
+    a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+    a:focus-visible, button:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+      border-radius: var(--r-sm);
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: var(--sp-5); }
+
+    /* === Buttons — 44×44 minimum hit area === */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      min-width: 44px;
+      padding: var(--sp-3) var(--sp-5);
+      border-radius: var(--r-md);
+      font: 600 var(--fs-body)/1 var(--font-body);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: transform var(--dur-fast) var(--easing), background var(--dur-fast) var(--easing);
+    }
+    .btn-primary   { background: var(--accent); color: var(--accent-ink); }
+    .btn-primary:hover { transform: translateY(-1px); }
+    .btn-secondary { background: var(--bg-elev); color: var(--ink); border-color: var(--line); }
+
+    /* === Cards / surfaces === */
+    .card {
+      background: var(--bg-elev);
+      border: 1px solid var(--line);
+      border-radius: var(--r-lg);
+      padding: var(--sp-5);
+    }
+
+    /* === Layout grid === */
+    .grid-12 { display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--sp-5); }
+    .span-8 { grid-column: span 8; }
+    .span-4 { grid-column: span 4; }
+    @media (max-width: 768px) {
+      .grid-12 > * { grid-column: span 12; }
+    }
+
+    /* === States: empty / loading / error === */
+    .state-empty,
+    .state-loading,
+    .state-error {
+      padding: var(--sp-6);
+      text-align: center;
+      border: 1px dashed var(--line);
+      border-radius: var(--r-md);
+      color: var(--ink-soft);
+    }
+    .state-error { color: var(--danger); border-color: var(--danger); }
+    .skeleton {
+      height: 1em;
+      background: linear-gradient(90deg, var(--bg-elev), var(--line), var(--bg-elev));
+      background-size: 200% 100%;
+      animation: shimmer 1.4s linear infinite;
+      border-radius: var(--r-sm);
+    }
+    @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+  </style>
+</head>
+<body>
+  <main class="container">
+
+    <header style="display:flex; align-items:center; justify-content:space-between; margin-bottom: var(--sp-6);">
+      <strong style="font-family: var(--font-display); font-size: var(--fs-h3);">{{APP_NAME}}</strong>
+      <nav style="display:flex; gap: var(--sp-4);">
+        <a href="#">Item A</a>
+        <a href="#">Item B</a>
+        <a href="#">Item C</a>
+      </nav>
+    </header>
+
+    <section style="margin-bottom: var(--sp-7);">
+      <h1>{{PAGE_TITLE}}</h1>
+      <p>{{PAGE_SUBTITLE}}</p>
+      <button class="btn btn-primary">{{PRIMARY_CTA}}</button>
+    </section>
+
+    <section class="grid-12" style="margin-bottom: var(--sp-7);">
+      <article class="card span-8">
+        <h2>{{PRIMARY_SECTION_TITLE}}</h2>
+        <p>{{PRIMARY_SECTION_BODY}}</p>
+
+        <!-- Replace with the actual default state when populated. -->
+        <div class="state-loading" aria-busy="true" aria-live="polite">
+          <div class="skeleton" style="width: 60%; margin: 0 auto var(--sp-3);"></div>
+          <div class="skeleton" style="width: 40%; margin: 0 auto;"></div>
+        </div>
+      </article>
+
+      <aside class="card span-4">
+        <h3>{{SIDEBAR_TITLE}}</h3>
+        <p>{{SIDEBAR_BODY}}</p>
+      </aside>
+    </section>
+
+    <!-- Empty / error states co-located so reviewers see them next to default. -->
+    <details style="margin-top: var(--sp-6);">
+      <summary style="cursor:pointer; color: var(--ink-soft);">Variant: empty / error</summary>
+      <div class="state-empty" style="margin-top: var(--sp-4);">
+        {{EMPTY_MESSAGE}}
+      </div>
+      <div class="state-error" style="margin-top: var(--sp-4);" role="alert">
+        {{ERROR_MESSAGE}}
+      </div>
+    </details>
+
+  </main>
+</body>
+</html>

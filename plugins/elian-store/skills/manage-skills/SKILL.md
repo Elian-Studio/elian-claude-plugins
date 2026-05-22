@@ -1,8 +1,8 @@
 ---
 name: manage-skills
 description: When verify-* skills drift behind code changes (uncovered files / broken references / missing checks), auto-detect the drift and create or update verify-* skills so the project's verification stays current. Pairs with verify-implementation (orchestrator); this skill is the meta-tool that maintains the skill set.
-when_to_use: "after introducing new patterns/rules, before PR to confirm coverage, when verification missed an expected issue, periodically to keep skills aligned with codebase, user says '스킬 드리프트 점검'·'verify 스킬 정리'·'/manage-skills'"
-argument-hint: "[skill-name | focus-area | question]"
+when_to_use: after introducing new patterns/rules, before PR to confirm coverage, when verification missed an expected issue, periodically to keep skills aligned with codebase, user says '스킬 드리프트 점검'·'verify 스킬 정리'·'/manage-skills'
+argument-hint: [skill-name | focus-area | question]
 disable-model-invocation: true
 allowed-tools: Bash(git diff*) Bash(git log*) Bash(grep*) Bash(awk*) Bash(find*) Bash(python3 *) Read Glob Grep Edit Write
 ---
