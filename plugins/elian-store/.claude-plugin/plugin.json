@@ -1,7 +1,7 @@
 {
   "name": "elian-store",
-  "description": "Daniel (Elian-Studio)'s Claude Code workflow skill bundle. One install gives you decision-dashboard, /generate-teammate (JSON-first spawn prompts via create-document), /create-document (JSON+template document engine), /design-ui (Interview → Wireframe → Visual), 14 domain-expert agents, the TDD family (/implement, /fix, /improve), /brainstorm, the skill-meta pair (/manage-skills, /verify-implementation), and /on-call-elian (fixed-persona review with a locked OUTPUT FORMAT + optional --depth interview convergence loop).",
-  "version": "2.6.0",
+  "description": "Daniel (Elian-Studio)'s Claude Code workflow skill bundle. One install gives you decision-dashboard, /generate-teammate (JSON-first spawn prompts via create-document), /create-document (JSON+template document engine), /design-ui (Interview → Wireframe → Visual), /ai-assisted-feature-development (9-phase disciplined AI feature flow: Framing → BDD → SDD → DDD → AI-TDD → Context → Agentic → Review → SPDD), 14 domain-expert agents, the TDD family (/implement, /fix, /improve), /brainstorm, the skill-meta pair (/manage-skills, /verify-implementation), and /persona-review (persona library: daniel·evans·dean·martin or custom path, locked 5-block OUTPUT FORMAT + optional --depth interview convergence loop). v2.7.0 BREAKING: /on-call-elian renamed to /persona-review.",
+  "version": "2.7.0",
   "author": {
     "name": "Daniel (Elian-Studio)",
     "email": "danielmrbang@gmail.com"

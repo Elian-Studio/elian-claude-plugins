@@ -10,6 +10,41 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## Marketplace (`elian`)
 
+### 2.7.0 — 2026-05-23
+
+#### BREAKING — `/on-call-elian` renamed to `/persona-review`
+
+User feedback flagged that `on-call-elian` is too company-specific for a persona-library skill, and that the default persona's `Identity` section (의료/Vue3/Java/Kubernetes) is environment metadata, not persona essence. The 8 pressure questions are the essence — environment-agnostic. This release reshapes the skill around a **persona library** with multiple thinkers' lenses, not a single fixed Daniel persona.
+
+Migration:
+- Slash command `/on-call-elian` → `/persona-review`
+- Skill directory `plugins/elian-store/skills/on-call-elian/` → `plugins/elian-store/skills/persona-review/`
+- Env var `${ON_CALL_ELIAN_DEFAULT}` → `${PERSONA_REVIEW_DEFAULT}`
+- Env var `${ON_CALL_ELIAN_DEPTH}` → `${PERSONA_REVIEW_DEPTH}`
+- Persona file `references/persona-daniel.md` → `references/personas/daniel.md`
+- Trigger phrases: replace `'/on-call-elian'` with `'/persona-review'`; add persona-specific phrases like `'에반스로 도메인 점검'`, `'딘 시각으로 스케일 압박'`, `'마틴으로 클린코드 점검'`
+
+#### Added
+- **`/ai-assisted-feature-development`** — disciplined 9-phase feature-development methodology skill at `plugins/elian-store/skills/ai-assisted-feature-development/`. Phases: Feature Framing → BDD → SDD → DDD (필요 시) → AI-TDD → Context Engineering → Agentic Coding → Review → SPDD Archive. Modes: `full` (all 9), `design-only` (1-5), `task-only` (6-7), `review-only` (8). Risk-gated depth (LOW/MEDIUM/HIGH). 8 references: master-prompt, stage-prompts (9 per-phase prompts), login-example, other-feature-examples (file-upload / order-cancel / post-create / search / notification / permissions / signup), artifact-structure, definition-of-done (11 DoD items + 10 merge-block conditions), anti-patterns (10 vibe-coding anti-patterns), quick-start. Applies to any feature — login is one example, not the scope.
+- **`/persona-review`** — persona library skill at `plugins/elian-store/skills/persona-review/`. Default `daniel` (operational mindset). Library: `daniel.md`, `evans.md` (DDD), `dean.md` (distributed-scale), `martin.md` (Clean Code/SOLID/TDD). All four follow the same 7-section structure (Voice / Hard Rules / Decision Heuristics / Priorities / Forbidden / Pressure Questions / Blind Spots). Identity section is now **optional** (only when domain/stack genuinely changes the pressure axis).
+- **Persona matching guide** in SKILL.md: which situation → which persona. Phase 0 of the workflow recommends a persona based on the target file path / diff pattern.
+- **Custom persona authoring guide** simplified — 7 required sections, Identity demoted to optional with explicit "Vue 개발자·의료 도메인 같은 환경 정보는 페르소나가 아니다" guidance.
+
+#### Changed
+- `validate_skill.py`: recognizes both `references/personas/*.md` (new layout) and `references/persona-*.md` (legacy) so persona files can live either way. 5-block contract check accepts Korean + English header variants.
+- All 11 skills + 1 new (persona-review) pass `score_skill.py` 90+ gate.
+
+#### Removed
+- `references/persona-daniel.md` (moved into `references/personas/daniel.md` with Identity section stripped)
+- `${ON_CALL_ELIAN_*}` env var names
+
+#### Notes
+- The `codex/prompts/on-call-elian.md` Codex port still uses the legacy name; it is on a separate lifecycle and will be reconciled in a follow-up.
+- `example-review.md` examples remain Korean-flavored (mobidoc-context). Persona-specific examples for evans/dean/martin are future work.
+- The default `daniel` persona's Identity section was removed in v2.6.0 + #11; persona body is now domain-agnostic.
+
+---
+
 ### 2.6.0 — 2026-05-22
 
 #### Added
