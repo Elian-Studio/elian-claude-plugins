@@ -137,8 +137,8 @@ Phase 5:   핸드오프 (개선/결정/재리뷰/종료)
 
 ### Phase 2: Persona 로드
 
-- **기본값 `daniel`**: [`references/persona-daniel.md`](references/persona-daniel.md) 를 `Read` 로 로드. Identity / Voice / Hard Rules / Decision Heuristics / Priorities / Forbidden / Pressure Questions(8개) / Blind Spots 8섹션.
-- **커스텀 (`--persona <path>`)**: 해당 경로를 `Read`. 같은 8섹션 구조 권장. 누락 섹션은 `references/persona-daniel.md` 에서 보충. 파일 없으면 사용자에게 알리고 `daniel` 로 폴백.
+- **기본값 `daniel`**: [`references/persona-daniel.md`](references/persona-daniel.md) 를 `Read` 로 로드. 페르소나는 **필수 7섹션** — Voice / Hard Rules / Decision Heuristics / Priorities / Forbidden / Pressure Questions(8개 권장, 4-12 자유) / Blind Spots. Identity 섹션은 **선택** (도메인·스택이 압박 방식을 정말 갈리게 할 때만; 기본적으로 두지 않음).
+- **커스텀 (`--persona <path>`)**: 해당 경로를 `Read`. 같은 7+선택 1 섹션 구조 권장. 누락 섹션은 `references/persona-daniel.md` 에서 보충. 파일 없으면 사용자에게 알리고 `daniel` 로 폴백.
 
 페르소나는 *어떤 압박을 가하는가* 만 바꾼다. 5블록 OUTPUT FORMAT 은 모든 페르소나 공통.
 
