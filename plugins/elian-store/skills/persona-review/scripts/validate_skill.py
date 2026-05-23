@@ -58,9 +58,12 @@ OUTPUT_BLOCK_VARIANTS: list[list[str]] = [
     ["## 다음 질문", "## Next question", "## Next Question"],
 ]
 
-# Persona file pattern (glob). Any file matching persona-*.md is accepted as
-# the default persona; the skill only requires that at least one exists.
-PERSONA_GLOB = "persona-*.md"
+# Persona library lives under references/personas/. Each *.md file there is
+# a persona definition (e.g., daniel.md, evans.md). The skill requires at
+# least one persona file to exist. Legacy layout (references/persona-*.md)
+# is still recognized for backwards compatibility.
+PERSONAS_DIR_NAME = "personas"
+LEGACY_PERSONA_GLOB = "persona-*.md"
 REQUIRED_REFERENCE_FILES = ["example-review.md"]  # additional fixed references
 
 
@@ -157,42 +160,61 @@ def check_output_format_contract() -> CheckResult:
     )
 
 
+def _list_personas() -> list[str]:
+    """Return persona file names from both the new and legacy layouts."""
+    refs = SKILL_DIR / "references"
+    found: list[str] = []
+    personas_dir = refs / PERSONAS_DIR_NAME
+    if personas_dir.is_dir():
+        found.extend(sorted(p.name for p in personas_dir.iterdir() if p.suffix == ".md"))
+    if refs.is_dir():
+        found.extend(
+            sorted(p.name for p in refs.iterdir()
+                   if p.is_file() and p.name.startswith("persona-") and p.suffix == ".md")
+        )
+    return found
+
+
 def check_references_dir() -> CheckResult:
     refs = SKILL_DIR / "references"
     if not refs.is_dir():
-        return CheckResult(name="references/ has persona-*.md + example files", passed=False, detail="missing dir")
-    present = {p.name for p in refs.iterdir()}
-    personas = sorted(p for p in present if p.startswith("persona-") and p.endswith(".md"))
+        return CheckResult(name="references/ has personas/ + example files", passed=False, detail="missing dir")
+    present = {p.name for p in refs.iterdir() if p.is_file()}
+    personas = _list_personas()
     missing_fixed = [f for f in REQUIRED_REFERENCE_FILES if f not in present]
     missing_persona = not personas
     passed = not missing_fixed and not missing_persona
     if passed:
-        detail = f"{len(present)} file(s); persona(s): {personas}"
+        detail = f"{len(present)} top-level file(s); persona(s): {personas}"
     else:
         parts = []
         if missing_persona:
-            parts.append(f"no '{PERSONA_GLOB}' found")
+            parts.append(f"no persona file found in references/{PERSONAS_DIR_NAME}/ nor as references/{LEGACY_PERSONA_GLOB}")
         if missing_fixed:
             parts.append(f"missing fixed: {missing_fixed}")
         detail = "; ".join(parts)
     return CheckResult(
-        name="references/ has persona-*.md + example files",
+        name="references/ has personas/ + example files",
         passed=passed,
         detail=detail,
     )
 
 
 def check_references_linked() -> CheckResult:
-    """SKILL.md must link example-review.md AND at least one persona-*.md."""
+    """SKILL.md must link example-review.md AND at least one persona file
+    (either references/personas/<name>.md or references/persona-*.md)."""
     text = _read(SKILL_FILE)
     fixed_linked = [f for f in REQUIRED_REFERENCE_FILES if re.search(rf"references/{re.escape(f)}", text)]
     fixed_missing = [f for f in REQUIRED_REFERENCE_FILES if f not in fixed_linked]
-    persona_link = re.search(r"references/persona-[\w-]+\.md", text)
+    persona_link = (
+        re.search(rf"references/{PERSONAS_DIR_NAME}/[\w-]+\.md", text)
+        or re.search(r"references/persona-[\w-]+\.md", text)
+    )
     parts = []
     if fixed_missing:
         parts.append(f"missing_fixed_links={fixed_missing}")
     if not persona_link:
-        parts.append("no persona-*.md link found")
+        parts.append("no persona file link found")
     passed = not fixed_missing and persona_link is not None
     return CheckResult(
         name="SKILL.md explicitly links example + at least one persona file",

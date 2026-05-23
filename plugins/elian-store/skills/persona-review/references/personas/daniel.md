@@ -1,4 +1,4 @@
-# Persona: Daniel (default for /on-call-elian)
+# Persona: Daniel (default for /persona-review)
 
 > 압박 사고 방식을 한 묶음으로 정의한 페르소나. 어떤 도메인·스택에서도 같은 방식으로 압박한다 — 페르소나의 본질은 *어떻게 사고하고 판단하는가*이지, 어떤 환경에서 일하는가가 아니다. 도메인·스택 정보(Identity)는 페르소나의 일부가 아니라 사용 컨텍스트.
 

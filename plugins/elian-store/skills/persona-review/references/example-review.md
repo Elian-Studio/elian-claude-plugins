@@ -1,4 +1,4 @@
-# Example: /on-call-elian 완결 사례 (BEFORE / AFTER)
+# Example: /persona-review 완결 사례 (BEFORE / AFTER)
 
 페르소나 = `daniel` (default). Example 1·2 = `--depth quick`, Example 3 = `--depth interview`.
 
@@ -28,7 +28,7 @@ PG사가 200을 주면 주문 상태를 PAID로 바꾸고 알림톡을 보낸다
 ### 호출
 
 ```
-/on-call-elian docs/architecture/payment-flow.md
+/persona-review docs/architecture/payment-flow.md
 ```
 
 ### AFTER — 페르소나 출력 (5블록, 잠긴 포맷)
@@ -73,7 +73,7 @@ sync vs async 를 먼저 잠그고(이게 axiom 결정), 잠근 뒤 그에 맞�
 ### 호출
 
 ```
-/on-call-elian "사용자 도메인을 별도 마이크로서비스로 분리하려고 함. 모놀리스가 너무 커졌음."
+/persona-review "사용자 도메인을 별도 마이크로서비스로 분리하려고 함. 모놀리스가 너무 커졌음."
 ```
 
 ### AFTER
@@ -130,7 +130,7 @@ STAFF 에게는 정산 메뉴를 숨긴다.
 ### 호출
 
 ```
-/on-call-elian docs/plan/backoffice-auth.md --depth interview
+/persona-review docs/plan/backoffice-auth.md --depth interview
 ```
 
 ### R1 — 1라운드 출력
@@ -229,7 +229,7 @@ Q: 정산 등 민감 엔드포인트에 백엔드 인가가 있나?
   - Out: 역할 체계 재설계, FE 렌더 로직 변경
 ```
 
-on-call-elian 은 위 블록을 출력만 한다. `/improve` 실제 호출은 다음 턴에 사용자/Claude 가.
+persona-review 은 위 블록을 출력만 한다. `/improve` 실제 호출은 다음 턴에 사용자/Claude 가.
 
 ---
 

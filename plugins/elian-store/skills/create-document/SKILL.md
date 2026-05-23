@@ -79,7 +79,7 @@ create-document/
 ├── schemas/
 │   ├── decision-dashboard.schema.json  # 결정 카드 (decision-dashboard 호출)
 │   ├── teammate-spawn.schema.json      # 7-slot teammate spawn (generate-teammate 호출)
-│   └── review-output.schema.json       # 5블록 페르소나 review (on-call-elian 양식)
+│   └── review-output.schema.json       # 5블록 페르소나 review (persona-review 양식)
 ├── templates/
 │   ├── decision-dashboard.html         # HTML 결정 대시보드
 │   ├── teammate-spawn.md               # Markdown teammate spawn plan
@@ -96,7 +96,7 @@ create-document/
 현재 지원하는 use case:
 - `decision-dashboard` — `/decision-dashboard` 가 호출. PO 5-min 결정 카드.
 - `teammate-spawn` — `/generate-teammate` 가 호출. 7-slot 일관 spawn prompt.
-- `review-output` — `/on-call-elian` 양식. 5블록 (Conclusion / Trade-offs / Operational risks / 8 pressure questions / Next question) + interview rounds + handoff payload.
+- `review-output` — `/persona-review` 양식. 5블록 (Conclusion / Trade-offs / Operational risks / 8 pressure questions / Next question) + interview rounds + handoff payload.
 
 ---
 

@@ -97,7 +97,7 @@ plugins/elian-store/
 
 ## Claude vs Codex — 어디를 수정하나
 
-이 repo 는 두 도구용 설정을 **독립 2-트리**로 관리합니다. 단일 진실원이 **없습니다** (의식적 결정 — `/on-call-elian` 리뷰에서 trade-off 인지 후 채택).
+이 repo 는 두 도구용 설정을 **독립 2-트리**로 관리합니다. 단일 진실원이 **없습니다** (의식적 결정 — `/persona-review` 리뷰에서 trade-off 인지 후 채택).
 
 | | Claude Code | Codex CLI |
 |---|---|---|
@@ -213,7 +213,7 @@ elian-claude-plugins/
 │   ├── README.md                 # 정체성 + 설치 + drift 경고
 │   ├── AGENTS.md                 # Codex 프로젝트 지침 템플릿
 │   ├── prompts/
-│   │   └── on-call-elian.md      # 레퍼런스 포팅 (~/.codex/prompts/ 드롭인)
+│   │   └── persona-review.md      # 레퍼런스 포팅 (~/.codex/prompts/ 드롭인)
 │   └── config.toml.example       # ~/.codex/config.toml 샘플
 ├── scripts/                       # 마켓플레이스 레벨 도구
 │   ├── rubric.md                 # Claude 평가 루브릭 (100점)
