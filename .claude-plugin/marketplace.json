@@ -13,7 +13,7 @@
     {
       "name": "elian-store",
       "source": "./plugins/elian-store",
-      "description": "Daniel (Elian-Studio)'s workflow skill bundle. Includes decision-dashboard, /generate-teammate (JSON-first spawn prompts), /create-document (JSON+template engine), /design-ui (Interview → Wireframe → Visual), 14 domain-expert agents, the TDD family (/implement, /fix, /improve), /brainstorm, the skill-meta pair (/manage-skills, /verify-implementation), and /persona-review (persona library: daniel/evans/dean/martin, locked 5-block OUTPUT FORMAT). v2.7.0 BREAKING: /on-call-elian renamed to /persona-review.",
+      "description": "Daniel (Elian-Studio)'s workflow skill bundle. Includes decision-dashboard, /generate-teammate (JSON-first spawn prompts), /create-document (JSON+template engine), /design-ui (Interview → Wireframe → Visual), /ai-assisted-feature-development (9-phase disciplined AI feature flow), 14 domain-expert agents, the TDD family (/implement, /fix, /improve), /brainstorm, the skill-meta pair (/manage-skills, /verify-implementation), and /persona-review (persona library: daniel/evans/dean/martin, locked 5-block OUTPUT FORMAT). v2.7.0 BREAKING: /on-call-elian renamed to /persona-review.",
       "version": "2.7.0",
       "author": {
         "name": "Daniel (Elian-Studio)"
