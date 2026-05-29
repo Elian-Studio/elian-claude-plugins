@@ -45,6 +45,8 @@ Then in Claude Code:
 
 New skills land via `/plugin update elian-store@elian` — no separate install per skill.
 
+Portfolio-level review: [`docs/gstack-skill-review.md`](docs/gstack-skill-review.md) compares this bundle against `garrytan/gstack` lifecycle patterns. Current status: structurally healthy, but not yet lifecycle-complete; first-class review, browser QA, release, benchmark, security, and learning skills are tracked as roadmap gaps.
+
 ---
 
 ## 🤖 Codex CLI config (independent tree)
@@ -63,7 +65,7 @@ rm -f ~/.codex/prompts/on-call-elian.md  # remove legacy command from old instal
 cp codex/prompts/*.md ~/.codex/prompts/
 ```
 
-Setup: see [`codex/README.md`](codex/README.md). ⚠️ The two trees have **no shared source** — editing skill logic on one side requires manually syncing the other (intentional trade-off; see `CONTRIBUTING.md` → "Claude vs Codex"). Current parity status: [`docs/claude-codex-skill-parity.md`](docs/claude-codex-skill-parity.md).
+Setup: see [`codex/README.md`](codex/README.md). ⚠️ The two trees have **no shared source** — editing skill logic on one side requires manually syncing the other (intentional trade-off; see `CONTRIBUTING.md` → "Claude vs Codex"). Current Claude/Codex parity status: [`docs/claude-codex-skill-parity.md`](docs/claude-codex-skill-parity.md).
 
 ---
 

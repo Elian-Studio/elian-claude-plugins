@@ -11,6 +11,8 @@ This does **not** mean byte-for-byte identical files:
 - Claude Code uses plugin skills under `plugins/elian-store/skills/*/SKILL.md` with YAML frontmatter, `allowed-tools`, `disable-model-invocation`, bundled agents, hooks, and plugin marketplace metadata.
 - Codex in this repository uses `codex/prompts/*.md`, `codex/AGENTS.md`, and `codex/config.toml.example`. There is no Codex plugin marketplace shape here, so the equivalent of a Claude skill is a Codex prompt file plus repo-level config.
 
+Terminology: this repository has a Claude plugin tree and an independent Codex CLI prompt/config tree. It does not currently ship a Codex plugin marketplace bundle.
+
 ## Equivalence Rule
 
 A Claude skill and Codex prompt are considered aligned only when all of these match:
@@ -35,6 +37,23 @@ A Claude skill and Codex prompt are considered aligned only when all of these ma
 | Quality gate | 12/12 pass | 1/1 pass | Passing, but asymmetric |
 
 Current conclusion: **the two trees are not identical yet**. The name drift around `on-call-elian` is fixed, but 11 Claude skills have no Codex prompt counterpart.
+
+## gstack Portfolio Lens
+
+[`docs/gstack-skill-review.md`](gstack-skill-review.md) adds a portfolio-level check based on `garrytan/gstack`. That review is separate from one-to-one Claude/Codex parity:
+
+| Lifecycle lane | Current Claude coverage | Current Codex coverage | Status |
+|---|---|---|---|
+| Product/spec planning | `brainstorm`, `ai-assisted-feature-development`, `decision-dashboard` | Missing | Partial |
+| Design planning | `design-ui` | Missing | Partial |
+| Implementation/fix/improve | `implement`, `fix`, `improve` | Missing | Claude-only |
+| Engineering review | `persona-review` is read-only critique, not full review | `persona-review` | Gap |
+| Browser QA | None | None | Gap |
+| Ship/release | Referenced by downstream handoffs, no skill | None | Gap |
+| Deploy/canary/benchmark/security | None | None | Gap |
+| Learning/retro/context restore | Partial through docs/artifacts, no skill | None | Gap |
+
+Do not treat these gaps as immediate parity bugs. They are roadmap gaps and should become skills only when the workflow, artifacts, and verification path are concrete.
 
 ## Purpose Fit Matrix
 
@@ -75,6 +94,17 @@ Minimum parity work:
 | 5 | `decision-dashboard`, `create-document` | Should share deterministic scripts/templates; avoid prompt-only reimplementation. |
 | 6 | `manage-skills`, `verify-implementation` | Needs a cross-tool definition of what gets verified. |
 | 7 | `generate-teammate` | Most platform-specific because Claude Agent/Team tools do not have a direct Codex equivalent here. |
+
+## Recommended New-Skill Order From gstack Review
+
+These are new Claude skill candidates, not Codex parity ports:
+
+| Order | Skill candidate | Reason |
+|---:|---|---|
+| 1 | `review` | Closes the biggest gap between read-only persona critique and production-oriented engineering review. |
+| 2 | `qa` or `browser-qa` | Adds browser-visible verification with screenshots/reports before release. |
+| 3 | `ship` | Separates branch/test/PR release readiness from implementation. |
+| 4 | `learn` or `retro` | Captures repeated preferences and workflow lessons after real usage. |
 
 ## Operating Rule Going Forward
 
