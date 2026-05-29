@@ -51,9 +51,17 @@ New skills land via `/plugin update elian-store@elian` — no separate install p
 
 This repo also ships an **independent** OpenAI Codex CLI config tree under [`codex/`](codex/) — separate from the Claude `plugins/` tree, with its own quality gate (`scripts/score_codex_prompt.py`) and CI (`codex-config-gate.yml`).
 
-| Skill | Status | Codex install |
+| Skill | Status | Codex command |
 |-------|--------|---------------|
-| [persona-review](codex/prompts/persona-review.md) | ✅ reference port | `cp codex/prompts/*.md ~/.codex/prompts/` → `/persona-review <target> [--depth interview]` |
+| [persona-review](codex/prompts/persona-review.md) | ✅ reference port | `/persona-review <target> [--persona daniel\|evans\|dean\|martin\|<path>] [--depth quick\|deep\|interview]` |
+
+Install or update the Codex prompt:
+
+```shell
+mkdir -p ~/.codex/prompts
+rm -f ~/.codex/prompts/on-call-elian.md  # remove legacy command from old installs
+cp codex/prompts/*.md ~/.codex/prompts/
+```
 
 Setup: see [`codex/README.md`](codex/README.md). ⚠️ The two trees have **no shared source** — editing skill logic on one side requires manually syncing the other (intentional trade-off; see `CONTRIBUTING.md` → "Claude vs Codex"). Current parity status: [`docs/claude-codex-skill-parity.md`](docs/claude-codex-skill-parity.md).
 
