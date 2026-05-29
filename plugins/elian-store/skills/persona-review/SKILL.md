@@ -1,8 +1,8 @@
 ---
 name: persona-review
 description: When a user wants a plan, design, document, PR description, or idea reviewed through a fixed persona lens, produce the locked 5-block critique and ask one intent question first if the input is too thin.
-when_to_use: Use before locking in a non-trivial decision, when reviewing a draft against operational risk, DDD, distributed-scale, or clean-code pressure, or when a fuzzy idea needs critique after one clarification question. Trigger phrases: '페르소나로 리뷰해줘', '다니엘 시각으로', '에반스로 도메인 점검', '딘 시각으로 스케일 압박', '마틴으로 클린코드 점검', '/persona-review', '트레이드오프 표로 정리해줘', '--depth interview'.
-argument-hint: <target-path-or-text> [--persona daniel|evans|dean|martin|<path-to-custom>] [--depth quick|deep|interview]
+when_to_use: "Use before locking in a non-trivial decision, when reviewing a draft against operational risk, DDD, distributed-scale, or clean-code pressure, or when a fuzzy idea needs critique after one clarification question. Trigger phrases: '페르소나로 리뷰해줘', '다니엘 시각으로', '에반스로 도메인 점검', '딘 시각으로 스케일 압박', '마틴으로 클린코드 점검', '/persona-review', '트레이드오프 표로 정리해줘', '--depth interview'."
+argument-hint: "<target-path-or-text> [--persona daniel|evans|dean|martin|<path-to-custom>] [--depth quick|deep|interview]"
 disable-model-invocation: true
 allowed-tools: Read, Glob, Grep, Bash(git diff*), Bash(git log*), Bash(git status*), AskUserQuestion
 ---

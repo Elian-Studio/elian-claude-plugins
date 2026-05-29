@@ -30,6 +30,7 @@
 
 > 공식 가이드: *"All fields are optional. Only `description` is recommended so Claude knows when to use the skill."*
 > repo policy: `name`, `argument-hint`, `allowed-tools` 는 이 저장소의 품질 게이트에서 요구하는 운영 필드다.
+> YAML safety: `description`, `when_to_use`, `argument-hint` 같은 문자열 값에 `: ` 또는 `[`/`]`가 들어가면 quote한다. `scripts/score_skill.py`는 YAML-unsafe plain scalar를 blocking issue로 처리한다.
 
 ## 2. Description 자동 호출 신뢰성 (10점)
 

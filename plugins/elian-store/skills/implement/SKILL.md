@@ -1,8 +1,8 @@
 ---
 name: implement
-description: When the user asks to implement a feature, build a new capability, or runs /implement, drive the work through TDD with a parallel-or-sequential plan: gather context, propose a plan, gate user approval, run Red→Green→Refactor with conflict-free file ownership, verify, and report.
+description: "When the user asks to implement a feature, build a new capability, or runs /implement, drive the work through TDD with a parallel-or-sequential plan: gather context, propose a plan, gate user approval, run Red→Green→Refactor with conflict-free file ownership, verify, and report."
 when_to_use: Use ONLY for new feature work invoked via /implement or explicit 'build / implement / add this feature' phrasing. Do NOT use for bug fixes (use /fix), behavior-preserving refactors (use /improve only when the user wants improvement, not pure rename), or single-line config edits.
-argument-hint: <issue-id> [--side back|front|both] [--step N] [--skip-docs]
+argument-hint: "<issue-id> [--side back|front|both] [--step N] [--skip-docs]"
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash(git status*), Bash(git branch*), Bash(git diff*), Bash(npm test*), Bash(npm run*), Bash(./gradlew test*), Bash(mvn test*), Bash(pytest*), Bash(go test*), Bash(rspec*), AskUserQuestion, Agent
 disable-model-invocation: true
 ---

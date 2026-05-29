@@ -31,6 +31,9 @@ python3 scripts/score_skill.py plugins/elian-store/skills/decision-dashboard/SKI
 
 # 여러 SKILL.md 동시 채점
 python3 scripts/score_skill.py plugins/elian-store/skills/*/SKILL.md
+
+# 실제 YAML parser smoke test (frontmatter가 Claude/GitHub에서 깨지는지 확인)
+ruby -EUTF-8 -ryaml -e 'Dir["plugins/elian-store/skills/*/SKILL.md"].sort.each { |p| s=File.read(p, encoding: "UTF-8"); YAML.safe_load(s.split(/^---\s*$/,3)[1] || "", permitted_classes: [], aliases: false); puts "OK #{p}" }'
 ```
 
 종료 코드: 모든 입력이 90점 이상이면 `0`, 하나라도 미만이면 `1`.
@@ -66,6 +69,7 @@ PR 의 SKILL.md 변경은 [`scripts/rubric.md`](scripts/rubric.md) 의 100점 �
 이 저장소의 기준은 **Claude Code 공식 문서가 하한선**, `alirezarezvani/claude-skills`가 **운영 패턴 참고자료**입니다. 외부 레퍼런스끼리 충돌하면 공식 문서와 이 저장소의 로컬 게이트를 우선합니다.
 
 - `SKILL.md` frontmatter: `description`은 공식 권장 필드입니다. 이 저장소는 추가로 `name`, `argument-hint`, `allowed-tools`를 요구하고, 자동 호출 트리거가 길면 `when_to_use`로 분리합니다.
+- `description`, `when_to_use`, `argument-hint` 값에 `: `, `[`/`]`, 따옴표, 긴 trigger list가 들어가면 YAML 문자열로 quote합니다. 특히 `Trigger phrases:` 같은 문장은 unquoted plain scalar로 두면 Claude/GitHub YAML 파서가 실패합니다.
 - `description + when_to_use`는 공식 skill listing cap인 1,536자 안에 유지합니다. 핵심 use case를 앞에 두고, 긴 절차 설명은 본문이나 `references/`로 내립니다.
 - side-effect가 있는 workflow는 `disable-model-invocation: true`를 기본값으로 둡니다. 자동 호출 가능한 skill은 읽기/문서 생성 등 영향 범위가 낮아야 합니다.
 - `SKILL.md`는 공식 기준 500줄 이하를 지키고, 운영 목표는 10KB 안쪽입니다. 긴 예시, 체크리스트, 도메인 지식은 `references/`, 반복 출력 양식은 `templates/`, 결정적 검증은 `scripts/`로 분리합니다.
@@ -174,6 +178,7 @@ EOF
 ```
 
 > `enforce_admins: false` 는 메인테이너가 긴급 시 우회할 수 있도록 둔 설정. 엄격히 하려면 `true`.
+> README/CHANGELOG/docs-only PR도 required check가 생성되도록 `skill-quality-gate.yml`의 `paths`에 문서 경로를 포함한다.
 
 ---
 

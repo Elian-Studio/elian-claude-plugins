@@ -1,8 +1,8 @@
 ---
 name: ai-assisted-feature-development
 description: When feature work needs discipline before AI writes code, produce framing, BDD/SDD/DDD, AI-TDD, context, agentic tasking, review, and SPDD archive artifacts.
-when_to_use: Use for new features, behavior-changing improvements, legacy refactors, API/UI behavior design, domain-policy work, and defining work before handing it to an AI agent. Trigger phrases: '기능 만들기 시작', '이 기능 어떻게 짤까', 'AI에게 맡기기 전에 정리', '명세부터 짜자', 'BDD부터 짜줘', 'AI 코딩 절차 적용', '/ai-assisted-feature-development'. Do not use for typos, one-line config changes, or already-scoped small fixes.
-argument-hint: <feature-name> [--risk low|medium|high] [--depth full|design-only|task-only|review-only] [--example login|payment|upload|search]
+when_to_use: "Use for new features, behavior-changing improvements, legacy refactors, API/UI behavior design, domain-policy work, and defining work before handing it to an AI agent. Trigger phrases: '기능 만들기 시작', '이 기능 어떻게 짤까', 'AI에게 맡기기 전에 정리', '명세부터 짜자', 'BDD부터 짜줘', 'AI 코딩 절차 적용', '/ai-assisted-feature-development'. Do not use for typos, one-line config changes, or already-scoped small fixes."
+argument-hint: "<feature-name> [--risk low|medium|high] [--depth full|design-only|task-only|review-only] [--example login|payment|upload|search]"
 disable-model-invocation: false
 allowed-tools: Read, Glob, Grep, Write, Bash(git diff*), Bash(git log*), Bash(git status*), AskUserQuestion
 ---

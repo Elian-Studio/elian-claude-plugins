@@ -2,7 +2,7 @@
 name: generate-teammate
 description: When the user explicitly invokes /generate-teammate or says 'create a team', 'build a team', or 'spawn teammates', decompose the work into phases, judge each phase independently (Agent Team / Subagent / direct), and produce a hybrid execution plan with file-conflict-free role assignment. JSON-first spawn prompt rendering via create-document blocks vague language (help build, TODO, ...) before any teammate is spawned.
 when_to_use: Use ONLY when the user explicitly invokes /generate-teammate or asks to 'create a team', 'build a team', or 'spawn teammates'. Do NOT use for simple single-step tasks or when a direct edit suffices.
-argument-hint: <project description or task requirements>
+argument-hint: "<project description or task requirements>"
 allowed-tools: Read, Write, Edit, Grep, Glob, Bash(python3 *), Bash(ls *), Agent, TeamCreate, TaskCreate, TaskUpdate, TaskList, TaskGet, SendMessage, TeamDelete, AskUserQuestion
 disable-model-invocation: true
 ---

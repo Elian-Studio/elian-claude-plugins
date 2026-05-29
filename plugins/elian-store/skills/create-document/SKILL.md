@@ -1,8 +1,8 @@
 ---
 name: create-document
 description: When a skill or user needs to render structured HTML/MD from JSON, validate the data against a schema and substitute it into a bundled template.
-when_to_use: Use for repeated document generation, JSON-to-HTML/Markdown rendering, schema-gated card documents, and internal calls from decision-dashboard or generate-teammate. Trigger phrases: 'JSON으로 문서 만들어줘', '이 데이터로 대시보드 렌더', 'JSON → HTML 치환', '/create-document'.
-argument-hint: --template <name> --data <json-path> --out <out-path>
+when_to_use: "Use for repeated document generation, JSON-to-HTML/Markdown rendering, schema-gated card documents, and internal calls from decision-dashboard or generate-teammate. Trigger phrases: 'JSON으로 문서 만들어줘', '이 데이터로 대시보드 렌더', 'JSON → HTML 치환', '/create-document'."
+argument-hint: "--template <name> --data <json-path> --out <out-path>"
 allowed-tools: Bash(python3 *) Bash(mkdir *) Bash(cp *) Bash(ls *) Read Write
 ---
 

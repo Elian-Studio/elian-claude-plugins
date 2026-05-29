@@ -1,8 +1,8 @@
 ---
 name: design-ui
 description: When a user needs UI/UX design for a new screen or flow, drive Interview → Reference → Wireframe → Gate → Visual → Deliver before implementation.
-when_to_use: Use for new page/flow design, feature-level UX shaping, wireframes, visual HTML, and DESIGN.md handoff. Trigger phrases: '와이어프레임 만들어줘', '이 기능 UI 어떻게 짤지', '디자인 시안 잡아줘', 'UX 개선해줘', '사용자 경험 좋게 다시', '/design-ui'. If the requirement is fuzzy, run /brainstorm first; if only one existing component needs minor styling, direct implementation is faster.
-argument-hint: <feature-name> [--out <dir>] [--skip-gate] [--from-brief <path>] [--refs <url,url,...>]
+when_to_use: "Use for new page/flow design, feature-level UX shaping, wireframes, visual HTML, and DESIGN.md handoff. Trigger phrases: '와이어프레임 만들어줘', '이 기능 UI 어떻게 짤지', '디자인 시안 잡아줘', 'UX 개선해줘', '사용자 경험 좋게 다시', '/design-ui'. If the requirement is fuzzy, run /brainstorm first; if only one existing component needs minor styling, direct implementation is faster."
+argument-hint: "<feature-name> [--out <dir>] [--skip-gate] [--from-brief <path>] [--refs <url,url,...>]"
 allowed-tools: Read, Write, Edit, Bash(mkdir *), Bash(ls *), Bash(open *), Glob, Grep, AskUserQuestion, WebFetch
 disable-model-invocation: false
 ---
