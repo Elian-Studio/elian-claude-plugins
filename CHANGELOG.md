@@ -10,6 +10,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## Marketplace (`elian`)
 
+### 2.7.3 — 2026-05-29
+
+#### Changed
+- **gstack-based portfolio review**: added `docs/gstack-skill-review.md` to compare the current bundle against `garrytan/gstack` lifecycle patterns and identify gaps across review, browser QA, release, canary, benchmark, security, and learning workflows.
+- **README roadmap note**: linked the gstack review and clarified that the current bundle is structurally healthy but not yet lifecycle-complete.
+- **Claude/Codex parity docs** now distinguish Codex CLI prompt/config parity from a non-existent Codex plugin marketplace model and list the gstack-derived roadmap gaps.
+- **Rubric and CONTRIBUTING** now include a non-blocking portfolio review checklist for lifecycle coverage beyond the 90-point per-skill gate.
+- **Marketplace + plugin metadata** bumped to `2.7.3` because plugin-distributed documentation changed.
+
+#### Notes
+- No skill runtime behavior changed. This release documents portfolio-level gaps and follow-up PR order; it does not add new skills.
+
 ### 2.7.2 — 2026-05-29
 
 #### Fixed

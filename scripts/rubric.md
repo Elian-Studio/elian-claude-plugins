@@ -140,6 +140,22 @@
 
 ---
 
+## Portfolio review checklist (비점수)
+
+개별 스킬 점수와 별개로, 큰 변경이나 새 스킬 추가 전에는 [`docs/gstack-skill-review.md`](docs/gstack-skill-review.md)의 lifecycle gap을 확인한다. 이 체크는 현재 CI hard gate가 아니다.
+
+| 축 | 질문 |
+|---|---|
+| Lifecycle coverage | product/spec, design, implementation, review, QA, release, learning 중 어느 위치인가? |
+| Role clarity | specialist 역할이 하나로 선명한가, 기존 skill과 겹치지 않는가? |
+| Artifact continuity | 산출물이 downstream skill 입력으로 이어지는가? |
+| Browser-visible QA | UI/배포 검증이면 실제 화면, 스크린샷, 재현 경로가 남는가? |
+| Release readiness | 구현과 release/PR 생성 책임이 분리되어 있는가? |
+| Learning loop | 반복 선호/실패 모드를 다음 세션에서 재사용할 수 있는가? |
+| Safety guardrail | 파괴적 변경, 릴리즈, 취향 판단은 사용자 gate를 거치는가? |
+
+---
+
 ## 통과 기준
 
 - **총점 ≥ 90**: PASS — 병합 가능
