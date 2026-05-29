@@ -10,6 +10,23 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## Marketplace (`elian`)
 
+### 2.7.1 — 2026-05-28
+
+#### Changed
+- **Claude skill/plugin documentation alignment**: added `docs/claude-skill-plugin-audit.md` comparing this repository against current Claude Code skill/plugin docs and `alirezarezvani/claude-skills`.
+- **Claude/Codex parity review**: added `docs/claude-codex-skill-parity.md` to define what "same catalog" means, identify the current 12-vs-1 parity gap, and assess whether each skill matches its purpose.
+- **Marketplace + plugin metadata** shortened for discovery surfaces. `plugin.json.version` and marketplace entry bumped together because plugin-distributed docs changed.
+- **README skill inventory** now matches all 12 bundled skills under `plugins/elian-store/skills/`.
+- **Codex prompt rename**: `codex/prompts/on-call-elian.md` is now `codex/prompts/persona-review.md`, so the independent Codex command matches the Claude plugin skill name.
+- **CONTRIBUTING** now documents the current skill/plugin operating rules: official Claude Code docs as compatibility baseline, `alirezarezvani/claude-skills` as operating-pattern reference, 1,536-character listing cap, side-effect auto-invocation policy, plugin-root component layout, and version bump rule.
+- **Skill frontmatter cleanup** for `/ai-assisted-feature-development`, `/create-document`, `/design-ui`, and `/persona-review`; high-detail procedure text moved out of discovery metadata.
+- **`/persona-review`** now has an explicit `Modes` section for `quick`, `deep`, and `interview`.
+- **Rubric wording** updated to explain the optional-frontmatter source-priority rule instead of treating external conventions as uniformly authoritative.
+
+#### Notes
+- No Claude plugin workflow behavior changed. The independent Codex prompt command changed from `/on-call-elian` to `/persona-review`; existing Codex users should remove `~/.codex/prompts/on-call-elian.md` during reinstall so the stale slash command does not remain available.
+- All bundled skills still pass the local 90-point `score_skill.py` gate.
+
 ### 2.7.0 — 2026-05-23
 
 #### BREAKING — `/on-call-elian` renamed to `/persona-review`

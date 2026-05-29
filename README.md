@@ -6,7 +6,7 @@
 [![Skill Quality Gate](https://img.shields.io/badge/quality_gate-90%2F100-brightgreen)](scripts/rubric.md)
 
 > **A Claude Code skill bundle that reduces decision fatigue and smooths workflow.**
-> One plugin install (`elian-store`) gives you multiple skills, and new skills land automatically on update.
+> One plugin install (`elian-store`) gives you the full workflow skill set, and new skills land automatically on update.
 > Every SKILL.md change must pass a 90-point heuristic quality gate before it can merge to `main`.
 
 ---
@@ -30,15 +30,18 @@ Then in Claude Code:
 
 | Skill | Status | Description | Invocation |
 |-------|--------|-------------|------------|
-| [decision-dashboard](plugins/elian-store/skills/decision-dashboard/) | ✅ v1.0.0 | When 3+ decisions block the team, capture them in a printable HTML artifact so the team can decide in 5 minutes. | `/elian-store:decision-dashboard` |
-| [generate-teammate](plugins/elian-store/skills/generate-teammate/) | ✅ v2.1.0 | Decompose work into phases, judge each phase independently (Agent Team / Subagent / direct), produce a hybrid execution plan. Ships with 14 plugin-bundled domain agents. | `/elian-store:generate-teammate` |
-| [implement](plugins/elian-store/skills/implement/) | ✅ v2.2.0 | TDD-driven feature build: context → plan → approval gate → Red→Green→Refactor → verify → review → report. | `/elian-store:implement` |
-| [fix](plugins/elian-store/skills/fix/) | ✅ v2.2.0 | Root-cause-first bug repair: regression test first, then fix, with sibling-site audit. | `/elian-store:fix` |
-| [improve](plugins/elian-store/skills/improve/) | ✅ v2.2.0 | Behavior-changing improvement to working features with quantified BEFORE/AFTER and Characterization Tests. | `/elian-store:improve` |
-| [brainstorm](plugins/elian-store/skills/brainstorm/) | ✅ v2.2.0 | Conversational discovery for fuzzy requests: Socratic probing → 3+ options → tradeoff matrix → decision → handoff. | `/elian-store:brainstorm` |
-| [manage-skills](plugins/elian-store/skills/manage-skills/) | ✅ v2.3.0 | Auto-detect verify-skill drift after code changes and create/update verify-* skills so the project's verification stays current. Pairs with verify-implementation. | `/elian-store:manage-skills` |
-| [verify-implementation](plugins/elian-store/skills/verify-implementation/) | ✅ v2.3.0 | Discover and run all verify-* skills in the project before shipping; surface failures with concrete fix suggestions; auto-apply fixes and re-verify with approval. | `/elian-store:verify-implementation` |
-| [persona-review](plugins/elian-store/skills/persona-review/) | ✅ v2.5.0 | Review a plan/design/doc through a fixed persona lens (default `daniel`) with a locked 5-block OUTPUT FORMAT (결론 → 트레이드오프 → 운영 리스크 → 8 압박 질문 → 다음 질문). Thin one-liners get ONE intent question first; optional `--depth interview` re-emits the 5-block up to 3 rounds re-interviewing the weakest points, then emits a read-only `/improve` handoff. Read-only. Pairs with /brainstorm as 수렴 압박. | `/elian-store:persona-review` |
+| [decision-dashboard](plugins/elian-store/skills/decision-dashboard/) | ✅ bundled | Capture 3+ blocking decisions in a printable HTML artifact with downloadable JSON for downstream skills. | `/elian-store:decision-dashboard` |
+| [generate-teammate](plugins/elian-store/skills/generate-teammate/) | ✅ bundled | Decompose work into phases, decide Agent Team / Subagent / direct execution per phase, and render JSON-first teammate prompts. | `/elian-store:generate-teammate` |
+| [create-document](plugins/elian-store/skills/create-document/) | ✅ bundled | Render structured HTML/MD from JSON through schema validation and templates. Used directly or by other skills. | `/elian-store:create-document` |
+| [design-ui](plugins/elian-store/skills/design-ui/) | ✅ bundled | Design UI/UX through Interview → Reference → Wireframe → Gate → Visual → Deliver. | `/elian-store:design-ui` |
+| [ai-assisted-feature-development](plugins/elian-store/skills/ai-assisted-feature-development/) | ✅ bundled | Turn feature work into intent, BDD/SDD/DDD, tests, context, agentic tasks, review, and SPDD archive. | `/elian-store:ai-assisted-feature-development` |
+| [implement](plugins/elian-store/skills/implement/) | ✅ bundled | TDD-driven feature build: context → plan → approval gate → Red→Green→Refactor → verify → review → report. | `/elian-store:implement` |
+| [fix](plugins/elian-store/skills/fix/) | ✅ bundled | Root-cause-first bug repair: regression test first, then fix, with side-effect audit. | `/elian-store:fix` |
+| [improve](plugins/elian-store/skills/improve/) | ✅ bundled | Behavior-changing improvement to working features with quantified BEFORE/AFTER and Characterization Tests. | `/elian-store:improve` |
+| [brainstorm](plugins/elian-store/skills/brainstorm/) | ✅ bundled | Conversational discovery for fuzzy requests: Socratic probing → 3+ options → tradeoff matrix → decision → handoff. | `/elian-store:brainstorm` |
+| [manage-skills](plugins/elian-store/skills/manage-skills/) | ✅ bundled | Detect verify-skill drift after code changes and create/update verify-* skills so project verification stays current. | `/elian-store:manage-skills` |
+| [verify-implementation](plugins/elian-store/skills/verify-implementation/) | ✅ bundled | Discover and run project verify-* skills before shipping; report failures and apply fixes only with approval. | `/elian-store:verify-implementation` |
+| [persona-review](plugins/elian-store/skills/persona-review/) | ✅ bundled | Review a plan/design/doc through `daniel`, `evans`, `dean`, `martin`, or a custom persona with a locked 5-block format. | `/elian-store:persona-review` |
 
 New skills land via `/plugin update elian-store@elian` — no separate install per skill.
 
@@ -52,7 +55,7 @@ This repo also ships an **independent** OpenAI Codex CLI config tree under [`cod
 |-------|--------|---------------|
 | [persona-review](codex/prompts/persona-review.md) | ✅ reference port | `cp codex/prompts/*.md ~/.codex/prompts/` → `/persona-review <target> [--depth interview]` |
 
-Setup: see [`codex/README.md`](codex/README.md). ⚠️ The two trees have **no shared source** — editing skill logic on one side requires manually syncing the other (intentional trade-off; see `CONTRIBUTING.md` → "Claude vs Codex").
+Setup: see [`codex/README.md`](codex/README.md). ⚠️ The two trees have **no shared source** — editing skill logic on one side requires manually syncing the other (intentional trade-off; see `CONTRIBUTING.md` → "Claude vs Codex"). Current parity status: [`docs/claude-codex-skill-parity.md`](docs/claude-codex-skill-parity.md).
 
 ---
 

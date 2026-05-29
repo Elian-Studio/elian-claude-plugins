@@ -24,13 +24,13 @@ main 브랜치는 직접 푸시 차단. 모든 변경은 PR 을 거쳐야 합니
 
 ```bash
 # 텍스트 출력
-python3 scripts/score_skill.py plugins/decision-dashboard/skills/decision-dashboard/SKILL.md
+python3 scripts/score_skill.py plugins/elian-store/skills/decision-dashboard/SKILL.md
 
 # JSON 출력 (다른 스킬과 chaining 가능)
-python3 scripts/score_skill.py plugins/decision-dashboard/skills/decision-dashboard/SKILL.md --json
+python3 scripts/score_skill.py plugins/elian-store/skills/decision-dashboard/SKILL.md --json
 
 # 여러 SKILL.md 동시 채점
-python3 scripts/score_skill.py plugins/*/skills/*/SKILL.md
+python3 scripts/score_skill.py plugins/elian-store/skills/*/SKILL.md
 ```
 
 종료 코드: 모든 입력이 90점 이상이면 `0`, 하나라도 미만이면 `1`.
@@ -54,11 +54,24 @@ PR 의 SKILL.md 변경은 [`scripts/rubric.md`](scripts/rubric.md) 의 100점 �
 9. 일반화 / 휴대성
 10. 의사결정·산출물 설계
 
-루브릭은 다음 세 레퍼런스를 종합합니다:
+루브릭은 다음 레퍼런스를 종합합니다:
 
 - [Claude Code 공식 Skills 가이드](https://code.claude.com/docs/en/skills)
+- [Claude Code 공식 Plugins / Marketplace 가이드](https://code.claude.com/docs/en/plugins)
 - [garrytan/gstack — docs/skills.md](https://github.com/garrytan/gstack/blob/main/docs/skills.md) (실전 운영 사례)
-- [alirezarezvani/claude-skills](https://github.com/alirezarezvani/claude-skills) (235 스킬 마켓플레이스 패턴)
+- [alirezarezvani/claude-skills](https://github.com/alirezarezvani/claude-skills) (대형 스킬 마켓플레이스 운영 패턴)
+
+### Claude skill/plugin 운영 규칙
+
+이 저장소의 기준은 **Claude Code 공식 문서가 하한선**, `alirezarezvani/claude-skills`가 **운영 패턴 참고자료**입니다. 외부 레퍼런스끼리 충돌하면 공식 문서와 이 저장소의 로컬 게이트를 우선합니다.
+
+- `SKILL.md` frontmatter: `description`은 공식 권장 필드입니다. 이 저장소는 추가로 `name`, `argument-hint`, `allowed-tools`를 요구하고, 자동 호출 트리거가 길면 `when_to_use`로 분리합니다.
+- `description + when_to_use`는 공식 skill listing cap인 1,536자 안에 유지합니다. 핵심 use case를 앞에 두고, 긴 절차 설명은 본문이나 `references/`로 내립니다.
+- side-effect가 있는 workflow는 `disable-model-invocation: true`를 기본값으로 둡니다. 자동 호출 가능한 skill은 읽기/문서 생성 등 영향 범위가 낮아야 합니다.
+- `SKILL.md`는 공식 기준 500줄 이하를 지키고, 운영 목표는 10KB 안쪽입니다. 긴 예시, 체크리스트, 도메인 지식은 `references/`, 반복 출력 양식은 `templates/`, 결정적 검증은 `scripts/`로 분리합니다.
+- plugin 구조: `.claude-plugin/` 안에는 `plugin.json`만 둡니다. `skills/`, `agents/`, `hooks/`, `.mcp.json`, `.lsp.json` 등 컴포넌트는 plugin root에 둡니다.
+- marketplace 구조: root `.claude-plugin/marketplace.json`이 catalog이고, plugin 본문은 `plugins/elian-store/` 아래에 둡니다.
+- version 규칙: `plugin.json.version`이 있으면 marketplace entry의 `version`보다 우선하고 update cache key가 됩니다. plugin 내부 문서나 skill 동작을 바꾸면 `plugin.json`, root `marketplace.json`, `README.md`, `CHANGELOG.md`를 함께 갱신합니다.
 
 ---
 
@@ -112,9 +125,10 @@ plugins/elian-store/
 
 1. 한 도구의 로직을 바꾸면 다른 트리 동기화는 **PR 작성자 수동 책임**. 게이트가 자동 동기화해 주지 않는다.
 2. 같은 스킬이 양쪽에 있으면 **PR 에서 두 파일 diff 를 함께** 확인. (v2.5.0 에서 잡은 "산문↔절차 drift" 의 트리-레벨 버전이 정확히 이 위험.)
-3. Codex 게이트의 축 1·2·5(5블록 순서·Phase 정합·카운터파트 상호참조)가 이 드리프트를 결정적으로 검사한다 — 우회하지 말 것.
+3. Codex 게이트의 축 1·3·5(command identity·workflow 정합·카운터파트 상호참조)가 이 드리프트를 결정적으로 검사한다 — 우회하지 말 것.
 4. 새 스킬을 Codex 로도 포팅할 때: `codex/prompts/<skill>.md` 작성 → `python3 scripts/score_codex_prompt.py codex/prompts/<skill>.md` 90점 확인 → `codex/README.md` 포팅 목록 갱신.
 5. `codex/` 추가는 elian-store **플러그인 버전과 무관** (마켓플레이스 플러그인이 아닌 sibling 배포 트리). `plugin.json`/`marketplace.json` version bump 대상 아님.
+6. Claude/Codex catalog parity 는 [`docs/claude-codex-skill-parity.md`](docs/claude-codex-skill-parity.md) 를 기준으로 점검한다. 새 Claude skill 은 같은 PR 에 Codex prompt 또는 예외 사유를 남긴다.
 
 ---
 
@@ -166,7 +180,7 @@ EOF
 ## 릴리즈 절차 (변경 머지 → 배포)
 
 1. **PR 머지** (게이트 통과 후)
-2. **`plugin.json.version`** 또는 마켓플레이스 메타데이터 버전이 bump 됐다면 사용자 자동 업데이트 도달
+2. **`plugin.json.version`** 이 bump 됐다면 사용자 자동 업데이트 도달 (`plugin.json.version` 이 marketplace entry `version` 보다 우선)
 3. **GitHub Release 발행** — 사용자 안내용:
    ```bash
    gh release create vX.Y.Z \
@@ -206,8 +220,12 @@ elian-claude-plugins/
 │           ├── decision-dashboard/
 │           │   ├── SKILL.md
 │           │   ├── scripts/
-│           │   ├── references/
-│           │   └── template.html
+│           │   └── references/
+│           ├── create-document/
+│           │   ├── SKILL.md
+│           │   ├── scripts/
+│           │   ├── schemas/
+│           │   └── templates/
 │           └── (추가 스킬은 같은 skills/ 하위에)
 ├── codex/                         # ── Codex CLI 트리 (plugins/ 와 독립) ──
 │   ├── README.md                 # 정체성 + 설치 + drift 경고
@@ -221,6 +239,8 @@ elian-claude-plugins/
 │   ├── rubric-codex.md           # Codex 평가 루브릭 (100점, 독립)
 │   └── score_codex_prompt.py     # Codex prompt 채점 (stdlib only)
 ├── docs/
+│   ├── claude-codex-skill-parity.md
+│   ├── claude-skill-plugin-audit.md
 │   └── screenshots/              # README 용 시각 자료
 ├── CHANGELOG.md
 ├── CONTRIBUTING.md               # 이 파일

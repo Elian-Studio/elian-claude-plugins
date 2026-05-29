@@ -1,7 +1,7 @@
 ---
 name: persona-review
-description: When the user wants their thinking, plan, design, or document reviewed through a fixed persona lens chosen from a library (default daniel; alternatives evans for DDD, dean for distributed-scale, martin for clean code/SOLID/TDD, or any custom path) using a locked 5-block OUTPUT FORMAT (Conclusion → Trade-offs table → Operational risks → 8 pressure questions → Next question). When the input is a thin one-liner the persona asks ONE intent question first (2-3 choices + free input) instead of speculating. Optional --depth interview re-emits the 5-block up to 3 rounds, each round re-interviewing only the 1-2 weakest points (pressure-question score ✗ before △) until the Conclusion hardens into a definitive statement, then emits a read-only handoff payload to /improve.
-when_to_use: before locking in a non-trivial decision, when reviewing a draft plan/design/PR description, when self-checking a thought against operational risk or domain modeling or scale or code quality, when a fuzzy one-line idea needs intent clarified before any critique, when a review should converge over a few rounds before handing off to improvement, user says '페르소나로 리뷰해줘'·'다니엘 시각으로'·'에반스로 도메인 점검'·'딘 시각으로 스케일 압박'·'마틴으로 클린코드 점검'·'/persona-review'·'트레이드오프 표로 정리해줘'·'운영 관점으로 점검'·'재심문으로 수렴시켜줘'·'의도부터 물어봐'·'리뷰하고 개선까지 이어줘'·'--depth interview'·'--persona evans|dean|martin'
+description: When a user wants a plan, design, document, PR description, or idea reviewed through a fixed persona lens, produce the locked 5-block critique and ask one intent question first if the input is too thin.
+when_to_use: Use before locking in a non-trivial decision, when reviewing a draft against operational risk, DDD, distributed-scale, or clean-code pressure, or when a fuzzy idea needs critique after one clarification question. Trigger phrases: '페르소나로 리뷰해줘', '다니엘 시각으로', '에반스로 도메인 점검', '딘 시각으로 스케일 압박', '마틴으로 클린코드 점검', '/persona-review', '트레이드오프 표로 정리해줘', '--depth interview'.
 argument-hint: <target-path-or-text> [--persona daniel|evans|dean|martin|<path-to-custom>] [--depth quick|deep|interview]
 disable-model-invocation: true
 allowed-tools: Read, Glob, Grep, Bash(git diff*), Bash(git log*), Bash(git status*), AskUserQuestion
@@ -18,6 +18,16 @@ allowed-tools: Read, Glob, Grep, Bash(git diff*), Bash(git log*), Bash(git statu
 핵심 가치: 발산은 `/brainstorm` 이 한다. 이 스킬은 **수렴 압박** — 페르소나에 따라 압박 축이 다르지만 (운영 / 도메인 / 스케일 / 클린코드), 5블록 형식과 약점 재심문 루프는 공통. `--depth interview` 면 5블록을 **최대 3라운드 반복**하며 매 라운드 가장 약한 지점(압박 질문 `✗` > `△`)만 타깃 재심문해 *이해* 를 수렴시키고, 결론이 단정으로 굳으면 `/improve` 핸드오프 페이로드를 *발행*한다 (본체는 끝까지 read-only).
 
 ---
+
+## Modes
+
+| Mode | What it does | Use when |
+|---|---|---|
+| `quick` (default) | One 5-block persona review | The input has enough context and the user wants a fast critique |
+| `deep` | More detailed evidence gathering before the same 5-block output | The target is a non-trivial plan, design, or PR description |
+| `interview` | Up to 3 rounds of 5-block review + weakest-point re-questioning | The conclusion is still soft and needs convergence before handoff |
+
+Persona selection is orthogonal to depth: `--persona daniel|evans|dean|martin|<path>` chooses the pressure lens; `--depth` chooses how hard the convergence loop runs.
 
 ## Where this fits in the workflow
 

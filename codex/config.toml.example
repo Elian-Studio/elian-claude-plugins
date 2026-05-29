@@ -2,7 +2,7 @@
 #
 #   cp codex/config.toml.example ~/.codex/config.toml
 #
-# 이 샘플은 /on-call-elian 같은 read-only 리뷰 작업에 안전한 기본값을 깐다.
+# 이 샘플은 /persona-review 같은 read-only 리뷰 작업에 안전한 기본값을 깐다.
 # 코드를 쓰는 작업을 하려면 sandbox_mode / approval_policy 를 직접 올려야 한다.
 # (codex/ 트리는 plugins/ 와 독립 — Claude 쪽 .claude/settings 와 무관.)
 
@@ -20,7 +20,7 @@ model_reasoning_effort = "high"
 approval_policy = "untrusted"
 
 # 샌드박스:
-#   read-only            = 파일 읽기만. /on-call-elian 등 리뷰 작업 기본값 (read-only 계약과 일치)
+#   read-only            = 파일 읽기만. /persona-review 등 리뷰 작업 기본값 (read-only 계약과 일치)
 #   workspace-write      = 작업 디렉토리 쓰기 허용
 #   danger-full-access   = 제한 없음 (권장 안 함)
 sandbox_mode = "read-only"

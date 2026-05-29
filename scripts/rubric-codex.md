@@ -7,17 +7,18 @@ LLM 호출 없음. stdlib only. 결정적. 통과 = 90/100, 미달 = 머지 차�
 
 | # | 축 | 배점 | 신호 |
 |---|---|---|---|
-| 1 | 5블록 잠금 계약 | 20 | `결론·트레이드오프·운영 리스크·압박 질문·다음 질문` 5개 모두 등장(비례 배점) + **등장 순서가 잠금 순서와 일치** (순서 어긋나면 10점 상한) |
-| 2 | Phase 절차 정합 | 15 | `Phase 1~5` 모두 명시 (+10). 본문에 `Phase 6` 미등장 (+5) — Phase 6 언급은 절차 본문↔목록 불일치(drift) 신호 (v2.5.0 PR 에서 잡은 버그 클래스) |
-| 3 | Standing 규칙 | 15 | `Forbidden` 섹션 (+8), `Pre-flight`/self-check 섹션 (+7) |
-| 4 | Read-only 계약 | 15 | read-only/읽기 전용 명시 (+10), 파괴적 명령 문자열(`rm -rf`/`git push --force`/`git reset --hard`/`DROP TABLE`) 미포함 (+5) |
+| 1 | 명령·목적 계약 | 15 | H1 이 파일명 기반 slash command 를 명시 (+5), 목적/Purpose 섹션 (+5), `$ARGUMENTS` 계약 (+5) |
+| 2 | 사용 범위·경계 | 15 | 사용 조건/trigger (+5), 비사용·금지 경계 (+5), 입력 범위·판정·폴백 기준 (+5) |
+| 3 | Workflow 절차 정합 | 15 | Workflow/Procedure/절차 존재 (+10), Phase/Step 번호가 drift 없이 이어짐 (+5) |
+| 4 | Safety / approval posture | 15 | read-only/approval/ask-and-stop 같은 안전 태도 (+6), Codex 권한 모델/config 언급 (+4), 파괴적 명령 문자열 없음 (+5) |
 | 5 | 독립 트리 drift 가드 | 15 | 독립 트리/수동 동기화/drift 경고 (+8), Claude `SKILL.md` 카운터파트 상호참조 (+7) |
 | 6 | 인자 규약 | 8 | `$ARGUMENTS` 또는 `$1`/`$2` Codex 인자 규약 사용 |
-| 7 | 출력 템플릿 | 7 | 펜스된(```markdown```) 출력 템플릿 + `## 결론` 포함 |
+| 7 | 출력·산출물 계약 | 12 | fenced output/template 예시 (+4), OUTPUT FORMAT/산출물/handoff 계약 (+4), 5블록을 쓰는 prompt는 순서 보존 (+4) |
 | 8 | 라인 예산 | 5 | 자기완결 프롬프트 ≤320줄 (초과 시 2점) |
 
 ## 설계 의도
 
-- **축 1·2·5 가 drift 방어의 핵심.** `/on-call-elian` v2.5.0 리뷰에서 잡은 결함은 "산문 스펙 ↔ 절차 본문 번호 불일치" 였다. 독립 2-트리는 그 위험을 트리 레벨로 키우므로(단일 진실원 없음), 게이트가 5블록 순서·Phase 정합·카운터파트 상호참조를 결정적으로 검사한다.
+- **축 1·3·5 가 drift 방어의 핵심.** 독립 2-트리는 산문 스펙 ↔ 절차 본문 ↔ Claude counterpart 불일치 위험을 키우므로, 게이트가 command identity·workflow 정합·카운터파트 상호참조를 결정적으로 검사한다.
 - **권한 축 없음.** Codex 는 `allowed-tools` 가 아니라 `config.toml` 의 `sandbox_mode`/`approval_policy` 로 통제. 프롬프트는 read-only 를 *지시문*으로 명시하는지만 본다(축 4).
-- **로컬 검증**: `python3 scripts/score_codex_prompt.py codex/prompts/on-call-elian.md` / `--json` / `--output <path>`.
+- **5블록은 persona-review 전용 계약.** 다른 Codex prompt 는 자기 목적에 맞는 출력·산출물 계약을 쓰면 된다.
+- **로컬 검증**: `python3 scripts/score_codex_prompt.py codex/prompts/*.md` / `--json` / `--output <path>`.

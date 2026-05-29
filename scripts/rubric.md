@@ -2,8 +2,11 @@
 
 이 루브릭은 다음 세 레퍼런스를 종합한다:
 1. [Claude Code 공식 Skills 가이드](https://code.claude.com/docs/en/skills)
-2. [garrytan/gstack — docs/skills.md](https://github.com/garrytan/gstack/blob/main/docs/skills.md) (실전 운영 사례)
-3. [alirezarezvani/claude-skills](https://github.com/alirezarezvani/claude-skills) (235 스킬 마켓플레이스 패턴)
+2. [Claude Code 공식 Plugins / Marketplace 가이드](https://code.claude.com/docs/en/plugins)
+3. [garrytan/gstack — docs/skills.md](https://github.com/garrytan/gstack/blob/main/docs/skills.md) (실전 운영 사례)
+4. [alirezarezvani/claude-skills](https://github.com/alirezarezvani/claude-skills) (대형 스킬 마켓플레이스 운영 패턴)
+
+공식 문서와 외부 레퍼런스가 충돌하면 공식 문서와 이 저장소의 로컬 게이트를 우선한다. 예: Claude Code 공식 문서는 `when_to_use`, `argument-hint`, `allowed-tools`, `disable-model-invocation` 같은 optional frontmatter를 지원하므로, "frontmatter는 name/description만" 같은 더 좁은 외부 규칙은 이 저장소에 그대로 적용하지 않는다.
 
 마켓플레이스 병합 게이트는 **총점 90점 이상**을 요구한다. 10개 축 × 각 10점.
 
@@ -26,6 +29,7 @@
 | `allowed-tools` 존재 | +1 |
 
 > 공식 가이드: *"All fields are optional. Only `description` is recommended so Claude knows when to use the skill."*
+> repo policy: `name`, `argument-hint`, `allowed-tools` 는 이 저장소의 품질 게이트에서 요구하는 운영 필드다.
 
 ## 2. Description 자동 호출 신뢰성 (10점)
 
@@ -51,7 +55,7 @@
 | SKILL.md 가 references/ 또는 scripts/ 의 파일을 markdown 링크로 참조 | +2 |
 
 > 공식: *"Keep `SKILL.md` under 500 lines. Move detailed reference material to separate files."*
-> alirezarezvani: *"Three-file minimum: SKILL.md + scripts/ + references/"*
+> alirezarezvani 운영 패턴: SKILL.md 는 workflow/navigation 에 집중하고, 깊은 지식은 references/, 결정적 작업은 scripts/ 로 분리한다. 운영 목표는 SKILL.md 10KB 안쪽이다.
 
 ## 4. Standing Instructions vs One-time Steps (10점)
 
@@ -108,6 +112,7 @@
 | `disable-model-invocation: true` 또는 외부 영향 액션(push/deploy/send/delete) 자동 호출 가능 표현 없음 | +2 |
 
 > 공식: *"`allowed-tools` grants permission for the listed tools while the skill is active... It does not restrict which tools are available... your permission settings still govern tools that are not listed."*
+> side-effect 가 있는 workflow 는 `disable-model-invocation: true` 를 기본값으로 둔다.
 
 ## 9. 일반화 / 휴대성 (10점)
 
