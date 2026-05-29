@@ -37,6 +37,17 @@ OUTPUT_PATH = os.environ.get("SKILL_EVAL_OUTPUT", "evaluation-results.json")
 # ---------- frontmatter 파싱 (YAML 의존 없이) ----------
 
 
+def decode_frontmatter_value(value: str) -> str:
+    """Decode the simple quoted scalar forms this repository uses."""
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
+        inner = value[1:-1]
+        if value[0] == "'":
+            return inner.replace("''", "'")
+        return inner.replace(r"\"", '"').replace(r"\\", "\\")
+    return value
+
+
 def parse_frontmatter(text: str) -> tuple[dict[str, str], int, str]:
     """frontmatter 의 단순 키:값 추출. 본문과 frontmatter 라인 끝 위치 반환.
 
@@ -54,9 +65,59 @@ def parse_frontmatter(text: str) -> tuple[dict[str, str], int, str]:
         m = re.match(r"^([a-zA-Z_-][a-zA-Z0-9_-]*)\s*:\s*(.*)$", lines[i])
         if m:
             key, value = m.group(1), m.group(2).strip()
-            fm[key] = value
+            fm[key] = decode_frontmatter_value(value)
     body = "\n".join(lines[end + 1 :]) if end else text
     return (fm, end, body)
+
+
+def frontmatter_yaml_syntax_issues(text: str) -> list[str]:
+    """Catch YAML-unsafe metadata patterns without adding a YAML dependency.
+
+    The production loader is a YAML parser, while this scorer intentionally stays
+    stdlib-only. These checks target the high-risk plain-scalar cases that break
+    real YAML parsing or coerce string metadata into YAML collections.
+    """
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return ["missing YAML frontmatter opening delimiter"]
+
+    issues: list[str] = []
+    closed = False
+    for i in range(1, len(lines)):
+        raw = lines[i]
+        line = raw.strip()
+        if line == "---":
+            closed = True
+            break
+        if not line or line.startswith("#"):
+            continue
+        if raw.startswith((" ", "\t")):
+            continue
+        m = re.match(r"^([a-zA-Z_-][a-zA-Z0-9_-]*)\s*:\s*(.*)$", raw)
+        if not m:
+            issues.append(f"line {i + 1}: not a simple YAML key/value pair")
+            continue
+        key, value = m.group(1), m.group(2).strip()
+        if not value:
+            continue
+        if value in {"|", ">", "|-", ">-", "|+", ">+"}:
+            continue
+        if value[0] in {"'", '"'}:
+            if len(value) < 2 or value[-1] != value[0]:
+                issues.append(f"line {i + 1}: {key} has an unterminated quoted scalar")
+            continue
+        if value[0] in {"[", "{"}:
+            issues.append(
+                f"line {i + 1}: {key} starts with a YAML collection marker; quote it if it is text"
+            )
+        if ": " in value:
+            issues.append(
+                f"line {i + 1}: {key} contains ': ' in an unquoted scalar; quote it"
+            )
+
+    if not closed:
+        issues.append("missing YAML frontmatter closing delimiter")
+    return issues
 
 
 # ---------- 보조 함수 ----------
@@ -90,10 +151,15 @@ def find_in_subdir(skill_dir: Path, subdir: str, *exts: str) -> list[Path]:
 # ---------- 10개 축 채점 ----------
 
 
-def axis1_frontmatter(fm: dict[str, str], path: Path) -> tuple[int, str, list[str]]:
+def axis1_frontmatter(
+    fm: dict[str, str], path: Path, yaml_issues: list[str]
+) -> tuple[int, str, list[str]]:
     score = 0
     why: list[str] = []
     improvements: list[str] = []
+    if yaml_issues:
+        improvements.extend(f"YAML frontmatter issue: {issue}" for issue in yaml_issues)
+
     if fm:
         score += 2
     else:
@@ -137,6 +203,8 @@ def axis1_frontmatter(fm: dict[str, str], path: Path) -> tuple[int, str, list[st
         score += 1
 
     score = min(score, 10)
+    if yaml_issues:
+        score = 0
     why.append(
         f"필드 충족: name={'O' if name else 'X'}, "
         f"description={'O' if fm.get('description') else 'X'}, "
@@ -514,6 +582,7 @@ AXES = [
 def score_skill(path: Path) -> dict[str, Any]:
     text = path.read_text(encoding="utf-8")
     fm, _, body = parse_frontmatter(text)
+    yaml_issues = frontmatter_yaml_syntax_issues(text)
     skill_dir = path.parent
 
     axis_results = []
@@ -523,7 +592,7 @@ def score_skill(path: Path) -> dict[str, Any]:
     for idx, (name, fn) in enumerate(AXES, start=1):
         # 각 축 함수의 인자가 다르므로 분기
         if fn is axis1_frontmatter:
-            score, reason, imps = fn(fm, path)
+            score, reason, imps = fn(fm, path, yaml_issues)
         elif fn is axis2_description:
             score, reason, imps = fn(fm)
         elif fn is axis8_security:
@@ -550,14 +619,14 @@ def score_skill(path: Path) -> dict[str, Any]:
         total += score
         all_improvements.extend(imps)
 
-    verdict = "PASS" if total >= PASS_SCORE else "FAIL"
+    verdict = "PASS" if total >= PASS_SCORE and not yaml_issues else "FAIL"
     return {
         "path": str(path),
         "axes": axis_results,
         "total": total,
         "verdict": verdict,
         "pass_score": PASS_SCORE,
-        "blocking_issues": [],
+        "blocking_issues": yaml_issues,
         "top_improvements": all_improvements[:5],
         "summary": f"{total}/100 ({verdict}). 강점/약점은 axes 항목 참조.",
     }

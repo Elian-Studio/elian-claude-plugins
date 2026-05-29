@@ -3,6 +3,10 @@ name: Skill Quality Gate
 on:
   pull_request:
     paths:
+      - 'README.md'
+      - 'CHANGELOG.md'
+      - 'CONTRIBUTING.md'
+      - 'docs/**/*.md'
       - 'plugins/**/skills/**/SKILL.md'
       - 'plugins/**/skills/**/*.html'
       - 'plugins/**/skills/**/*.md'

@@ -2,7 +2,7 @@
 name: verify-implementation
 description: When PR is about to ship, dynamically discover and run all verify-* skills in the current project, surface failures with concrete fix suggestions, and (with approval) auto-apply fixes + re-verify. One command instead of remembering which verify-* to run for which change. Pairs with manage-skills (drift maintenance).
 when_to_use: before opening a PR, during code review, when auditing rule compliance, after implementing a feature, user says '검증 돌려줘'·'PR 전 점검'·'/verify-implementation'
-argument-hint: [Optional: specific verify skill name]
+argument-hint: "[Optional: specific verify skill name]"
 disable-model-invocation: true
 allowed-tools: Bash(grep*) Bash(awk*) Bash(find*) Bash(python3 *) Read Glob Grep Edit
 ---

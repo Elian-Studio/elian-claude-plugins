@@ -1,8 +1,8 @@
 ---
 name: brainstorm
-description: When the user has a fuzzy idea, ambiguous change request, or runs /brainstorm, drive a conversational discovery: context → Socratic requirements probing → 3+ option draft → tradeoff comparison → decision → handoff to implementation skills with persistent plan artifact.
+description: "When the user has a fuzzy idea, ambiguous change request, or runs /brainstorm, drive a conversational discovery: context → Socratic requirements probing → 3+ option draft → tradeoff comparison → decision → handoff to implementation skills with persistent plan artifact."
 when_to_use: Use when the request is ambiguous, multiple paths are possible, or the user explicitly invokes /brainstorm. Do NOT use when requirements are already clear (go straight to /implement) or when fixing a confirmed bug (use /fix).
-argument-hint: <topic-or-issue-id> [--depth shallow|deep] [--output plan|doc|none]
+argument-hint: "<topic-or-issue-id> [--depth shallow|deep] [--output plan|doc|none]"
 allowed-tools: Read, Glob, Grep, Bash(git status*), Bash(git log*), AskUserQuestion, Agent, Write, Edit
 disable-model-invocation: true
 ---

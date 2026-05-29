@@ -81,6 +81,7 @@ Compare this repository's Claude plugin and skill documentation against:
 - Use alirezarezvani/claude-skills as an operating-pattern reference, especially for progressive disclosure, stdlib tools, references, and marketplace discipline.
 - Keep `description` short and trigger-oriented; move procedure detail to the body.
 - Keep `when_to_use` trigger-rich but under the combined listing cap.
+- Quote frontmatter strings that contain YAML control syntax such as `: `, bracket-style argument hints, or long trigger lists. Local scoring must fail YAML-unsafe plain scalars before PR merge.
 - Keep each `SKILL.md` under 500 lines and target 10KB where practical.
 - Bump `plugin.json.version`, marketplace version, README, and CHANGELOG together for plugin-distributed changes.
 - Keep generated artifacts out of plugin docs unless they are the requested deliverable or canonical examples.

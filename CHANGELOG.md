@@ -10,6 +10,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## Marketplace (`elian`)
 
+### 2.7.2 — 2026-05-29
+
+#### Fixed
+- **Claude skill YAML frontmatter**: quoted YAML-unsafe `description`, `when_to_use`, and `argument-hint` values so Claude/GitHub parsers no longer fail on `: `, quotes, or bracket-style argument hints.
+- **Skill quality gate**: `scripts/score_skill.py` now unwraps quoted scalar values and fails PRs with blocking issues when frontmatter contains YAML-unsafe plain scalars.
+- **README Codex setup**: top-level README now shows the full `/persona-review` Codex argument contract and the legacy `~/.codex/prompts/on-call-elian.md` cleanup command.
+- **Docs-only PR checks**: Skill Quality Gate now runs for README, CHANGELOG, CONTRIBUTING, and docs changes so branch protection does not leave required checks missing.
+
+#### Notes
+- This is a hotfix for the `2.7.1` documentation alignment release. No Claude skill workflow behavior changed.
+- All 12 bundled skills now pass both the local 90-point gate and an actual YAML frontmatter parse smoke test.
+
 ### 2.7.1 — 2026-05-28
 
 #### Changed

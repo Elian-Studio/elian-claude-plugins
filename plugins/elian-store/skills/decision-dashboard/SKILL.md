@@ -1,8 +1,8 @@
 ---
 name: decision-dashboard
-description: When 3+ pending decisions block PO/team progress, capture them in a printable HTML artifact so the team can decide in 5 minutes instead of long Slack threads. Replaces "decision fatigue scattered across messages" with "one page, all options, traceable choice + memo + downloadable JSON for downstream skills". 카드 본문에 이슈 번호·클래스명 같은 식별자가 새어들어가는 것은 create-document 스키마가 구조적으로 차단한다.
-when_to_use: 3+ decisions pile up in a review (architecture / DDL / UX / consistency), the user says "make a decision dashboard" / "lay out the choices", or chat explanations are too long to inline. Skip for 1-2 decisions (just ask in chat).
-argument-hint: [issue-id] [output-dir?] [mode?]
+description: 'When 3+ pending decisions block PO/team progress, capture them in a printable HTML artifact so the team can decide in 5 minutes instead of long Slack threads. Replaces "decision fatigue scattered across messages" with "one page, all options, traceable choice + memo + downloadable JSON for downstream skills". 카드 본문에 이슈 번호·클래스명 같은 식별자가 새어들어가는 것은 create-document 스키마가 구조적으로 차단한다.'
+when_to_use: '3+ decisions pile up in a review (architecture / DDL / UX / consistency), the user says "make a decision dashboard" / "lay out the choices", or chat explanations are too long to inline. Skip for 1-2 decisions (just ask in chat).'
+argument-hint: "[issue-id] [output-dir?] [mode?]"
 allowed-tools: Bash(cp *) Bash(open *) Bash(date *) Bash(git branch*) Bash(mkdir *) Bash(rm claudedocs/*) Bash(python3 *) Edit Read Write
 ---
 
