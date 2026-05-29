@@ -1,7 +1,7 @@
 ---
 name: design-ui
-description: When a user needs to design a UI/UX from scratch — drives Interview → Reference → Wireframe → (Gate) → Visual → Deliver in one skill. Phase 1 is an iterative interview until the problem brief is signed off; Phase 2 collects 2~3 competitor/reference patterns; Phase 3 produces a grayscale wireframe where every section carries an "UX intent" annotation and an explicit reading-order number; Phase 4 applies tokens to produce visual HTML + DESIGN.md. Enforces readability heuristics, empty/loading/error trio, and blocks "AI slop" defaults (Inter/Roboto/Arial fallback, purple-on-white gradients). 와이어프레임을 먼저 합의한 뒤에야 비주얼로 진입하는 게이트로, "색부터 정하고 본다"는 편향을 차단한다.
-when_to_use: 새 화면/플로우의 UI/UX 디자인이 필요할 때. "와이어프레임 만들어줘", "이 기능 UI 어떻게 짤지", "디자인 시안 잡아줘", "UX 개선해줘", "사용자 경험 좋게 다시" 같은 요청. 이미 디자인 시스템이 있고 컴포넌트 한두 개만 손보는 경우는 frontend-design / design-html 직접 사용이 더 빠르다. 요구사항이 흐릿하면 먼저 /brainstorm을 돌리고 결과를 입력으로 넘긴다.
+description: When a user needs UI/UX design for a new screen or flow, drive Interview → Reference → Wireframe → Gate → Visual → Deliver before implementation.
+when_to_use: Use for new page/flow design, feature-level UX shaping, wireframes, visual HTML, and DESIGN.md handoff. Trigger phrases: '와이어프레임 만들어줘', '이 기능 UI 어떻게 짤지', '디자인 시안 잡아줘', 'UX 개선해줘', '사용자 경험 좋게 다시', '/design-ui'. If the requirement is fuzzy, run /brainstorm first; if only one existing component needs minor styling, direct implementation is faster.
 argument-hint: <feature-name> [--out <dir>] [--skip-gate] [--from-brief <path>] [--refs <url,url,...>]
 allowed-tools: Read, Write, Edit, Bash(mkdir *), Bash(ls *), Bash(open *), Glob, Grep, AskUserQuestion, WebFetch
 disable-model-invocation: false

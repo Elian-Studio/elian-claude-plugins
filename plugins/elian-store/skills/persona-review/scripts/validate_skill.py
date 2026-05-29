@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Self-verification for the /on-call-elian skill.
+"""Self-verification for the /persona-review skill.
 
 Stdlib only (no external dependencies). Designed to be chainable: supports
 --json output for programmatic consumption.
@@ -17,7 +17,7 @@ What it checks:
   - disable-model-invocation: true (user-agency guard)
   - required sections present (workflow, output format, forbidden, pitfalls)
   - the 5-block LOCKED OUTPUT FORMAT contract is documented in order
-  - references/ has persona-daniel.md + example-review.md and SKILL.md links them
+  - references/ has personas/daniel.md + example-review.md and SKILL.md links them
   - scripts/ dir exists
   - persona override mechanism (--persona arg) documented
 """

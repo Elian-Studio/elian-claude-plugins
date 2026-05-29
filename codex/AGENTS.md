@@ -1,6 +1,6 @@
 # AGENTS.md — Daniel standing rules (Codex 프로젝트 지침 템플릿)
 
-> Codex CLI 는 cwd 부터 상위로 올라가며 `AGENTS.md` 를, 그리고 `~/.codex/AGENTS.md` (전역) 를 읽는다. 이 파일은 `plugins/elian-store/skills/on-call-elian/references/persona-daniel.md` 의 standing 규칙을 Codex 네이티브로 옮긴 **템플릿**이다. 작업 repo 에 맞게 Tech Stack 절만 갈아끼워 쓴다. (Claude 쪽 `CLAUDE.md` 와 독립 — 한쪽 변경 시 수동 동기화.)
+> Codex CLI 는 cwd 부터 상위로 올라가며 `AGENTS.md` 를, 그리고 `~/.codex/AGENTS.md` (전역) 를 읽는다. 이 파일은 `plugins/elian-store/skills/persona-review/references/personas/daniel.md` 의 standing 규칙을 Codex 네이티브로 옮긴 **템플릿**이다. 작업 repo 에 맞게 Tech Stack 절만 갈아끼워 쓴다. (Claude 쪽 `CLAUDE.md` 와 독립 — 한쪽 변경 시 수동 동기화.)
 
 ## 정체성
 

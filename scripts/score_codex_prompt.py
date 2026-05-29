@@ -28,71 +28,89 @@ from typing import Any
 PASS_SCORE = int(os.environ.get("CODEX_EVAL_PASS_SCORE", "90"))
 OUTPUT_PATH = os.environ.get("CODEX_EVAL_OUTPUT", "codex-evaluation-results.json")
 
-# 잠긴 5블록 (순서 고정 — drift 검출의 핵심)
 FIVE_BLOCKS = ["결론", "트레이드오프", "운영 리스크", "압박 질문", "다음 질문"]
 
 
-def axis_five_block(text: str) -> tuple[int, str, list[str]]:
-    """20점: 5블록이 모두, 순서대로 문서화됐는가."""
+def axis_identity(text: str, path: Path) -> tuple[int, str, list[str]]:
+    """15점: command identity + purpose가 분명한가."""
     imps: list[str] = []
-    positions = [text.find(b) for b in FIVE_BLOCKS]
-    found = [b for b, p in zip(FIVE_BLOCKS, positions) if p != -1]
-    score = int(20 * len(found) / len(FIVE_BLOCKS))
-    if len(found) == len(FIVE_BLOCKS):
-        if positions != sorted(positions):
-            score = 10
-            imps.append("5블록이 모두 있으나 순서가 잠금 계약과 다름")
+    command = path.stem
+    score = 0
+    if re.search(rf"^#\s+/{re.escape(command)}\b", text, re.MULTILINE):
+        score += 5
     else:
-        missing = [b for b in FIVE_BLOCKS if b not in found]
-        imps.append(f"5블록 누락: {missing}")
-    return score, f"blocks={len(found)}/5, ordered={positions == sorted(positions)}", imps
+        imps.append(f"첫 H1이 /{command} 명령을 명시하지 않음")
+    if re.search(r"무엇을 하는가|Purpose|Goal|목적", text, re.IGNORECASE):
+        score += 5
+    else:
+        imps.append("목적/Purpose 섹션 부재")
+    if "$ARGUMENTS" in text or re.search(r"`\$ARGUMENTS`\s*=", text):
+        score += 5
+    else:
+        imps.append("$ARGUMENTS 계약 부재")
+    return score, f"command=/{command}", imps
+
+
+def axis_scope(text: str) -> tuple[int, str, list[str]]:
+    """15점: 사용/비사용 경계와 trigger가 분명한가."""
+    imps: list[str] = []
+    score = 0
+    if re.search(r"when|trigger|사용|호출|Use for|사용할 때", text, re.IGNORECASE):
+        score += 5
+    else:
+        imps.append("사용 조건/trigger 설명 부재")
+    if re.search(r"Forbidden|Do not|사용하지|금지|Skip|제외", text, re.IGNORECASE):
+        score += 5
+    else:
+        imps.append("비사용/금지 경계 부재")
+    if re.search(r"얇음|모호|충분|scope|범위|경계|폴백|fallback", text, re.IGNORECASE):
+        score += 5
+    else:
+        imps.append("입력 범위/판정/폴백 기준 부재")
+    return score, "scope contract", imps
 
 
 def axis_phases(text: str) -> tuple[int, str, list[str]]:
-    """15점: Phase 절차가 명시되고 고아 번호가 없는가."""
+    """15점: workflow/procedure가 명시되고 번호 drift가 없는가."""
     imps: list[str] = []
     phases = set(re.findall(r"Phase\s+(\d+(?:\.\d+)?)", text))
-    score = 0
-    if {"1", "2", "3", "4", "5"}.issubset(phases):
-        score += 10
-    else:
-        imps.append(f"Phase 1~5 중 일부 누락: 발견={sorted(phases)}")
-    # 고아 번호: 본문에 Phase 6 을 언급하면 SKILL drift 패턴 (PR 리뷰에서 잡은 버그)
-    if "Phase 6" in text:
-        imps.append("Phase 6 언급 — 절차 본문과 불일치 가능 (drift 패턴)")
-    else:
+    steps = set(re.findall(r"Step\s+(\d+)|^\s*(\d+)\.\s+", text, re.MULTILINE))
+    has_workflow = re.search(r"절차|Workflow|Procedure|Phase|Step", text, re.IGNORECASE)
+    score = 10 if has_workflow else 0
+    if not has_workflow:
+        imps.append("Workflow/Procedure/절차 설명 부재")
+    phase_numbers = sorted(float(p) for p in phases)
+    integer_phases = sorted(int(p) for p in phases if re.fullmatch(r"\d+", p))
+    if integer_phases:
+        expected = list(range(integer_phases[0], integer_phases[-1] + 1))
+        if integer_phases == expected:
+            score += 5
+        else:
+            imps.append(f"Phase 번호가 비연속: 발견={sorted(phases)}")
+    elif steps:
         score += 5
+    else:
+        score += 3
     return score, f"phases={sorted(phases)}", imps
 
 
-def axis_standing(text: str) -> tuple[int, str, list[str]]:
-    """15점: Forbidden + Pre-flight 같은 standing 규칙 섹션."""
+def axis_safety(text: str) -> tuple[int, str, list[str]]:
+    """15점: approval/safety posture가 명시됐는가."""
     imps: list[str] = []
     score = 0
-    if re.search(r"^#+\s*.*Forbidden", text, re.MULTILINE | re.IGNORECASE):
-        score += 8
+    if re.search(r"read-only|읽기 전용|승인|approval|ask|멈춤|wait|사용자 답", text, re.IGNORECASE):
+        score += 6
     else:
-        imps.append("Forbidden 섹션 부재")
-    if re.search(r"Pre-flight|self-check|체크", text, re.IGNORECASE):
-        score += 7
+        imps.append("승인/멈춤/read-only 등 safety posture 부재")
+    if re.search(r"sandbox|config\.toml|approval_policy|allowed-tools|권한", text, re.IGNORECASE):
+        score += 4
     else:
-        imps.append("Pre-flight / self-check 섹션 부재")
-    return score, "standing rules", imps
-
-
-def axis_readonly(text: str) -> tuple[int, str, list[str]]:
-    """15점: read-only 계약 명시 + 파괴적 지시 없음."""
-    imps: list[str] = []
-    score = 0
-    if re.search(r"read-only|읽기 전용|코드 수정.*안 함|파일 생성.*안 함", text, re.IGNORECASE):
-        score += 10
-    else:
-        imps.append("read-only 계약 명시 부재")
+        imps.append("Codex 권한 모델/config 언급 부재")
     if re.search(r"rm\s+-rf|git push --force|git reset --hard|DROP TABLE", text):
-        imps.append("파괴적 명령 문자열 포함 — read-only 프롬프트에 부적절")
+        imps.append("파괴적 명령 문자열 포함")
     else:
         score += 5
-    return score, "read-only contract", imps
+    return score, "safety posture", imps
 
 
 def axis_drift_guard(text: str) -> tuple[int, str, list[str]]:
@@ -118,10 +136,24 @@ def axis_args(text: str) -> tuple[int, str, list[str]]:
 
 
 def axis_template(text: str) -> tuple[int, str, list[str]]:
-    """7점: 출력 템플릿 펜스 블록 존재."""
-    if re.search(r"```markdown", text) and "## 결론" in text:
-        return 7, "fenced output template present", []
-    return 0, "output template absent", ["펜스된 5블록 출력 템플릿 부재"]
+    """12점: output/handoff/artifact contract가 있는가."""
+    score = 0
+    imps: list[str] = []
+    if re.search(r"```(?:markdown|json|text)?", text):
+        score += 4
+    else:
+        imps.append("fenced output/template 예시 부재")
+    if re.search(r"OUTPUT FORMAT|출력|산출물|artifact|handoff|핸드오프", text, re.IGNORECASE):
+        score += 4
+    else:
+        imps.append("출력/산출물 계약 부재")
+    positions = [text.find(b) for b in FIVE_BLOCKS]
+    found = [b for b, p in zip(FIVE_BLOCKS, positions) if p != -1]
+    if not found or (len(found) == len(FIVE_BLOCKS) and positions == sorted(positions)):
+        score += 4
+    else:
+        imps.append("5블록을 일부만 쓰거나 순서가 어긋남")
+    return score, "output contract", imps
 
 
 def axis_budget(text: str) -> tuple[int, str, list[str]]:
@@ -133,13 +165,13 @@ def axis_budget(text: str) -> tuple[int, str, list[str]]:
 
 
 AXES = [
-    ("5블록 잠금 계약", axis_five_block, 20),
-    ("Phase 절차 정합", axis_phases, 15),
-    ("Standing 규칙", axis_standing, 15),
-    ("Read-only 계약", axis_readonly, 15),
+    ("명령·목적 계약", axis_identity, 15),
+    ("사용 범위·경계", axis_scope, 15),
+    ("Workflow 절차 정합", axis_phases, 15),
+    ("Safety / approval posture", axis_safety, 15),
     ("독립 트리 drift 가드", axis_drift_guard, 15),
     ("인자 규약", axis_args, 8),
-    ("출력 템플릿", axis_template, 7),
+    ("출력·산출물 계약", axis_template, 12),
     ("라인 예산", axis_budget, 5),
 ]
 
@@ -150,7 +182,10 @@ def score_prompt(path: Path) -> dict[str, Any]:
     total = 0
     all_imps: list[str] = []
     for idx, (name, fn, mx) in enumerate(AXES, start=1):
-        s, reason, imps = fn(text)
+        if fn is axis_identity:
+            s, reason, imps = fn(text, path)
+        else:
+            s, reason, imps = fn(text)
         s = min(s, mx)
         axis_results.append(
             {"id": idx, "name": name, "score": s, "max": mx, "reason": reason, "improvements": imps}

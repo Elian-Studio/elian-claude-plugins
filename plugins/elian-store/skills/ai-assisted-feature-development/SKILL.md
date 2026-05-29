@@ -1,7 +1,7 @@
 ---
 name: ai-assisted-feature-development
-description: When a user is about to build a new feature, improve an existing one, refactor legacy code, or hand work to an AI agent, drive the work through a disciplined 9-phase flow — Feature Framing → BDD → SDD → DDD(필요 시) → AI-TDD → Context Engineering → Agentic Coding → Review → SPDD Archive — instead of vibe-coding it directly. The skill forces intent, spec, tests, and review boundaries to exist before AI writes code, scales depth by feature risk (low/medium/high), and produces archivable prompts so each feature compounds into team assets. Any feature qualifies (login, payment, file upload, search, permissions, notifications, ...) — login is just one example.
-when_to_use: 신규 기능 개발 / 기존 기능 개선 / 레거시 리팩터링 / API 설계 / UI 동작 구현 / 도메인 정책이 포함된 기능 / AI 에이전트에게 작업 위임 전 작업 정의 / PR 리뷰 전 품질 점검. 사용자가 '기능 만들기 시작', '이 기능 어떻게 짤까', 'AI에게 맡기기 전에 정리', '명세부터 짜자', 'BDD부터 짜줘', 'AI 코딩 절차 적용', '/ai-assisted-feature-development' 같은 표현을 쓸 때. 단순 오타·1-line 설정 변경·이미 명세가 잠긴 작은 fix에는 사용하지 않는다.
+description: When feature work needs discipline before AI writes code, produce framing, BDD/SDD/DDD, AI-TDD, context, agentic tasking, review, and SPDD archive artifacts.
+when_to_use: Use for new features, behavior-changing improvements, legacy refactors, API/UI behavior design, domain-policy work, and defining work before handing it to an AI agent. Trigger phrases: '기능 만들기 시작', '이 기능 어떻게 짤까', 'AI에게 맡기기 전에 정리', '명세부터 짜자', 'BDD부터 짜줘', 'AI 코딩 절차 적용', '/ai-assisted-feature-development'. Do not use for typos, one-line config changes, or already-scoped small fixes.
 argument-hint: <feature-name> [--risk low|medium|high] [--depth full|design-only|task-only|review-only] [--example login|payment|upload|search]
 disable-model-invocation: false
 allowed-tools: Read, Glob, Grep, Write, Bash(git diff*), Bash(git log*), Bash(git status*), AskUserQuestion
