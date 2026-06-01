@@ -1,224 +1,178 @@
-# /persona-review — 페르소나 렌즈 리뷰 (잠긴 OUTPUT FORMAT, Codex 포팅)
+# /persona-review — Persona Code Review (Codex 포팅)
 
-> `~/.codex/prompts/persona-review.md` 로 설치하면 Codex TUI 에서 `/persona-review <target> [--persona daniel|evans|dean|martin|<path>] [--depth quick|deep|interview]` 로 호출된다. 인자는 `$ARGUMENTS` 로 들어온다.
+> `~/.codex/prompts/persona-review.md` 로 설치하면 Codex TUI에서 `/persona-review <target> [--persona evans|dean|martin|fowler|beck|all|comma-list|<path>] [--depth quick|deep|interview] [--apply]` 로 호출된다. 인자는 `$ARGUMENTS` 로 들어온다.
 >
-> **이 파일은 `plugins/elian-store/skills/persona-review/SKILL.md` 의 Codex 네이티브 포팅이다 (독립 트리 — 한쪽 변경 시 수동 동기화).** Claude `AskUserQuestion` 도구가 Codex 엔 없으므로, 모든 "질문" 단계는 *평문으로 질문하고 그 턴에서 멈춰 사용자 답을 기다린다* 로 대체된다. 이건 도구 차이지 drift 가 아니다.
+> 이 파일은 `plugins/elian-store/skills/persona-review/SKILL.md` 의 Codex 네이티브 포팅이지만, `codex/` 독립 트리라서 Claude skill 변경 시 수동 동기화가 필요하다. Claude `Agent`/`AskUserQuestion` 도구가 Codex에는 없으므로, subagent dispatch는 prompt 안에서 5개 렌즈를 직접 적용하고, 질문 단계는 평문으로 질문한 뒤 그 턴에서 멈춘다. Codex 권한, sandbox, approval 기본값은 `~/.codex/config.toml` 책임이다.
 
-`$ARGUMENTS` = `<target-path-or-text> [--persona daniel|evans|dean|martin|<path>] [--depth quick|deep|interview]`
+`$ARGUMENTS` = `<target-path-or-text> [--persona evans|dean|martin|fowler|beck|all|comma-list|<path>] [--depth quick|deep|interview] [--apply]`
 
 ---
 
 ## 무엇을 하는가
 
-사용자의 사고/문서/계획을 **선택된 페르소나 렌즈**와 **잠긴 5블록 OUTPUT FORMAT**으로 리뷰한다. 기본은 `daniel`이고, `--persona evans|dean|martin|<path>`로 도메인 모델링·분산 스케일·클린 코드·커스텀 페르소나를 선택할 수 있다. 일반 AI 리뷰(응원·평가·산문 나열) 대신 **결론 → 트레이드오프 → 운영 리스크 → 8 압박 질문 → 다음 질문** 5블록으로만 답한다.
+코드, 설계, 아키텍처, PR, 리팩터링 계획, 도메인 모델링, 테스트 전략을 여러 소프트웨어 품질 관점으로 검토한다. 유명 개발자 이름을 흉내 내는 것이 아니라 각 인물이 대표하는 품질 관점을 리뷰 렌즈로 사용한다.
 
-상대가 뭘 원하는지 모르면 단정하지 않는다. 입력이 한 줄짜리/모호하면 5블록으로 직행하지 말고 *의도를 먼저 묻고 멈춘다*. 추측으로 표를 채우는 것을 구조적으로 막는다.
+기본은 review-only다. 사용자가 명시적으로 "수정해줘", "반영해줘", "패치해줘", "리팩터링해줘" 또는 `--apply`를 요청하지 않으면 파일을 변경하지 않는다. 수정 요청이 명확하면 리뷰 결과 중 가장 중요하고 안전한 변경부터 작은 단위로 반영한다.
 
-**Read-only 계약**: 코드 수정·파일 생성·git 변경 일절 안 함. 출력은 콘솔 마크다운만. `~/.codex/config.toml` 에서 `sandbox_mode = "read-only"` 권장. 수렴 루프도 질문만 — 어느 라운드에서도 파일을 안 건드린다.
+## 렌즈
 
----
+| Persona | Lens | Strong for |
+|---|---|---|
+| `evans` | Domain-Driven Design | 도메인 모델, bounded context, aggregate, invariant |
+| `dean` | 대규모 시스템 / 성능 / 신뢰성 | latency, throughput, memory, I/O, concurrency, observability |
+| `martin` | Clean Code / SOLID / 가독성 | 책임 분리, 이름, 의존성 방향, 테스트 가능성 |
+| `fowler` | 리팩터링 / 엔터프라이즈 아키텍처 / 진화 가능성 | code smell, module boundary, incremental refactoring |
+| `beck` | TDD / XP / 단순 설계 / 빠른 피드백 | test-first, small steps, YAGNI, behavior tests |
 
 ## 절차
 
 ```
-Phase 1:   Target 수집 + 입력 농도 판정  ← 얇거나 모호하면 의도 1질문 먼저 (추측 안 함)
-Phase 2:   Persona 적용 (기본 daniel, 또는 evans/dean/martin/custom)
-Phase 3:   8가지 압박 질문 적용 (정보 모인 뒤 공정 채점)
-Phase 4:   5블록 출력 (수렴 산출물)
-Phase 4.5: 수렴 루프 (--depth interview 일 때만, 약점 재심문, ≤3R)
-Phase 5:   핸드오프 (개선/결정/재리뷰/종료)
+Phase 0: Scope 파악
+Phase 1: Target 수집 + 관련 근거 확인
+Phase 2: Persona lens 선택
+Phase 3: 5개 관점 또는 지정 관점으로 리뷰
+Phase 4: 고정 출력 포맷 작성
+Phase 4.5: interview 수렴 루프 (--depth interview)
+Phase 5: 명시적 수정 요청이 있을 때만 작은 패치 적용
 ```
 
-### Phase 1 — Target 수집 + 입력 농도 판정
+### Phase 0 — Scope 파악
 
-| 인자 형태 | 해석 |
-|---|---|
-| 파일 경로 (`.md`/`.ts`/`.java` 등) | 파일을 읽어 본문 로드 |
-| URL (PR/issue) | "확인 필요: 외부 페치해도 되나?" 묻고 멈춤 (자동 페치 금지) |
-| 자유 텍스트 | 인자 자체를 대상으로 |
-| 비어있음 | "리뷰 대상? (a) 현재 변경 git diff (b) 특정 파일 (c) 텍스트" 묻고 멈춤 |
+요청이 코드 리뷰, PR 리뷰, 설계 리뷰, 아키텍처 리뷰, DDD/클린코드/리팩터링/TDD/성능/확장성 검토인지 확인한다.
 
-**입력 농도 판정** — Phase 3 진입 전 분기:
+리뷰할 파일이 명확하지 않으면 다음 우선순위로 범위를 정한다.
 
-| 농도 | 기준 | 처리 |
-|---|---|---|
-| 얇음 | 한두 줄, 목표·범위 불명 ("X 하려는데 어떻게?") | 의도 질문 **반드시** 먼저 (선택지 2~3 + 자유입력), 답 기다림 |
-| 모호 | 문서는 있으나 목표/완료기준 불명 | 가장 불명확한 축 1개부터 질문 |
-| 충분 | 목표·범위·제약·완료기준이 본문에 있음 | 질문 건너뛰고 Phase 3 직행 |
+1. 현재 변경된 파일
+2. 사용자가 언급한 파일
+3. PR diff 또는 `git diff`
+4. 관련 테스트 파일
+5. 관련 도메인/서비스/컨트롤러/인프라 파일
 
-`--depth`: `quick` = 게이트 후 5블록 1회 / `deep` = 그 + 각 압박 질문 보강 제안 한 줄 / `interview` = 5블록 출력 후 약점 재심문하며 최대 3R 수렴 + 핸드오프. 기본 `quick`.
+### Phase 1 — Target 수집
 
-### Phase 2 — Persona 적용
+관련 파일, 변경사항, 테스트, README, 설계 문서, 타입 정의, API 경계, 설정 파일을 확인한다. 가능하면 `git status`, `git diff`, 관련 테스트/lint/build 설정을 확인한다.
 
-`--persona`가 없으면 `daniel`. 이름이 주어지면 아래 내장 페르소나를 적용한다. 경로가 주어지면 그 파일을 읽고 같은 5블록 OUTPUT FORMAT으로 적용한다. 파일이 없으면 알리고 `daniel`로 폴백.
+URL이나 원격 PR이 필요한 경우 외부 페치해도 되는지 묻고 멈춘다.
 
-| Persona | 압박 축 | 강한 대상 |
-|---|---|---|
-| `daniel` | 운영 가능성, 메커니즘, axiom vs policy, 자동화, 실패 모드 | 일반 리뷰 / 운영 변경 / 일상 코드 |
-| `evans` | DDD, ubiquitous language, aggregate, bounded context, ACL, domain event | 도메인 모델·아키텍처 결정, 새 서비스 경계 |
-| `dean` | tail latency, SPOF, hot key, idempotency, retry, backpressure, locality | 분산 시스템, 큐·캐시·DB scaling, 100x 트래픽 |
-| `martin` | Clean Code, SOLID, TDD, naming, small functions, DI, code smells | 코드 품질, 객체지향 설계, 테스트 전략 |
+### Phase 2 — Persona 선택
 
-내장 페르소나별 압박 질문은 아래 축을 사용한다. `## 페르소나 압박 질문` 표에는 선택한 페르소나의 8개 질문을 넣는다.
+`--persona`가 없거나 `all`이면 5개 렌즈를 모두 사용한다. `evans,dean` 같은 comma-list면 지정된 렌즈만 적용한다. 경로면 custom persona 파일을 읽는다.
 
-#### `daniel` 압박 질문
+### Phase 3 — 리뷰 원칙
 
-| 축 | 한 줄 |
-|---|---|
-| 운영 가능성 | "돌아간다" ≠ "신뢰할 수 있다" |
-| 메커니즘 | 결과를 믿지 말고 구조를 이해 |
-| axiom vs policy | 협상 가능/불가능 분리 |
-| 가독성 | 5초 안에 핵심 |
-| 트레이드오프 | Cons 없는 설계 = 미완성 |
-| 레퍼런스 | 발명 전 표준 확인 |
-| 자동화 | "기억해야 함" = 부패 신호 |
-| 실패 모드 | 어떻게 망가지나 |
+- 근거 없는 추측 금지. 코드에서 확인한 사실과 추론을 구분한다.
+- persona별 점수화를 하지 않는다.
+- 먼저 리뷰를 작성한다.
+- 사용자가 명시하지 않은 파일 수정은 하지 않는다.
+- 수정 요청이 명확하면 P0/P1 중 가장 작고 안전한 변경부터 적용한다.
 
-#### `evans` 압박 질문
+### Phase 4.5 — 수렴 루프 (`--depth interview`)
 
-| 축 | 한 줄 |
-|---|---|
-| ubiquitous language | 코드·회의·도메인 전문가 언어가 같은가 |
-| aggregate boundary | invariant를 보호하는 일관성 경계인가 |
-| bounded context | context 간 모델 누수가 없는가 |
-| repository boundary | aggregate 단위로 저장/조회하는가 |
-| anemic domain | 행위 없는 데이터 컨테이너가 아닌가 |
-| strategic design | core/supporting/generic을 구분했나 |
-| domain event | 단순 알림이 아니라 도메인 사실인가 |
-| deeper insight | 도메인 이해가 모델에 반영되어 진화했나 |
+입력 의도, 변경 범위, 성공 기준이 모호하면 결론을 가르는 질문 1개만 묻고 멈춘다. 최대 3라운드까지 반복한다.
 
-#### `dean` 압박 질문
+### Phase 5 — 수정
 
-| 축 | 한 줄 |
-|---|---|
-| 100x traffic | 어디가 먼저 무너지나 |
-| hot key | 분포 가정을 검증했나 |
-| SPOF | 단일 실패 지점은 어디인가 |
-| timeout/retry/circuit breaker | 외부 호출 실패를 격리했나 |
-| idempotency | retry가 데이터 중복을 만들지 않나 |
-| tail latency | p99.9를 봤나, p50만 봤나 |
-| backpressure | overload를 어떻게 막나 |
-| locality | network round-trip 비용을 의식했나 |
+`--apply` 또는 명시적 수정 요청이 있을 때만 수정한다. 수정한 경우 변경 요약, 검증 결과, 남은 리스크를 보고한다.
 
-#### `martin` 압박 질문
+## 출력 포맷
 
-| 축 | 한 줄 |
-|---|---|
-| SRP | 변경 이유가 하나인가 |
-| small function | 함수가 4-6줄 수준으로 한 추상화만 담나 |
-| naming | 이름이 의도를 드러내나 |
-| SOLID | SRP/OCP/LSP/ISP/DIP 위반은 없는가 |
-| TDD | 실패 테스트가 먼저 있었나 |
-| DI/testability | 테스트 가능한 의존성 구조인가 |
-| code smell | magic value, boolean parameter, long param list 등은 없는가 |
-| Boy Scout Rule | 들어왔을 때보다 깔끔하게 나가나 |
+항상 아래 구조로 답한다. 해당 관점에서 발견 사항이 없으면 "특이 사항 없음"이라고 쓴다.
 
-페르소나는 *어떤 압박을 가하는가* 만 바꾼다. 5블록 출력 형식과 read-only 계약은 공통이다.
+```text
+# Persona Code Review
 
-### Phase 3 — 8 압박 질문 적용
+## 1. 전체 평가
 
-각 질문마다: 본문 스캔 → 발견 `✓`/`△`, 누락 `✗`, 비대상 `N`. 근거 칸에 위치 또는 "확인 필요: <무엇을>". 추측 금지. 본문에 없으면 `✗`/`N`. "아마 의도했을 것" 보정 안 함.
+- 결론:
+- 가장 큰 리스크:
+- 가장 먼저 고칠 것:
+- 수정 여부:
+  - 리뷰만 수행했는지
+  - 패치를 적용했는지
+  - 패치를 적용하지 않았다면 이유
 
-### Phase 4 — 5블록 출력
+## 2. 핵심 발견 사항
 
-아래 마크다운 그대로. **순서·블록 변경 금지**. 빈 블록도 "해당 없음" 명시. 메타 설명 없이 곧장 `## 결론` 부터.
+| 우선순위 | 관점 | 문제 | 영향 | 추천 조치 |
+|---|---|---|---|---|
+| P0/P1/P2/P3 | evans/dean/martin/fowler/beck | ... | ... | ... |
 
-```markdown
-## 결론
-한 줄. 단정 가능하면 단정. 정직하지 않으면 "상황에 따라 다름" + 어떤 상황에서 갈리는지 한 줄.
+우선순위 기준:
 
-## 트레이드오프
-| 옵션 / 측면 | Pros | Cons | 적합 상황 |
-|---|---|---|---|
-| (옵션 A) | ... | ... | ... |
-| (옵션 B) | ... | ... | ... |
+- P0: 즉시 수정해야 하는 correctness, security, data loss, production outage 위험
+- P1: 릴리스 전 수정해야 하는 설계, 성능, 안정성, 테스트 리스크
+- P2: 유지보수성, 리팩터링, 가독성 개선
+- P3: 선택적 개선 또는 장기 개선
 
-(옵션 1개뿐이면 "현재 안" vs "do-nothing / 가장 가까운 대안" 강제 채움.)
+## 3. 페르소나별 리뷰
 
-## 운영 리스크
-- 미래 장애 가능성: ...
-- 팀 확장 시 부담: ...
-- 추적/디버깅 가능성: ...
+### `evans` — DDD/도메인 모델
 
-(해당 없으면 "해당 없음" 한 줄.)
+- 좋은 점:
+- 문제:
+- 개선 제안:
+- 확인하면 좋은 질문:
 
-## 페르소나 압박 질문
-| # | 질문 | 점수 | 근거 / 보강 필요 |
-|---|---|---|---|
-| 1 | "돌아간다" vs "신뢰할 수 있다" 구분했나 | ✓/△/✗/N | ... |
-| 2 | 표면 결과인가 메커니즘 이해인가 | ... | ... |
-| 3 | axiom (절대) 인가 policy (상황) 인가 분리했나 | ... | ... |
-| 4 | 5초 안에 핵심이 잡히나 (가독성) | ... | ... |
-| 5 | 트레이드오프 명시했나 (장점만 X) | ... | ... |
-| 6 | 세상에 이미 있는가 (레퍼런스/표준 확인) | ... | ... |
-| 7 | hook으로 자동화 가능한가 (기억 의존 X) | ... | ... |
-| 8 | 실패 모드는 어디 있나 (Pitfalls/Forbidden) | ... | ... |
+### `dean` — 성능/확장성/신뢰성
 
-## 다음 질문
-한 줄. 후속 질문이 자연스럽게 이어지도록.
+- 좋은 점:
+- 문제:
+- 개선 제안:
+- 확인하면 좋은 질문:
+
+### `martin` — Clean Code/SOLID
+
+- 좋은 점:
+- 문제:
+- 개선 제안:
+- 확인하면 좋은 질문:
+
+### `fowler` — 리팩터링/아키텍처 진화
+
+- 좋은 점:
+- 문제:
+- 개선 제안:
+- 확인하면 좋은 질문:
+
+### `beck` — TDD/단순 설계/피드백
+
+- 좋은 점:
+- 문제:
+- 개선 제안:
+- 확인하면 좋은 질문:
+
+## 4. 관점 간 충돌과 조정
+
+- 충돌:
+- 현실적인 절충안:
+
+## 5. 추천 액션 플랜
+
+- 목표:
+- 이유:
+- 예상 변경 범위:
+- 검증 방법:
+- 리스크:
+
+## 6. 테스트 및 검증 제안
+
+- 추가해야 할 테스트:
+- 수정해야 할 테스트:
+- 실행하면 좋은 명령:
+- 수동 검증 포인트:
+
+## 7. 최종 요약
+
+- 지금 반드시 고칠 것:
+- 나중에 개선해도 되는 것:
+- 설계적으로 가장 중요한 판단:
 ```
 
-점수: `✓` 잘 다뤄짐 / `△` 부분적·보강 / `✗` 누락·미흡 / `N` 해당 없음.
+## 금지
 
-### Phase 4.5 — 수렴 루프 (`--depth interview` 일 때만)
-
-`quick`/`deep` 은 5블록 1회 후 Phase 5. `interview` 는 **5블록을 반복**해 *이해*를 수렴 (코드·파일 아닌 이해만 — 매 라운드 read-only):
-
-1. 방금 5블록에서 **가장 약한 1~2개** 선택 (3개+ 금지). 우선순위: 압박 질문 `✗` > `△` > `## 결론` 이 "상황에 따라 다름" 이면 그 분기 변수.
-2. 그 지점만 평문으로 타깃 재질문 → **멈추고 사용자 답 기다림**. 추측으로 채우지 말 것.
-3. 답을 컨텍스트에 합쳐 Phase 3~4 재실행 → 5블록 **전체를 다시** 출력 (부분 패치 금지, 형식 불변).
-4. 매 출력 헤더 바로 위 한 줄: `(interview R{n}/3)`.
-5. **종료 조건 — 하나라도 만족하면 중단 → Phase 5**:
-   - (a) `## 결론` 이 "상황에 따라 다름" → 단정으로 바뀜
-   - (b) 압박 질문 `✗` 0개
-   - (c) 사용자가 "그만"·"충분" 표시
-   - (d) **3라운드 도달** (무한 루프 차단 — 절대 초과 금지)
-
-### Phase 5 — 핸드오프
-
-수렴된(또는 1회성) 리뷰를 다음 단계로 넘긴다. **이 프롬프트는 개선을 직접 실행하지 않는다** — 호출문과 컨텍스트를 *발행만* 한다 (read-only 유지; 실제 실행은 사용자가 다음 턴에).
-
-`--depth interview` 거나 `✗`/`△` 가 남았으면 평문으로 다음 액션을 묻고, 깨끗하면 라벨 한 줄:
-
-```
-(다음: 결정 잠금 | 개선 | 보강 후 재리뷰)
-```
-
-개선으로 넘길 때 페이로드 (이 블록을 그대로 발행, 실행은 다음 턴):
-
-```
-(핸드오프 → 개선 <target>)
-─ 컨텍스트 ─
-- 결론: <수렴된 한 줄>
-- 채택 옵션: <트레이드오프 표에서 고른 안 + 근거>
-- 잔여 리스크: <✗/△ 로 남은 압박 질문 항목>
-- 개선 범위 In/Out: <리뷰에서 도출된 경계>
-```
-
----
-
-## Forbidden
-
-- 코드 수정 / 파일 생성 / git 변경 (read-only)
-- 5블록 OUTPUT FORMAT 변경 (추가·삭제·순서 변경 금지)
-- 평가·응원·메타 설명·이모지·추측·마케팅 톤·사과
-- 압박 질문 8개 외 추가 (커스텀 페르소나는 그 페르소나 갯수)
-- 사용자 결정 우회 (페르소나 교체·재리뷰는 명시 요청 시에만)
-- 외부 URL 자동 페치 (확인 없이 안 함)
-- interview 모드 3라운드 초과 (종료조건 d 절대 우회 금지)
-- 핸드오프 페이로드를 이 프롬프트가 직접 실행 (발행만; 실제 실행은 다음 턴)
-- interview 한 라운드 재심문 3개 이상 (1~2개 강제 — 수렴 깨짐)
-
----
-
-## Pre-flight (출력 전 self-check)
-
-- [ ] 5블록 순서대로 (`결론 → 트레이드오프 → 운영 리스크 → 압박 질문 → 다음 질문`)
-- [ ] `## 결론` 첫 줄, 메타 설명 없음
-- [ ] 트레이드오프 표 비교군 ≥ 2 (1개면 do-nothing 강제)
-- [ ] 압박 질문 8행 모두 점수, 빈 칸 없음
-- [ ] 추측 표현 0개 ("아마도" → "확인 필요: ...")
-- [ ] 응원·평가·이모지·사과 0개
-- [ ] `## 다음 질문` 마지막, 후속 질문 형태
-- [ ] (interview) 라운드 헤더 `(interview R{n}/3)` 노출, 매 라운드 종료조건 (a~d) 평가, 3R 초과 0
-- [ ] (interview) 핸드오프는 페이로드 발행만 — 직접 실행 0
+- 사용자 요청 없이 파일 수정
+- 근거 없는 추측을 사실처럼 말하기
+- persona 이름만 빌리고 실제 품질 관점은 적용하지 않기
+- 한 관점의 결론을 다른 관점의 결론으로 덮어쓰기
+- P0/P1 리스크를 P2/P3 스타일 이슈 뒤에 숨기기
+- 수정 후 검증 결과 생략

@@ -88,7 +88,7 @@ create-document/
     ├── before-after-card-authoring.md  # BEFORE/AFTER 비교 예시
     ├── example-decision-card.json      # 결정 카드 데이터 예시
     ├── example-teammate-spawn.json     # 3 teammate spawn 예시
-    └── example-review-output.json      # daniel 페르소나 review 예시
+    └── example-review-output.json      # dean 페르소나 review 예시
 ```
 
 템플릿과 스키마는 **같은 이름**으로 짝지어진다. 같은 이름의 `<name>.html` 또는 `<name>.md` 둘 다 자동 탐색.

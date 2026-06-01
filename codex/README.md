@@ -31,14 +31,14 @@ cp codex/AGENTS.md ~/.codex/AGENTS.md
 cp codex/config.toml.example ~/.codex/config.toml   # 그 후 직접 편집
 ```
 
-설치 후 Codex TUI 에서 `/persona-review <target> [--persona daniel|evans|dean|martin|<path>] [--depth quick|deep|interview]` 로 사용.
+설치 후 Codex TUI 에서 `/persona-review <target> [--persona evans|dean|martin|fowler|beck|all|comma-list|<path>] [--depth quick|deep|interview] [--apply]` 로 사용.
 
 ## 구조
 
 ```
 codex/
   README.md            ← 이 파일
-  AGENTS.md            ← Codex 프로젝트 지침 템플릿 (Daniel standing rules)
+  AGENTS.md            ← Codex 프로젝트 지침 템플릿 (standing rules)
   prompts/
     persona-review.md  ← /persona-review 의 Codex 네이티브 포팅 (레퍼런스)
   config.toml.example  ← ~/.codex/config.toml 샘플 (read-only 리뷰 안전 기본값)

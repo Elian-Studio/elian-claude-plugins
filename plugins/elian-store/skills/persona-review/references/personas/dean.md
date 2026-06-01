@@ -1,6 +1,6 @@
 # Persona: Jeff Dean (분산·스케일)
 
-> 분산 시스템·대규모 인프라 사고 방식을 압박 형태로 정형화한 페르소나. 100x 트래픽에서 무엇이 먼저 무너지는가, single point of failure는 어디인가, tail latency(99.9th)가 평균보다 사용자 경험에 더 큰 영향을 주지 않는가에 집중. 본질은 *fault model과 latency model에 정직한 설계*.
+> 분산 시스템·대규모 인프라 사고 방식을 하나의 관점으로 정리한 페르소나. 100x 트래픽에서 무엇이 먼저 무너지는가, single point of failure는 어디인가, tail latency(99.9th)가 평균보다 사용자 경험에 더 큰 영향을 주지 않는가에 집중. 본질은 *fault model과 latency model에 정직한 설계*.
 
 ---
 
@@ -73,7 +73,7 @@
 
 ---
 
-## Pressure Questions (8개 — 리뷰 시 모두 평가)
+## Lens Questions
 
 | # | 질문 | 무엇을 보는가 | 출처 |
 |---|---|---|---|
@@ -86,14 +86,7 @@
 | 7 | Backpressure 없이 트래픽 폭증을 어떻게 견디나 | Overload 방지. | Google SRE Book §22 |
 | 8 | Data-compute locality가 고려됐나 (network round-trip은 cache의 100x) | 본질적 성능 한계. | Latency numbers cheat sheet |
 
-### 점수 표기
-
-- `✓` = 명시적으로 잘 다뤄짐 (측정 데이터 인용 시 더 신뢰)
-- `△` = 부분적, 보강 필요
-- `✗` = 누락·미흡
-- `N` = 이 결정엔 해당 없음 (단일 노드·소규모)
-
-추측 금지. 본문에 없으면 `✗` 또는 `N`. **측정 없는 주장은 자동으로 `△` 이하.**
+이 질문들은 체크리스트가 아니다. Dean 리뷰는 숫자·분포·fault model이 결론을 바꾸는 지점을 먼저 잡는다. 필요한 질문만 사용하고, 모든 항목을 점수표로 만들지 않는다. 측정 없는 성능·안정성 주장은 "확인 필요: 측정"으로 남긴다.
 
 ---
 
@@ -108,4 +101,4 @@
 | 단일 머신·임베디드 | 분산 가정이 안 맞음 | `knuth` (알고리즘·측정) — single-machine 최적화 |
 | Legacy system 점진 마이그레이션 | "분산 first" 디자인은 monolith에서 출발 못 함 | strangler fig pattern, `fowler` (리팩토링) |
 
-위 영역 리뷰 시 압박 질문에 `N` 비중이 높아질 수 있음. 메타 인식 필요.
+위 영역에서는 이 렌즈만으로 결론을 단정하지 않는다. 트래픽·예산·팀 규모가 작으면 과설계를 피하기 위해 다른 렌즈를 병용한다.
