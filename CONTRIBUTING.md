@@ -158,13 +158,12 @@ EOF
 ```
 
 > `enforce_admins: false` 는 메인테이너가 긴급 시 우회할 수 있도록 둔 설정. 엄격히 하려면 `true`.
-> README/CHANGELOG/docs-only PR도 required check가 생성되도록 `skill-quality-gate.yml`의 `paths`에 문서 경로를 포함한다.
 
 ---
 
 ## 릴리즈 절차 (변경 머지 → 배포)
 
-1. **PR 머지** (게이트 통과 후)
+1. **PR 머지** (리뷰 통과 후)
 2. **`plugin.json.version`** 이 bump 됐다면 사용자 자동 업데이트 도달 (`plugin.json.version` 이 marketplace entry `version` 보다 우선)
 3. **GitHub Release 발행** — 사용자 안내용:
    ```bash
@@ -194,7 +193,6 @@ elian-claude-plugins/
 │   └── marketplace.json          # 마켓플레이스 카탈로그 (단일 elian-store entry)
 ├── .github/
 │   ├── workflows/
-│   │   ├── skill-quality-gate.yml  # Claude SKILL.md PR 자동 평가
 │   │   └── codex-config-gate.yml   # Codex prompt PR 자동 평가 (독립)
 │   └── pull_request_template.md
 ├── plugins/                       # ── Claude Code 트리 ──
@@ -218,9 +216,7 @@ elian-claude-plugins/
 │   ├── prompts/
 │   │   └── persona-review.md      # 레퍼런스 포팅 (~/.codex/prompts/ 드롭인)
 │   └── config.toml.example       # ~/.codex/config.toml 샘플
-├── scripts/                       # 마켓플레이스 레벨 도구
-│   ├── rubric.md                 # Claude 평가 루브릭 (100점)
-│   ├── score_skill.py            # Claude SKILL.md 채점 (stdlib only)
+├── scripts/                       # 마켓플레이스 레벨 도구 (Codex 전용)
 │   ├── rubric-codex.md           # Codex 평가 루브릭 (100점, 독립)
 │   └── score_codex_prompt.py     # Codex prompt 채점 (stdlib only)
 ├── docs/
