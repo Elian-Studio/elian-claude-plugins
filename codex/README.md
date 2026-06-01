@@ -31,7 +31,7 @@ cp codex/AGENTS.md ~/.codex/AGENTS.md
 cp codex/config.toml.example ~/.codex/config.toml   # 그 후 직접 편집
 ```
 
-설치 후 Codex TUI 에서 `/persona-review <target> [--persona daniel|evans|dean|martin|<path>] [--depth quick|deep|interview]` 로 사용.
+설치 후 Codex TUI 에서 `/persona-review <target> [--persona daniel|evans|dean|martin|all|comma-list|<path>] [--depth quick|deep|interview]` 로 사용.
 
 ## 구조
 

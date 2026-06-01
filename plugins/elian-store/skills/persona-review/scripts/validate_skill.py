@@ -1,25 +1,25 @@
 #!/usr/bin/env python3
 """Self-verification for the /persona-review skill.
 
-Stdlib only (no external dependencies). Designed to be chainable: supports
---json output for programmatic consumption.
+Stdlib only. Supports --json for programmatic consumption.
 
 Usage:
-    python3 validate_skill.py             # human-readable report
-    python3 validate_skill.py --json      # JSON output
-    python3 validate_skill.py --quiet     # exit code only
-    python3 validate_skill.py --help
+    python3 validate_skill.py
+    python3 validate_skill.py --json
+    python3 validate_skill.py --quiet
 
 Exits 0 on PASS, 1 on FAIL.
 
 What it checks:
   - frontmatter required fields + name == dir name
-  - disable-model-invocation: true (user-agency guard)
-  - required sections present (workflow, output format, forbidden, pitfalls)
-  - the 5-block LOCKED OUTPUT FORMAT contract is documented in order
-  - references/ has personas/daniel.md + example-review.md and SKILL.md links them
-  - scripts/ dir exists
-  - persona override mechanism (--persona arg) documented
+  - disable-model-invocation: true (read-only/user-agency guard)
+  - required sections present
+  - persona-first/free-form review contract is documented
+  - Agent-based dispatch contract is documented
+  - required persona reviewer agent files exist and are read-only
+  - the old locked scorecard/5-block contract is not reintroduced
+  - references/ has personas/*.md + example-review.md and SKILL.md links them
+  - persona override and interview mode are documented
 """
 from __future__ import annotations
 
@@ -33,38 +33,57 @@ from pathlib import Path
 SKILL_DIR = Path(__file__).resolve().parent.parent
 SKILL_NAME = SKILL_DIR.name
 SKILL_FILE = SKILL_DIR / "SKILL.md"
+PLUGIN_DIR = SKILL_DIR.parents[1]
+AGENTS_DIR = PLUGIN_DIR / "agents"
 
 REQUIRED_FRONTMATTER = ["name", "description", "when_to_use", "argument-hint", "allowed-tools"]
 
 REQUIRED_SECTIONS = [
-    r"^##\s+Where this fits",
-    r"^##\s+What's automated vs what needs your taste",
-    r"^##\s+OUTPUT FORMAT",
+    r"^##\s+Modes",
+    r"^##\s+Persona library",
+    r"^##\s+Common Review Contract",
+    r"^##\s+Subagent Execution Contract",
     r"^##\s+Workflow",
-    r"^##\s+Pitfall",
+    r"^##\s+Pitfalls",
     r"^##\s+Forbidden",
+    r"^##\s+Validation",
 ]
 
-# The 5-block locked contract. Order matters — these must appear in this
-# sequence inside the OUTPUT FORMAT fenced block. Each "block" is a list of
-# accepted headers (default persona uses Korean; English custom personas use
-# the English fallbacks). The check passes if ANY header from each list is
-# found, and the chosen headers appear in document order.
-OUTPUT_BLOCK_VARIANTS: list[list[str]] = [
-    ["## 결론", "## Conclusion"],
-    ["## 트레이드오프", "## Trade-offs", "## Tradeoffs"],
-    ["## 운영 리스크", "## Operational risks", "## Operational Risk"],
-    ["## 페르소나 압박 질문", "## Pressure questions", "## Pressure Questions"],
-    ["## 다음 질문", "## Next question", "## Next Question"],
+FREE_FORM_MARKERS = [
+    "페르소나별 자유 형식",
+    "No scorecard",
+    "전부 행으로 펼치거나 점수화하지 않는다",
+    "점수표·등급표·전수 체크리스트 출력",
 ]
 
-# Persona library lives under references/personas/. Each *.md file there is
-# a persona definition (e.g., daniel.md, evans.md). The skill requires at
-# least one persona file to exist. Legacy layout (references/persona-*.md)
-# is still recognized for backwards compatibility.
+FORBIDDEN_LOCKED_CONTRACT_PATTERNS = [
+    r"^##\s+OUTPUT FORMAT",
+    r"잠긴 OUTPUT FORMAT",
+    r"locked 5-block",
+    r"LOCKED OUTPUT FORMAT",
+    r"^##\s+페르소나 압박 질문",
+    r"\|\s*#\s*\|\s*질문\s*\|\s*점수\s*\|",
+]
+
+PERSONA_FORBIDDEN_PATTERNS = [
+    r"점수 표기",
+    r"리뷰 시 모두 평가",
+    r"\|\s*#\s*\|\s*질문\s*\|\s*점수\s*\|",
+    r"✓",
+    r"△",
+    r"✗",
+]
+
 PERSONAS_DIR_NAME = "personas"
-LEGACY_PERSONA_GLOB = "persona-*.md"
-REQUIRED_REFERENCE_FILES = ["example-review.md"]  # additional fixed references
+REQUIRED_REFERENCE_FILES = ["example-review.md"]
+REQUIRED_AGENT_FILES = [
+    "persona-daniel-reviewer.md",
+    "persona-evans-reviewer.md",
+    "persona-dean-reviewer.md",
+    "persona-martin-reviewer.md",
+    "persona-custom-reviewer.md",
+]
+REQUIRED_AGENT_NAMES = [p[:-3] for p in REQUIRED_AGENT_FILES]
 
 
 @dataclass
@@ -92,8 +111,21 @@ def _frontmatter(text: str) -> dict[str, str]:
     for line in m.group(1).splitlines():
         if ":" in line:
             k, _, v = line.partition(":")
-            fm[k.strip()] = v.strip()
+            fm[k.strip()] = v.strip().strip('"')
     return fm
+
+
+def _persona_files() -> list[Path]:
+    personas = SKILL_DIR / "references" / PERSONAS_DIR_NAME
+    if not personas.is_dir():
+        return []
+    return sorted(p for p in personas.iterdir() if p.suffix == ".md")
+
+
+def _agent_files() -> list[Path]:
+    if not AGENTS_DIR.is_dir():
+        return []
+    return sorted(AGENTS_DIR / name for name in REQUIRED_AGENT_FILES)
 
 
 def check_frontmatter() -> CheckResult:
@@ -113,7 +145,18 @@ def check_disable_model_invocation() -> CheckResult:
     return CheckResult(
         name="frontmatter: disable-model-invocation: true",
         passed=has,
-        detail="found" if has else "missing (user-agency guard required)",
+        detail="found" if has else "missing read-only/user-agency guard",
+    )
+
+
+def check_agent_tool_allowed() -> CheckResult:
+    fm = _frontmatter(_read(SKILL_FILE))
+    allowed = fm.get("allowed-tools", "")
+    has_agent = "Agent" in allowed
+    return CheckResult(
+        name="frontmatter: Agent tool allowed for subagent dispatch",
+        passed=has_agent,
+        detail="Agent found" if has_agent else f"allowed-tools={allowed}",
     )
 
 
@@ -127,52 +170,42 @@ def check_required_sections() -> CheckResult:
     )
 
 
-def check_output_format_contract() -> CheckResult:
-    """The 5 blocks must appear, in order, in the SKILL.md body.
-
-    Each block accepts multiple header variants (e.g., Korean default +
-    English fallback). At least one variant from each block must be found,
-    and the chosen variants must appear in document order.
-    """
+def check_free_form_contract() -> CheckResult:
     text = _read(SKILL_FILE)
-    chosen: list[tuple[str, int]] = []
-    missing_blocks: list[int] = []
-    for i, variants in enumerate(OUTPUT_BLOCK_VARIANTS):
-        first_hit: tuple[str, int] | None = None
-        for v in variants:
-            idx = text.find(v)
-            if idx != -1 and (first_hit is None or idx < first_hit[1]):
-                first_hit = (v, idx)
-        if first_hit is None:
-            missing_blocks.append(i)
-        else:
-            chosen.append(first_hit)
-    found_all = not missing_blocks
-    positions = [p for _, p in chosen]
-    in_order = found_all and positions == sorted(positions)
+    missing = [marker for marker in FREE_FORM_MARKERS if marker not in text]
     return CheckResult(
-        name="5-block LOCKED OUTPUT FORMAT documented in order",
-        passed=found_all and in_order,
-        detail=(
-            f"ok ({', '.join(h for h, _ in chosen)})" if (found_all and in_order)
-            else f"found_all={found_all}, in_order={in_order}, missing={missing_blocks}, chosen={chosen}"
-        ),
+        name="persona-first free-form contract documented",
+        passed=not missing,
+        detail="all markers found" if not missing else f"missing={missing}",
     )
 
 
-def _list_personas() -> list[str]:
-    """Return persona file names from both the new and legacy layouts."""
-    refs = SKILL_DIR / "references"
-    found: list[str] = []
-    personas_dir = refs / PERSONAS_DIR_NAME
-    if personas_dir.is_dir():
-        found.extend(sorted(p.name for p in personas_dir.iterdir() if p.suffix == ".md"))
-    if refs.is_dir():
-        found.extend(
-            sorted(p.name for p in refs.iterdir()
-                   if p.is_file() and p.name.startswith("persona-") and p.suffix == ".md")
-        )
-    return found
+def check_subagent_dispatch_contract() -> CheckResult:
+    text = _read(SKILL_FILE)
+    missing = [name for name in REQUIRED_AGENT_NAMES if name not in text]
+    required_phrases = [
+        "Subagent Execution Contract",
+        "Agent prompt payload",
+        "single persona",
+        "multiple personas",
+        "persona-custom-reviewer",
+    ]
+    missing.extend([phrase for phrase in required_phrases if phrase not in text])
+    return CheckResult(
+        name="subagent dispatch contract documented",
+        passed=not missing,
+        detail="all dispatch markers found" if not missing else f"missing={missing}",
+    )
+
+
+def check_no_locked_contract() -> CheckResult:
+    text = _read(SKILL_FILE)
+    hits = [p for p in FORBIDDEN_LOCKED_CONTRACT_PATTERNS if re.search(p, text, re.MULTILINE | re.IGNORECASE)]
+    return CheckResult(
+        name="old locked scorecard/5-block contract not reintroduced",
+        passed=not hits,
+        detail="no locked contract patterns" if not hits else f"hits={hits}",
+    )
 
 
 def check_references_dir() -> CheckResult:
@@ -180,19 +213,14 @@ def check_references_dir() -> CheckResult:
     if not refs.is_dir():
         return CheckResult(name="references/ has personas/ + example files", passed=False, detail="missing dir")
     present = {p.name for p in refs.iterdir() if p.is_file()}
-    personas = _list_personas()
+    personas = _persona_files()
     missing_fixed = [f for f in REQUIRED_REFERENCE_FILES if f not in present]
-    missing_persona = not personas
-    passed = not missing_fixed and not missing_persona
-    if passed:
-        detail = f"{len(present)} top-level file(s); persona(s): {personas}"
-    else:
-        parts = []
-        if missing_persona:
-            parts.append(f"no persona file found in references/{PERSONAS_DIR_NAME}/ nor as references/{LEGACY_PERSONA_GLOB}")
-        if missing_fixed:
-            parts.append(f"missing fixed: {missing_fixed}")
-        detail = "; ".join(parts)
+    passed = bool(personas) and not missing_fixed
+    detail = (
+        f"persona(s): {[p.name for p in personas]}; fixed: {sorted(present)}"
+        if passed
+        else f"personas={len(personas)}, missing_fixed={missing_fixed}"
+    )
     return CheckResult(
         name="references/ has personas/ + example files",
         passed=passed,
@@ -201,25 +229,68 @@ def check_references_dir() -> CheckResult:
 
 
 def check_references_linked() -> CheckResult:
-    """SKILL.md must link example-review.md AND at least one persona file
-    (either references/personas/<name>.md or references/persona-*.md)."""
     text = _read(SKILL_FILE)
-    fixed_linked = [f for f in REQUIRED_REFERENCE_FILES if re.search(rf"references/{re.escape(f)}", text)]
-    fixed_missing = [f for f in REQUIRED_REFERENCE_FILES if f not in fixed_linked]
-    persona_link = (
-        re.search(rf"references/{PERSONAS_DIR_NAME}/[\w-]+\.md", text)
-        or re.search(r"references/persona-[\w-]+\.md", text)
+    fixed_missing = [f for f in REQUIRED_REFERENCE_FILES if f"references/{f}" not in text]
+    linked_personas = [
+        p.name for p in _persona_files()
+        if f"references/{PERSONAS_DIR_NAME}/{p.name}" in text
+    ]
+    passed = not fixed_missing and bool(linked_personas)
+    detail = (
+        f"linked_personas={linked_personas}"
+        if passed
+        else f"missing_fixed_links={fixed_missing}, linked_personas={linked_personas}"
     )
-    parts = []
-    if fixed_missing:
-        parts.append(f"missing_fixed_links={fixed_missing}")
-    if not persona_link:
-        parts.append("no persona file link found")
-    passed = not fixed_missing and persona_link is not None
     return CheckResult(
-        name="SKILL.md explicitly links example + at least one persona file",
+        name="SKILL.md links example + persona files",
         passed=passed,
-        detail="all linked" if passed else "; ".join(parts),
+        detail=detail,
+    )
+
+
+def check_agent_files_exist() -> CheckResult:
+    missing = [path.name for path in _agent_files() if not path.is_file()]
+    return CheckResult(
+        name="persona reviewer agent files exist",
+        passed=not missing and AGENTS_DIR.is_dir(),
+        detail=(
+            f"agents={REQUIRED_AGENT_FILES}"
+            if not missing and AGENTS_DIR.is_dir()
+            else f"agents_dir={AGENTS_DIR.is_dir()}, missing={missing}"
+        ),
+    )
+
+
+def check_agent_files_read_only() -> CheckResult:
+    hits: list[str] = []
+    for path in _agent_files():
+        text = _read(path)
+        fm = _frontmatter(text)
+        tools = fm.get("tools", "")
+        if "Write" in tools or "Edit" in tools:
+            hits.append(f"{path.name}:tools={tools}")
+        if "Do not implement, edit, create files" not in text:
+            hits.append(f"{path.name}:missing read-only instruction")
+        if "Do not output a scorecard" not in text:
+            hits.append(f"{path.name}:missing no-scorecard instruction")
+    return CheckResult(
+        name="persona reviewer agents are read-only and no-scorecard",
+        passed=not hits,
+        detail="all read-only" if not hits else f"hits={hits}",
+    )
+
+
+def check_persona_files_not_scorecards() -> CheckResult:
+    hits: list[str] = []
+    for path in _persona_files():
+        text = _read(path)
+        for pattern in PERSONA_FORBIDDEN_PATTERNS:
+            if re.search(pattern, text):
+                hits.append(f"{path.name}:{pattern}")
+    return CheckResult(
+        name="persona files describe lenses, not scorecards",
+        passed=not hits,
+        detail="no scorecard patterns" if not hits else f"hits={hits}",
     )
 
 
@@ -232,26 +303,31 @@ def check_scripts_dir() -> CheckResult:
     )
 
 
-def check_persona_override() -> CheckResult:
-    """Portability: the skill must document a persona override mechanism."""
+def check_persona_override_and_interview() -> CheckResult:
     text = _read(SKILL_FILE)
-    has_arg = "--persona" in text
+    missing = [s for s in ["--persona", "--depth", "interview"] if s not in text]
     return CheckResult(
-        name="persona override (--persona arg) documented",
-        passed=has_arg,
-        detail="--persona found" if has_arg else "no override mechanism",
+        name="persona override and interview mode documented",
+        passed=not missing,
+        detail="all documented" if not missing else f"missing={missing}",
     )
 
 
 CHECKS = [
     check_frontmatter,
     check_disable_model_invocation,
+    check_agent_tool_allowed,
     check_required_sections,
-    check_output_format_contract,
+    check_free_form_contract,
+    check_subagent_dispatch_contract,
+    check_no_locked_contract,
     check_references_dir,
     check_references_linked,
+    check_agent_files_exist,
+    check_agent_files_read_only,
+    check_persona_files_not_scorecards,
     check_scripts_dir,
-    check_persona_override,
+    check_persona_override_and_interview,
 ]
 
 

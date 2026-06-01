@@ -147,9 +147,14 @@ def axis_template(text: str) -> tuple[int, str, list[str]]:
         score += 4
     else:
         imps.append("출력/산출물 계약 부재")
+    free_form_contract = re.search(
+        r"(고정\s*템플릿\s*없이|공통\s*5블록[^.\n]*강제하지|점수표[^.\n]*만들지\s*않)",
+        text,
+        re.IGNORECASE,
+    )
     positions = [text.find(b) for b in FIVE_BLOCKS]
     found = [b for b, p in zip(FIVE_BLOCKS, positions) if p != -1]
-    if not found or (len(found) == len(FIVE_BLOCKS) and positions == sorted(positions)):
+    if free_form_contract or not found or (len(found) == len(FIVE_BLOCKS) and positions == sorted(positions)):
         score += 4
     else:
         imps.append("5블록을 일부만 쓰거나 순서가 어긋남")

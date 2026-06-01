@@ -55,7 +55,7 @@ This repo also ships an **independent** OpenAI Codex CLI config tree under [`cod
 
 | Skill | Status | Codex command |
 |-------|--------|---------------|
-| [persona-review](codex/prompts/persona-review.md) | ✅ reference port | `/persona-review <target> [--persona daniel\|evans\|dean\|martin\|<path>] [--depth quick\|deep\|interview]` |
+| [persona-review](codex/prompts/persona-review.md) | ✅ reference port | `/persona-review <target> [--persona daniel\|evans\|dean\|martin\|all\|comma-list\|<path>] [--depth quick\|deep\|interview]` |
 
 Install or update the Codex prompt:
 

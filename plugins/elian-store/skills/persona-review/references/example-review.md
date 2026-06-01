@@ -1,12 +1,24 @@
-# Example: /persona-review 완결 사례 (BEFORE / AFTER)
+# Example: /persona-review 자유 형식 사례
 
-페르소나 = `daniel` (default). Example 1·2 = `--depth quick`, Example 3 = `--depth interview`.
+이 파일은 출력 고정 템플릿이 아니다. 같은 대상을 보더라도 페르소나마다 무엇을 먼저 보고, 어떤 형식으로 압박하는지가 달라야 한다.
+
+금지되는 방향:
+
+- 모든 페르소나가 같은 5개 섹션으로 답함
+- `Pressure Questions`를 전부 표로 펼쳐 점수화함
+- 확인되지 않은 내용을 추측으로 채움
+
+권장되는 방향:
+
+- 페르소나가 가장 중요하게 보는 판단부터 시작
+- 필요한 경우에만 표·목록·다이어그램 사용
+- 마지막에 다음 질문 또는 다음 액션 1개를 남김
 
 ---
 
-## Example 1 — 설계 문서 리뷰
+## Example 1 — Daniel: 운영 가능성 리뷰
 
-### BEFORE — 리뷰 대상 (`docs/architecture/payment-flow.md` 원본)
+### BEFORE
 
 ```markdown
 # 결제 플로우
@@ -27,222 +39,214 @@ PG사가 200을 주면 주문 상태를 PAID로 바꾸고 알림톡을 보낸다
 
 ### 호출
 
-```
-/persona-review docs/architecture/payment-flow.md
-```
-
-### AFTER — 페르소나 출력 (5블록, 잠긴 포맷)
-
-```markdown
-## 결론
-이대로 가면 운영 시 결제 실패·지연 추적 불가. sync 단일 트랜잭션 가정이 PG 장애 시 전체를 막음. sync vs async 결정을 먼저 잠그고 진행.
-
-## 트레이드오프
-| 옵션 | Pros | Cons | 적합 상황 |
-|---|---|---|---|
-| 현재안 (sync 호출) | 구현 단순, 정합성 추론 쉬움 | PG 5초 지연 시 worker thread 고갈, 재시도 불가 | 트래픽 < 100 TPS, 단일 PG, 장애 드묾 |
-| 비동기 큐 (RabbitMQ) | 장애 격리, 재시도 용이, PG 추가 확장 쉬움 | idempotency key 필요, 정합성 추적 비용 | 다중 PG, 부분 장애 흔함 |
-
-## 운영 리스크
-- 미래 장애 가능성: PG 응답 5초 지연 시 worker thread pool 고갈 → 전체 결제 중단
-- 팀 확장 시 부담: 신규 PG 추가마다 sync 분기 추가 → 코드 산개, 신규 입사자 추적 난이도 상승
-- 추적/디버깅 가능성: 실패 시 어느 단계(요청/승인/상태변경/알림)에서 멈췄는지 로그만으로 재구성 어려움
-
-## 페르소나 압박 질문
-| # | 질문 | 점수 | 근거 / 보강 필요 |
-|---|---|---|---|
-| 1 | 돌아간다 vs 신뢰할 수 있다 | ✗ | "200 주면" 성공 경로만. 4xx/5xx/timeout/부분실패 누락 |
-| 2 | 표면 결과 vs 메커니즘 | △ | sequence는 있으나 PG 응답 패턴(200/4xx/5xx/timeout) 미분류 |
-| 3 | axiom vs policy | ✗ | "모든 결제 = 단일 트랜잭션" 가정. PG사별 정책 차이 미반영 |
-| 4 | 5초 안에 핵심 잡히나 | ✓ | 6단계 시퀀스로 main flow 명확 |
-| 5 | 트레이드오프 명시 | ✗ | sync 선택 근거 없음. async 비교 부재 |
-| 6 | 세상에 이미 있는가 | △ | Toss/Stripe webhook+idempotency 패턴 참조 없음 |
-| 7 | hook으로 자동화 가능 | ✗ | "운영자가 매일 아침 로그 확인" = 기억 의존, 부패 신호. 알림/대시보드로 |
-| 8 | 실패 모드 어디 있나 | ✗ | "## Failure modes" / "## Pitfalls" 섹션 없음 |
-
-## 다음 질문
-sync vs async 를 먼저 잠그고(이게 axiom 결정), 잠근 뒤 그에 맞는 실패 모드 섹션을 채우는 순서. 지금 트래픽/PG 수가 어느 정도라 sync로도 충분하다고 봤어?
-
-(다음: /decision-dashboard 로 sync/async 결정 잠금 → 보강 후 재리뷰)
-```
-
----
-
-## Example 2 — 자유 텍스트 리뷰 (옵션 1개일 때)
-
-### 호출
-
-```
-/persona-review "사용자 도메인을 별도 마이크로서비스로 분리하려고 함. 모놀리스가 너무 커졌음."
+```bash
+/persona-review docs/architecture/payment-flow.md --persona daniel
 ```
 
 ### AFTER
 
 ```markdown
-## 결론
-상황에 따라 다름. "모놀리스가 크다"는 분리 근거가 아님 — 배포 독립성/팀 경계/장애 격리 중 무엇이 진짜 문제인지에 따라 갈림.
+이 문서는 성공 경로 설명이지 운영 설계가 아님.
 
-## 트레이드오프
-| 옵션 | Pros | Cons | 적합 상황 |
-|---|---|---|---|
-| 현재안 (분리) | 배포 독립, 장애 격리, 팀 경계 명확 | 분산 트랜잭션, 네트워크 지연, 운영 복잡도 2배 | 사용자 도메인 변경이 잦고 다른 팀이 소유 |
-| do-nothing (모놀리스 유지 + 모듈 경계만) | 운영 단순, 트랜잭션 일관성 유지 | 빌드/배포 시간 증가, 팀 경계 모호 | 한 팀이 전체 소유, 배포 빈도 비슷 |
+가장 먼저 잠글 건 sync/async가 아니라 "실패를 어떤 상태로 남길 것인가"야. 지금은 PG timeout, 승인 성공 후 DB update 실패, 알림톡 실패가 모두 같은 빈칸으로 남아 있음. "운영자가 매일 아침 로그 확인"도 시스템 설계가 아니라 기억 의존 프로세스라 부패한다.
 
-## 운영 리스크
-- 미래 장애 가능성: 사용자 서비스 다운 시 의존 서비스 연쇄 장애 (circuit breaker 없으면)
-- 팀 확장 시 부담: 분산 추적(tracing) 인프라 없으면 디버깅 비용 폭증
-- 추적/디버깅 가능성: 한 요청이 여러 서비스 거치면 로그 상관관계 ID 필수
+운영 관점에서 바로 깨지는 지점:
 
-## 페르소나 압박 질문
-| # | 질문 | 점수 | 근거 / 보강 필요 |
-|---|---|---|---|
-| 1 | 돌아간다 vs 신뢰할 수 있다 | ✗ | 분리 후 운영 가능성(추적/장애격리) 미언급 |
-| 2 | 표면 결과 vs 메커니즘 | ✗ | "크다"는 증상. 진짜 원인(배포/팀/장애 중 무엇)이 안 잡힘 |
-| 3 | axiom vs policy | △ | 분리가 목적인지 수단인지 불분명 |
-| 4 | 5초 안에 핵심 잡히나 | N | 한 줄 텍스트라 구조 평가 대상 아님 |
-| 5 | 트레이드오프 명시 | ✗ | 분리 비용(분산 트랜잭션 등) 미고려 |
-| 6 | 세상에 이미 있는가 | ✗ | strangler fig / modular monolith 같은 표준 점진 전략 미검토 |
-| 7 | hook으로 자동화 가능 | N | 아키텍처 결정이라 해당 없음 |
-| 8 | 실패 모드 어디 있나 | ✗ | 분리 실패 시 롤백 전략 없음 |
+| 지점 | 지금 문서 | 필요한 결정 |
+|---|---|---|
+| PG timeout | 없음 | 결제 요청 상태를 `REQUESTED`/`UNKNOWN`으로 남길지, 즉시 실패 처리할지 |
+| 승인 후 DB 실패 | 없음 | PG 승인 조회 reconciliation이 있는지 |
+| 알림톡 실패 | 결제 플로우 안에 섞임 | 결제 성공과 알림 발송을 같은 성공 조건으로 볼지 |
+| 로그 확인 | 사람이 매일 확인 | 실패 상태 dashboard/alert로 자동화 |
 
-## 다음 질문
-"크다"를 측정값으로 바꿔보자 — 빌드 시간? 배포 충돌 빈도? 팀 간 머지 대기? 그 중 무엇이 가장 아픈지 한 줄로 말해줄래?
+이 설계는 "돌아간다" 수준에서는 충분할 수 있지만 "신뢰할 수 있다" 수준은 아님. 실패 상태 모델과 재처리 경로가 없으면 장애 때 주문/결제 상태를 수동 추측하게 된다.
 
-(다음: 진짜 병목 1개 확정 → /brainstorm 으로 점진 전략(strangler) 포함 옵션 발산)
+다음 질문: PG 승인 성공 후 우리 DB 업데이트가 실패하면, 고객에게는 결제가 된 상태인데 주문은 어떤 상태로 남겨야 해?
 ```
 
 ---
 
-## Example 3 — `--depth interview` (재심문 1라운드 → 수렴 → 핸드오프)
+## Example 2 — Evans: 도메인 모델 리뷰
 
-페르소나 = `daniel`. depth = `interview`. 종료조건 (a) 로 1라운드 만에 수렴한 경우.
-
-### BEFORE — 리뷰 대상 (`docs/plan/backoffice-auth.md` 원본)
+### BEFORE
 
 ```markdown
-# 백오피스 권한 체크
-
-백오피스 화면은 역할(ADMIN/STAFF)에 따라 메뉴를 다르게 보여준다.
-프론트에서 로그인 사용자 역할을 받아 메뉴/버튼을 조건부 렌더링한다.
-STAFF 에게는 정산 메뉴를 숨긴다.
+UserService가 User, Patient, Reservation 정보를 모두 받아 NoShowScore를 계산한다.
+점수가 높으면 CRM 메시지 대상자로 분류한다.
 ```
 
 ### 호출
 
-```
-/persona-review docs/plan/backoffice-auth.md --depth interview
+```bash
+/persona-review "UserService가 User, Patient, Reservation 정보를 모두 받아 NoShowScore를 계산한다..." --persona evans
 ```
 
-### R1 — 1라운드 출력
+### AFTER
+
+```markdown
+여기서 제일 이상한 이름은 `UserService`야. 도메인 이야기는 "노쇼 위험 환자 선별"인데 모델 이름은 generic user로 시작한다. 이건 코드가 도메인 언어를 따라가지 못하고 있다는 신호다.
+
+모델을 이렇게 다시 물어봐야 함:
+
+```text
+CRM Context
+  Patient
+  ReservationHistory
+  NoShowRiskAssessment
+  CampaignAudienceCandidate
+```
+
+`NoShowScore`가 값인지, 평가 행위인지, 캠페인 대상 선정의 중간 결과인지도 아직 섞여 있다. 도메인 전문가가 "점수"라고 말하는지 "위험도"라고 말하는지 확인해야 한다. 두 말이 다르면 코드 이름도 달라져야 한다.
+
+bounded context 경계도 불명확하다. 예약 이력은 Reservation context의 사실이고, CRM은 그 사실을 가져와 대상자를 선별한다. CRM이 Reservation 내부 모델을 직접 들고 계산하면 context leak이다. 필요한 건 `ReservationHistorySnapshot` 같은 anti-corruption layer일 가능성이 높다.
+
+다음 질문: 도메인 전문가가 실제로 쓰는 말은 "노쇼 점수"야, "노쇼 위험도"야, 아니면 "재방문 유도 대상"이야?
+```
+
+---
+
+## Example 3 — Dean: 분산·스케일 리뷰
+
+### BEFORE
+
+```markdown
+예약 리마인더 배치는 매일 09:00에 모든 예약자를 조회하고,
+대상자마다 알림톡 API를 동기로 호출한다.
+실패하면 즉시 3번 재시도한다.
+```
+
+### 호출
+
+```bash
+/persona-review docs/reminder-batch.md --persona dean --depth deep
+```
+
+### AFTER
+
+```markdown
+이 설계의 병목은 DB 조회가 아니라 동기 외부 호출 fan-out이다.
+
+대상자가 10만 명이고 알림톡 API p99가 800ms면, 단일 worker가 순차 호출하는 순간 배치 시간은 시간 단위로 늘어난다. 병렬화해도 즉시 3회 retry가 붙으면 실패 시점에 외부 API와 우리 worker를 같이 두들긴다. retry budget과 backpressure가 먼저 필요하다.
+
+fault model:
+
+| Failure | 지금 설계의 반응 | 필요한 완충 |
+|---|---|---|
+| 알림톡 API 5xx | 즉시 3회 재시도 | exponential backoff + jitter |
+| API latency 상승 | worker thread 점유 | queue + concurrency limit |
+| 특정 병원 예약자 폭증 | hot partition 가능 | hospital/date 단위 shard 또는 rate limit |
+| 일부 발송 성공 후 배치 중단 | 중복 발송 위험 | idempotency key |
+
+측정 없이 "매일 09:00 전체 조회"를 정하면 09:00 정각의 트래픽 스파이크가 설계에 박힌다. 분산해서 보내도 되는 메시지라면 scheduling jitter를 넣는 게 더 자연스럽다.
+
+다음 질문: 발송 지연 허용치는 몇 분이야? 09:00 정각 보장이 axiom인지, 09:00~09:30 안에 도착하면 되는 policy인지가 설계를 가른다.
+```
+
+---
+
+## Example 4 — Martin: 코드 품질 리뷰
+
+### BEFORE
+
+```ts
+function saveUser(data, force, notify, retryCount) {
+  validate(data)
+  if (force) {
+    // ...
+  }
+  save(data)
+  if (notify) sendNotification(data)
+  if (retryCount > 0) retry(data, retryCount)
+}
+```
+
+### 호출
+
+```bash
+/persona-review src/user/saveUser.ts --persona martin
+```
+
+### AFTER
+
+```markdown
+`saveUser`는 이름보다 많은 일을 한다.
+
+문제는 줄 수가 아니라 변경 이유다. validation, forced save policy, persistence, notification, retry가 한 함수에 묶여 있다. `force`, `notify`, `retryCount`도 호출자가 함수 내부 시나리오를 알아야 한다는 냄새다.
+
+먼저 쪼갤 경계:
+
+```ts
+saveUser(command)
+saveUserIgnoringConflicts(command)
+notifyUserSaved(user)
+retrySaveUser(command, policy)
+```
+
+`force`와 `notify`는 boolean parameter라서 함수 의미를 숨긴다. 테스트도 조합 폭발이 난다. `force=true, notify=false, retryCount=3`이 실제 비즈니스 케이스인지, 우연히 생긴 플래그 조합인지 알 수 없다.
+
+테스트 관점에서 첫 실패 테스트는 "notify 실패가 save 성공을 되돌리지 않는다" 같은 정책이어야 한다. 그 정책이 없다면 이 함수는 구현보다 요구사항이 먼저 더럽다.
+
+다음 질문: notification 실패는 사용자 저장 실패로 취급해야 해, 아니면 별도 후속 작업으로 남겨야 해?
+```
+
+---
+
+## Example 5 — `--depth interview`
+
+### BEFORE
+
+```markdown
+백오피스 STAFF에게 정산 메뉴를 숨긴다. 프론트에서 역할에 따라 메뉴/버튼을 조건부 렌더링한다.
+```
+
+### 호출
+
+```bash
+/persona-review docs/backoffice-auth.md --persona daniel --depth interview
+```
+
+### R1
 
 ```markdown
 (interview R1/3)
 
-## 결론
-상황에 따라 다름. "프론트에서 메뉴를 숨긴다" 가 표시 제어인지 권한 시행인지에 따라 갈림 — 백엔드 인가가 없으면 숨김은 보안이 아니라 UI.
+이건 UI 표시 제어인지 권한 시행인지 먼저 갈라야 함.
 
-## 트레이드오프
-| 옵션 | Pros | Cons | 적합 상황 |
-|---|---|---|---|
-| 현재안 (FE 조건부 렌더만) | 구현 빠름, UX 깔끔 | API 직접 호출 시 STAFF 가 정산 접근 가능 | 권한이 UX 편의일 뿐 보안 경계 아님 |
-| FE 렌더 + BE 인가 | 우회 불가, 감사 가능 | 엔드포인트마다 인가 규칙 필요 | 정산처럼 민감 데이터 다룰 때 |
+프론트에서 메뉴를 숨기는 건 UX고, 보안 경계가 아니다. 정산 API가 서버에서 STAFF를 막는다면 이 문서는 "화면 노출 정책" 문서로 보강하면 된다. 서버 인가가 없다면 이건 권한 설계 결함이다.
 
-## 운영 리스크
-- 미래 장애 가능성: BE 인가 없으면 STAFF 가 `GET /settlements` 직접 호출로 우회 → 데이터 유출
-- 팀 확장 시 부담: 신규 메뉴마다 FE 분기만 추가 → 백엔드 인가 누락이 조용히 쌓임
-- 추적/디버깅 가능성: 누가 무엇에 접근했는지 서버 로그에 인가 결정이 안 남음
-
-## 페르소나 압박 질문
-| # | 질문 | 점수 | 근거 / 보강 필요 |
-|---|---|---|---|
-| 1 | 돌아간다 vs 신뢰할 수 있다 | ✗ | 화면은 돌아가나 API 우회 시 권한 시행 안 됨 |
-| 2 | 표면 결과 vs 메커니즘 | ✗ | "숨긴다" 가 렌더링인지 인가인지 미구분 |
-| 3 | axiom vs policy | △ | 역할 2종 고정. 권한 경계가 axiom인지 불명 |
-| 4 | 5초 안에 핵심 잡히나 | ✓ | 3줄로 의도 명확 |
-| 5 | 트레이드오프 명시 | ✗ | BE 인가 비용 vs FE-only 위험 비교 없음 |
-| 6 | 세상에 이미 있는가 | ✗ | RBAC 서버 인가 표준 패턴 참조 없음 |
-| 7 | hook으로 자동화 가능 | N | 권한 설계라 해당 없음 |
-| 8 | 실패 모드 어디 있나 | ✗ | "API 직접 호출" 실패 모드 미고려 |
-
-## 다음 질문
-가장 약한 지점: 백엔드가 정산 API 에서 역할을 검증하는지가 결론을 가른다 — 지금 `GET /settlements` 같은 민감 엔드포인트에 서버측 인가가 있나?
+결론을 가르는 질문 하나: 정산 같은 민감 엔드포인트에 백엔드 역할 검증이 이미 있어?
 ```
 
-### 재심문 (Phase 4.5 — `✗` 최상위 1개)
+사용자 답변:
 
-```
-AskUserQuestion:
-Q: 정산 등 민감 엔드포인트에 백엔드 인가가 있나?
- (a) 없음 — 프론트 숨김만
- (b) 있음 — @PreAuthorize 등으로 역할 검증함
+```text
+없음. 프론트 숨김만 있음.
 ```
 
-사용자 답변: **(a) 없음 — 프론트 숨김만**
-
-### R2 — 재출력 (수렴: 결론이 단정으로)
+### R2
 
 ```markdown
 (interview R2/3)
 
-## 결론
-현재안은 보안 결함. STAFF 가 `GET /settlements` 직접 호출로 정산 데이터 접근 가능. FE 숨김 유지 + 민감 엔드포인트 백엔드 인가 추가가 필수 — 협상 대상 아님(axiom).
+현재안은 보안 결함이다.
 
-## 트레이드오프
-| 옵션 | Pros | Cons | 적합 상황 |
-|---|---|---|---|
-| FE 렌더 + BE 인가 (권장) | 우회 불가, 감사 로그 확보 | 엔드포인트별 규칙 + 테스트 비용 | 민감 데이터 — 지금 케이스 |
-| do-nothing (FE-only 유지) | 추가 작업 0 | 알려진 데이터 유출 경로 방치 | 적합 상황 없음 (정산은 민감) |
+STAFF가 메뉴를 못 보는 것과 `GET /settlements`를 직접 호출하지 못하는 건 다른 문제다. 지금 답변 기준으로는 후자가 막혀 있지 않다. 정산은 민감 데이터라서 "프론트 숨김만"은 policy가 아니라 금지해야 할 상태다.
 
-## 운영 리스크
-- 미래 장애 가능성: 유출은 "장애" 로 안 잡혀 모니터링에 안 뜸 → 사후 발견
-- 팀 확장 시 부담: 인가를 엔드포인트마다 수기로 → 신규 API 누락 위험. 공통 인가 레이어 필요
-- 추적/디버깅 가능성: 인가 결정 로그 남기면 접근 감사 가능
+이번 결정에서 협상 불가능한 것:
 
-## 페르소나 압박 질문
-| # | 질문 | 점수 | 근거 / 보강 필요 |
-|---|---|---|---|
-| 1 | 돌아간다 vs 신뢰할 수 있다 | △ | 결함 확정·해법 명시. 구현 후 ✓ |
-| 2 | 표면 결과 vs 메커니즘 | ✓ | 렌더 vs 인가 분리됨 (BE 부재 확인) |
-| 3 | axiom vs policy | ✓ | "민감 엔드포인트 BE 인가" = axiom 으로 고정 |
-| 4 | 5초 안에 핵심 잡히나 | ✓ | 결론 한 줄에 결함+해법 |
-| 5 | 트레이드오프 명시 | ✓ | do-nothing 의 비용(유출 방치) 명시 |
-| 6 | 세상에 이미 있는가 | △ | RBAC 서버 인가는 표준. 프레임워크 기능 매핑은 /improve 단계 |
-| 7 | hook으로 자동화 가능 | N | 해당 없음 |
-| 8 | 실패 모드 어디 있나 | ✓ | API 직접 호출 우회를 명시적 실패 모드로 |
+- 민감 엔드포인트는 백엔드에서 role을 검증한다.
+- 인가 실패는 서버 로그에 남긴다.
+- 프론트 메뉴 숨김은 UX 보조로만 둔다.
 
-## 다음 질문
-민감 엔드포인트 목록을 확정하면 인가 규칙을 일괄 적용할 수 있다 — 정산 외에 STAFF 가 접근하면 안 되는 엔드포인트가 더 있나?
+개선 handoff:
+
+```markdown
+(handoff → fix docs/backoffice-auth.md)
+- persona: daniel
+- judgment: FE-only role hiding is not authorization.
+- change intent: add backend authorization requirement for settlement endpoints.
+- evidence: user confirmed no server-side role check exists.
+- risks to preserve: direct API access, audit logging, endpoint coverage.
+- out of scope: redesigning the whole RBAC model.
 ```
-
-종료조건 (a) 충족 (결론이 "상황에 따라 다름" → 단정). 루프 중단 → Phase 5.
-
-### Phase 5 — 핸드오프 페이로드 발행 (실행 안 함)
-
 ```
-(핸드오프 → /improve docs/plan/backoffice-auth.md)
-─ 컨텍스트 ─
-- 결론: FE 숨김 유지 + 민감 엔드포인트 BE 인가 추가가 필수 (보안 결함 확정)
-- 채택 옵션: FE 렌더 + BE 인가 (do-nothing 은 데이터 유출 방치라 기각)
-- 잔여 리스크: Q1 △ (구현 후 검증 필요), Q6 △ (프레임워크 인가 기능 매핑은 개선 단계)
-- 개선 범위 In/Out:
-  - In: 민감 엔드포인트 서버측 역할 인가 + 인가 결정 로깅
-  - Out: 역할 체계 재설계, FE 렌더 로직 변경
-```
-
-persona-review 은 위 블록을 출력만 한다. `/improve` 실제 호출은 다음 턴에 사용자/Claude 가.
-
----
-
-## 이 예시가 보여주는 것
-
-| 페르소나 특성 | 예시에서 어떻게 드러나나 |
-|---|---|
-| 결론부터 | `## 결론` 이 항상 첫 블록, 한 줄 |
-| 산문 < 표 | 모든 비교가 표. 불릿 나열 없음 |
-| 추측 금지 | 본문에 없으면 `✗`/`N`, "아마 의도했을 것" 없음 |
-| "돌아간다 ≠ 신뢰" | Q1 이 항상 운영 가능성 압박 |
-| 응원 없음 | 칭찬 0회. 좋은 점도 다음 질문으로 이동 |
-| do-nothing 강제 | 옵션 1개여도 트레이드오프 표에 비교군 강제 |
-| 후속 질문으로 끝맺음 | `## 다음 질문` 이 항상 마지막, 좁혀가는 리듬 |
-| 수렴 루프 (interview) | Ex3: R1 `✗` 다수 → 약점 1개 재심문 → R2 결론 단정·`✗` 감소, 종료조건 (a) 로 중단 |
-| 핸드오프 발행만 | Ex3: 수렴 후 `/improve` 페이로드를 출력만, 직접 실행 안 함 (read-only) |
