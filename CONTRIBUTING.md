@@ -28,24 +28,9 @@ ruby -EUTF-8 -ryaml -e 'Dir["plugins/elian-store/skills/*/SKILL.md"].sort.each {
 
 ---
 
-## 평가 기준 (90점 게이트)
+## 평가 기준 (수동 리뷰)
 
-PR 의 SKILL.md 변경은 [`scripts/rubric.md`](scripts/rubric.md) 의 100점 만점 루브릭으로 평가됩니다.
-
-10개 축 × 각 10점:
-
-1. Frontmatter 규약 준수
-2. Description 자동 호출 신뢰성
-3. Progressive Disclosure (토큰 효율)
-4. Standing Instructions
-5. 예시 완결성
-6. Anti-pattern / Failure-mode 핸들링
-7. Validation 자가 검증
-8. 보안 / 권한 (`allowed-tools`)
-9. 일반화 / 휴대성
-10. 의사결정·산출물 설계
-
-루브릭은 다음 레퍼런스를 종합합니다:
+SKILL.md 변경은 자동 점수 게이트 대신 **아래 운영 규칙에 비추어 수동 리뷰**한다. 스킬마다 형태(워크플로 오케스트레이터 / 가이던스·생성기 등)가 달라 단일 휴리스틱 점수로 통과·탈락을 가르면 잘 쓴 스킬도 형태 불일치로 떨어지므로, 점수 게이트는 두지 않는다. 리뷰 시 참고하는 기준 출처:
 
 - [Claude Code 공식 Skills 가이드](https://code.claude.com/docs/en/skills)
 - [Claude Code 공식 Plugins / Marketplace 가이드](https://code.claude.com/docs/en/plugins)
@@ -54,7 +39,7 @@ PR 의 SKILL.md 변경은 [`scripts/rubric.md`](scripts/rubric.md) 의 100점 �
 
 ### Portfolio review checklist (non-blocking)
 
-90점 게이트는 개별 `SKILL.md` 품질을 본다. gstack식 포트폴리오 리뷰는 별도 체크리스트로 운영하며, 새 스킬을 추가하거나 큰 리팩터링을 할 때 [`docs/gstack-skill-review.md`](docs/gstack-skill-review.md)를 같이 확인한다.
+수동 리뷰는 개별 `SKILL.md` 품질을 본다. gstack식 포트폴리오 리뷰는 별도 체크리스트로 운영하며, 새 스킬을 추가하거나 큰 리팩터링을 할 때 [`docs/gstack-skill-review.md`](docs/gstack-skill-review.md)를 같이 확인한다.
 
 - lifecycle coverage: product/spec → design → implement/fix/improve → review → browser QA → ship/release → learning
 - role clarity: 각 skill은 하나의 specialist 역할과 하나의 명확한 job을 가진다.
@@ -100,12 +85,12 @@ plugins/elian-store/
 
 ## 새 스킬 추가하기
 
-1. `plugins/elian-store/skills/<new-skill>/SKILL.md` 작성 — 루브릭 90점 기준 충족 (구조: SKILL.md + 가능하면 scripts/ + references/)
+1. `plugins/elian-store/skills/<new-skill>/SKILL.md` 작성 — 아래 운영 규칙 충족 (구조: SKILL.md + 필요 시 scripts/ + references/)
 2. `plugins/elian-store/.claude-plugin/plugin.json` 의 `version` bump (MINOR — 신규 스킬 추가)
 3. `.claude-plugin/marketplace.json` 의 elian-store entry 의 `version` 도 동시 bump
 4. `README.md` 의 스킬 표에 신규 row 추가 (상태: ✅ 또는 적절히)
 5. `CHANGELOG.md` 의 `elian-store` 섹션에 신규 버전 항목 작성 (Added: 새 스킬 X)
-6. PR 생성 → 게이트(SKILL.md 90점) 통과 확인 → 머지
+6. PR 생성 → 수동 리뷰 → 머지
 7. (메인테이너) GitHub Release 발행
 
 > 마켓플레이스에 새 플러그인을 통째로 추가하려는 경우(이를테면 `elian-pro` 같은 별도 번들), 별도 PR + 별도 가이드. 현재 정책은 **단일 번들** 권장.
@@ -122,8 +107,8 @@ plugins/elian-store/
 | 진입 포맷 | YAML frontmatter + 마크다운 | 순수 마크다운 (파일명 = `/명령`), `$ARGUMENTS` |
 | 프로젝트 지침 | `CLAUDE.md` / `.claude/` | `codex/AGENTS.md` / `~/.codex/config.toml` |
 | 권한 모델 | frontmatter `allowed-tools` | `config.toml` `approval_policy`/`sandbox_mode` |
-| 품질 게이트 | `scripts/score_skill.py` + `rubric.md` (10축) | `scripts/score_codex_prompt.py` + `rubric-codex.md` (8축) |
-| CI | `.github/workflows/skill-quality-gate.yml` | `.github/workflows/codex-config-gate.yml` |
+| 품질 게이트 | 수동 리뷰 (자동 게이트 없음) | `scripts/score_codex_prompt.py` + `rubric-codex.md` (8축) |
+| CI | 없음 (수동 리뷰) | `.github/workflows/codex-config-gate.yml` |
 
 **핵심 규칙 (드리프트 책임):**
 
@@ -139,20 +124,17 @@ plugins/elian-store/
 
 ## 메인테이너용 — 1회 셋업 (저장소 운영)
 
-게이트는 stdlib 만 사용하는 휴리스틱이라 **API 키 / Secret 셋업 불필요**. 브랜치 보호 규칙만 적용하면 즉시 작동.
+브랜치 보호 규칙만 적용하면 된다. SKILL.md 자동 채점 게이트가 없으므로 별도 status check 셋업은 필요 없다 (Codex prompt 변경은 `codex-config-gate.yml` 가 별도로 검사).
 
 ### 브랜치 보호 규칙 (`main` 보호)
 
-직접 푸시 차단 + 게이트 통과 필수.
+직접 푸시 차단 + PR 필수.
 
 GitHub UI:
 ```
 Settings → Branches → Add branch ruleset
 - Branch name pattern: main
 - Require a pull request before merging: ✅
-- Require status checks to pass before merging: ✅
-  - Status check: "Evaluate skills (90+ required)"
-  - Require branches to be up to date before merging: ✅
 - Block force pushes: ✅
 - Require linear history: (선택)
 ```
@@ -162,10 +144,7 @@ Settings → Branches → Add branch ruleset
 gh api -X PUT repos/Elian-Studio/elian-claude-plugins/branches/main/protection \
   --input - <<'EOF'
 {
-  "required_status_checks": {
-    "strict": true,
-    "contexts": ["Evaluate skills (90+ required)"]
-  },
+  "required_status_checks": null,
   "enforce_admins": false,
   "required_pull_request_reviews": {
     "required_approving_review_count": 0,
