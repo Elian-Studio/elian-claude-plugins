@@ -9,6 +9,10 @@
 > One plugin install (`elian-store`) gives you the full workflow skill set, and new skills land automatically on update.
 > Every SKILL.md change must pass a 90-point heuristic quality gate before it can merge to `main`.
 
+**Latest: v3.0.0 — Persona Code Review**
+
+`/persona-review` is now a development review skill for code, PRs, design, architecture, refactoring plans, domain models, and test strategy. The active built-in lenses are `evans`, `dean`, `martin`, `fowler`, and `beck`; Daniel persona routing was removed. See [`CHANGELOG.md`](CHANGELOG.md#300--2026-06-01) and the [`v3.0.0` release notes](https://github.com/Elian-Studio/elian-claude-plugins/releases/tag/v3.0.0).
+
 ---
 
 ## 🚀 Quick Start
@@ -45,7 +49,7 @@ Then in Claude Code:
 
 New skills land via `/plugin update elian-store@elian` — no separate install per skill.
 
-Portfolio-level review: [`docs/gstack-skill-review.md`](docs/gstack-skill-review.md) compares this bundle against `garrytan/gstack` lifecycle patterns. Current status: structurally healthy, but not yet lifecycle-complete; first-class review, browser QA, release, benchmark, security, and learning skills are tracked as roadmap gaps.
+Portfolio-level review: [`docs/gstack-skill-review.md`](docs/gstack-skill-review.md) compares this bundle against `garrytan/gstack` lifecycle patterns. Current status: structurally healthy, but not yet lifecycle-complete; browser QA, release, benchmark, security, learning, and stricter release-readiness review workflows are tracked as roadmap gaps.
 
 ---
 
