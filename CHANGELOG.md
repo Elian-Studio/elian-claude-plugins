@@ -10,6 +10,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## Marketplace (`elian`)
 
+### Unreleased
+
+#### Removed
+- **Skill quality gate (Claude side)**: deleted `scripts/score_skill.py`, `scripts/rubric.md`, and `.github/workflows/skill-quality-gate.yml`. The 10-axis 90-point heuristic could not judge semantic quality, assumed a single "workflow orchestrator" skill shape, and failed legitimately well-written guidance/generator skills on structure mismatch — so it was retired rather than branched per skill type.
+- SKILL.md changes are now reviewed manually against the operating rules in `CONTRIBUTING.md`. A YAML frontmatter parse smoke test remains the only mechanical pre-merge check.
+
+#### Notes
+- The independent Codex prompt gate (`scripts/score_codex_prompt.py` + `scripts/rubric-codex.md` + `codex-config-gate.yml`) is unaffected.
+- README badge, `marketplace.json` description, PR template, CONTRIBUTING, and parity/audit docs were updated to drop the 90-point gate framing.
+
 ### 3.0.0 — 2026-06-01
 
 #### BREAKING — `/persona-review` is now a Persona Code Review skill

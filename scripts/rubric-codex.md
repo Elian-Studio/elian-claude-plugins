@@ -1,7 +1,7 @@
 # Codex Prompt Quality Rubric (100점 만점, 휴리스틱)
 
 `codex/prompts/*.md` 채점 기준. `scripts/score_codex_prompt.py` 의 신호와 1:1 일치.
-Claude `scripts/rubric.md` (SKILL.md 용) 와 **독립** — Codex 프롬프트는 frontmatter/`allowed-tools` 가 없고 권한이 `~/.codex/config.toml` 책임이므로 축이 다르다.
+Codex 프롬프트는 frontmatter/`allowed-tools` 가 없고 권한이 `~/.codex/config.toml` 책임이므로, SKILL.md 와는 다른 축으로 채점한다. (Claude SKILL.md 쪽은 자동 채점 게이트 없이 수동 리뷰로 운영한다.)
 
 LLM 호출 없음. stdlib only. 결정적. 통과 = 90/100, 미달 = 머지 차단.
 

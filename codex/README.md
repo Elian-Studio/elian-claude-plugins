@@ -8,7 +8,7 @@
 | 프로젝트 지침 | `CLAUDE.md` + `.claude/` | `AGENTS.md` + `~/.codex/config.toml` |
 | 권한 모델 | frontmatter `allowed-tools` | `config.toml` 의 `approval_policy` / `sandbox_mode` |
 | 배포 | marketplace.json 으로 install | 사용자가 파일을 `~/.codex/` 로 복사/심볼릭 |
-| 품질 게이트 | `scripts/score_skill.py` (10축×10점) | `scripts/score_codex_prompt.py` (경량 구조 검사) |
+| 품질 게이트 | 수동 리뷰 (자동 게이트 없음) | `scripts/score_codex_prompt.py` (경량 구조 검사) |
 
 ## ⚠️ Drift 경고 (의도된 트레이드오프)
 

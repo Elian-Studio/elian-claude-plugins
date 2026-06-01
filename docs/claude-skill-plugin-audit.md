@@ -46,7 +46,7 @@ Compare this repository's Claude plugin and skill documentation against:
 
 - Plugin layout is broadly correct: `plugins/elian-store/.claude-plugin/plugin.json`, `plugins/elian-store/skills/*/SKILL.md`, root `.claude-plugin/marketplace.json`.
 - The plugin is a single bundle, which matches the current repo strategy and avoids one plugin per skill.
-- The current skill set has `references/` and `scripts/` coverage, and all `SKILL.md` files pass the local 90-point quality gate.
+- The current skill set has `references/` and `scripts/` coverage, and all `SKILL.md` files have YAML-parseable frontmatter.
 - Most side-effect workflows use `disable-model-invocation: true`.
 
 ### Problems Found

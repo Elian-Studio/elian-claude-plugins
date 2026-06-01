@@ -295,5 +295,4 @@ Reference files:
 
 ```bash
 python3 plugins/elian-store/skills/persona-review/scripts/validate_skill.py
-python3 scripts/score_skill.py plugins/elian-store/skills/persona-review/SKILL.md
 ```
