@@ -5,7 +5,7 @@
     "email": "danielmrbang@gmail.com"
   },
   "metadata": {
-    "description": "Daniel (Elian-Studio)'s Claude Code plugin marketplace. Ships one bundled plugin, elian-store, with workflow skills, agents, hooks, and a 90-point stdlib quality gate.",
+    "description": "Daniel (Elian-Studio)'s Claude Code plugin marketplace. Ships one bundled plugin, elian-store, with workflow skills, agents, and hooks.",
     "version": "3.0.0",
     "pluginRoot": "./plugins"
   },

@@ -32,7 +32,7 @@ The relevant transferable patterns are:
 
 Verdict: **PASS with lifecycle gaps**.
 
-The current bundle is structurally healthy: all 12 Claude skills pass the local 90-point gate, all frontmatter parses as YAML, and every bundled skill has scripts and/or references. However, compared with gstack's lifecycle coverage, the bundle is concentrated around planning, implementation, document generation, and verification orchestration. It does not yet have first-class release, browser QA, post-deploy monitoring, benchmarking, security, or learning commands.
+The current bundle is structurally healthy: all 12 Claude skills have YAML-parseable frontmatter, and every bundled skill has scripts and/or references. However, compared with gstack's lifecycle coverage, the bundle is concentrated around planning, implementation, document generation, and verification orchestration. It does not yet have first-class release, browser QA, post-deploy monitoring, benchmarking, security, or learning commands.
 
 ## Skill Matrix
 

@@ -1,10 +1,7 @@
 <!--
 PR guide:
-- When SKILL.md changes, the Skill Quality Gate (90 points) runs automatically.
-- Heuristic scorer (Python stdlib only, no external API dependency) posts the result as a PR comment.
-- Below 90 = merge blocked (branch protection).
-- Rubric: scripts/rubric.md. Scorer: scripts/score_skill.py.
-- Local pre-check: `python3 scripts/score_skill.py <SKILL.md>` (zero dependencies).
+- SKILL.md changes are reviewed manually against the operating rules in CONTRIBUTING.md.
+- Keep frontmatter YAML-safe (quote values containing ": ", brackets, or quotes) so Claude/GitHub parsers do not fail.
 -->
 
 ## Summary
@@ -32,7 +29,7 @@ PR guide:
 - [ ] `plugin.json` `version` bumped
 - [ ] `marketplace.json` plugin entry `version` bumped (both recommended)
 - [ ] `CHANGELOG.md` updated (Added / Changed / Fixed / Removed)
-- [ ] Local score passes — `python3 scripts/score_skill.py <SKILL.md>` (≥ 90)
+- [ ] Frontmatter parses as YAML (no unquoted `: `, brackets, or quotes in string values)
 
 ### When adding a new plugin
 
@@ -40,23 +37,6 @@ PR guide:
 - [ ] `marketplace.json` `plugins[]` updated with the new entry
 - [ ] `README.md` plugin list updated
 - [ ] License declared (`plugin.json.license`)
-
-## Skill Quality Gate score (manual pre-check)
-
-The CI scorer posts a result automatically after PR creation. Before that, self-check expected losses by axis:
-
-- [ ] 1. Frontmatter compliance (10/10 expected)
-- [ ] 2. Description auto-invocation reliability (10/10 expected)
-- [ ] 3. Progressive disclosure (10/10 expected)
-- [ ] 4. Standing instructions (10/10 expected)
-- [ ] 5. Example completeness (10/10 expected)
-- [ ] 6. Anti-pattern / failure-mode (10/10 expected)
-- [ ] 7. Validation self-check (10/10 expected)
-- [ ] 8. Security / permission (10/10 expected)
-- [ ] 9. Generalization / portability (10/10 expected)
-- [ ] 10. Decision design / artifacts (10/10 expected)
-
-**Expected total**: ___ / 100 (≥ 90 required)
 
 ## Related issues / context
 

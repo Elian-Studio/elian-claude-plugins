@@ -4,7 +4,7 @@ Date: 2026-05-28
 
 ## Goal
 
-Make the Claude plugin catalog and Codex prompt catalog use the same command names, intent boundaries, and quality gates where the platforms allow it.
+Make the Claude plugin catalog and Codex prompt catalog use the same command names, intent boundaries, and review posture where the platforms allow it.
 
 This does **not** mean byte-for-byte identical files:
 
@@ -22,8 +22,8 @@ A Claude skill and Codex prompt are considered aligned only when all of these ma
 - Same approval posture: read-only, write-artifact, or code-changing.
 - Same output contract or same handoff artifact.
 - Platform-specific tool differences are explicit, not hidden.
-- Both pass their local gates:
-  - Claude: `python3 scripts/score_skill.py plugins/elian-store/skills/*/SKILL.md`
+- Each side meets its own bar:
+  - Claude: manual review against the operating rules in `CONTRIBUTING.md` (no automated score gate).
   - Codex: `python3 scripts/score_codex_prompt.py codex/prompts/*.md`
 
 ## Current Parity Status
@@ -34,7 +34,7 @@ A Claude skill and Codex prompt are considered aligned only when all of these ma
 | Command naming | `/elian-store:<skill>` | `/<prompt-file>` | Mostly alignable |
 | Current matched command | `persona-review` | `persona-review` | Aligned |
 | Legacy `on-call-elian` | Removed from current Claude skill catalog | Removed from current Codex prompt catalog | Aligned |
-| Quality gate | 12/12 pass | 1/1 pass | Passing, but asymmetric |
+| Quality gate | Manual review (no automated gate) | `score_codex_prompt.py` 1/1 pass | Asymmetric by design |
 
 Current conclusion: **the two trees are not identical yet**. The name drift around `on-call-elian` is fixed, but 11 Claude skills have no Codex prompt counterpart.
 

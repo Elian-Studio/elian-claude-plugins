@@ -7,11 +7,10 @@
 ```
 1. 브랜치 생성 → feature/<scope> 또는 fix/<scope>
 2. SKILL.md / plugin.json / marketplace.json 변경
-3. (선택) 로컬 채점으로 사전 점검
+3. (선택) 로컬 YAML frontmatter smoke test
 4. PR 생성
-5. Skill Quality Gate (Actions) 자동 실행 — 90점 이상이어야 통과
-6. 리뷰 + 머지
-7. 필요 시 GitHub Release 발행
+5. 수동 리뷰 + 머지
+6. 필요 시 GitHub Release 발행
 ```
 
 main 브랜치는 직접 푸시 차단. 모든 변경은 PR 을 거쳐야 합니다.
@@ -20,23 +19,12 @@ main 브랜치는 직접 푸시 차단. 모든 변경은 PR 을 거쳐야 합니
 
 ## 로컬 검증
 
-휴리스틱 채점 — Python stdlib 만 사용. **외부 API 키 / 의존성 / 비용 모두 0**. 같은 입력은 같은 점수.
+SKILL.md 는 자동 채점 게이트 없이 **수동 리뷰**로 본다. 머지 전 최소한 frontmatter 가 실제 YAML 로 파싱되는지만 확인한다 — Claude/GitHub 파서에서 깨지면 스킬 로딩 자체가 실패한다.
 
 ```bash
-# 텍스트 출력
-python3 scripts/score_skill.py plugins/elian-store/skills/decision-dashboard/SKILL.md
-
-# JSON 출력 (다른 스킬과 chaining 가능)
-python3 scripts/score_skill.py plugins/elian-store/skills/decision-dashboard/SKILL.md --json
-
-# 여러 SKILL.md 동시 채점
-python3 scripts/score_skill.py plugins/elian-store/skills/*/SKILL.md
-
-# 실제 YAML parser smoke test (frontmatter가 Claude/GitHub에서 깨지는지 확인)
+# YAML parser smoke test (frontmatter가 Claude/GitHub에서 깨지는지 확인)
 ruby -EUTF-8 -ryaml -e 'Dir["plugins/elian-store/skills/*/SKILL.md"].sort.each { |p| s=File.read(p, encoding: "UTF-8"); YAML.safe_load(s.split(/^---\s*$/,3)[1] || "", permitted_classes: [], aliases: false); puts "OK #{p}" }'
 ```
-
-종료 코드: 모든 입력이 90점 이상이면 `0`, 하나라도 미만이면 `1`.
 
 ---
 

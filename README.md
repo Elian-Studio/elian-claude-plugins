@@ -3,11 +3,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Latest Release](https://img.shields.io/github/v/release/Elian-Studio/elian-claude-plugins?label=release)](https://github.com/Elian-Studio/elian-claude-plugins/releases)
 [![Plugin: elian-store](https://img.shields.io/badge/plugin-elian--store-blue)](plugins/elian-store/)
-[![Skill Quality Gate](https://img.shields.io/badge/quality_gate-90%2F100-brightgreen)](scripts/rubric.md)
 
 > **A Claude Code skill bundle that reduces decision fatigue and smooths workflow.**
 > One plugin install (`elian-store`) gives you the full workflow skill set, and new skills land automatically on update.
-> Every plugin-distributed SKILL.md change must pass a 90-point heuristic quality gate before it can merge to `main`.
 
 **Latest: v3.0.0 — Persona Code Review**
 
