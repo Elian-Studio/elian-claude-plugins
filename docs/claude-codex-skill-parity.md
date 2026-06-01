@@ -47,7 +47,7 @@ Current conclusion: **the two trees are not identical yet**. The name drift arou
 | Product/spec planning | `brainstorm`, `ai-assisted-feature-development`, `decision-dashboard` | Missing | Partial |
 | Design planning | `design-ui` | Missing | Partial |
 | Implementation/fix/improve | `implement`, `fix`, `improve` | Missing | Claude-only |
-| Engineering review | `persona-review` is read-only critique, not full review | `persona-review` | Gap |
+| Engineering review | `persona-review` reviews code, PRs, designs, architecture, refactoring plans, domain models, and test strategy through expert quality lenses | `persona-review` | Aligned for this command |
 | Browser QA | None | None | Gap |
 | Ship/release | Referenced by downstream handoffs, no skill | None | Gap |
 | Deploy/canary/benchmark/security | None | None | Gap |
@@ -70,7 +70,7 @@ Do not treat these gaps as immediate parity bugs. They are roadmap gaps and shou
 | `create-document` | Deterministically render schema-validated JSON into HTML/MD templates | Good utility | This is closer to a shared script wrapper than a conversational skill. Codex parity should call the same scripts rather than duplicate rendering logic in prose. | Missing |
 | `manage-skills` | Detect and repair verify-skill drift | Good, but Claude-specific | Assumes Claude-style `.claude/skills/verify-*` maintenance. Codex mirror should define whether it maintains Codex prompts, Claude skills, or both. | Missing |
 | `verify-implementation` | Discover and run project verify-* skills before shipping | Good, but Claude-specific | Purpose is correct for projects that have verify-* skills. Codex parity needs a separate discovery rule for Codex prompt validators or explicitly keeps this as Claude-only. | Missing |
-| `persona-review` | Review plans/docs/ideas through persona lenses with locked 5-block output | Good | Claude and Codex names now match. Codex prompt includes the same default persona choices (`daniel`, `evans`, `dean`, `martin`, custom path) and passes the Codex gate; check periodically that detailed persona files stay aligned. | Present |
+| `persona-review` | Review code, PRs, designs, architecture, refactoring plans, domain models, and test strategy through Evans/Dean/Martin/Fowler/Beck quality lenses | Good | Claude and Codex names match. Both keep review-only behavior by default, require explicit modification intent before patching, use the same built-in persona choices (`evans`, `dean`, `martin`, `fowler`, `beck`, all/comma-list, custom path), and avoid persona scoring. | Present |
 
 ## Required Work To Make Them Identical
 
@@ -81,7 +81,7 @@ Minimum parity work:
 3. For side-effect skills (`implement`, `fix`, `improve`, `manage-skills`, `verify-implementation`), convert Claude `AskUserQuestion` and tool-gate behavior into Codex "ask and stop" instructions.
 4. For utility skills (`create-document`, `decision-dashboard`), call shared scripts/templates instead of duplicating generated output logic in prompt prose.
 5. For Claude-only runtime skills (`generate-teammate`, parts of `verify-implementation`), document the Codex limitation in the prompt and make the Codex version produce a handoff plan rather than pretending to spawn agents.
-6. Keep `scripts/score_codex_prompt.py` generic. Skill-specific contracts such as persona-review's 5-block output should be validated without forcing unrelated prompts into the same shape.
+6. Keep `scripts/score_codex_prompt.py` generic. Skill-specific contracts such as persona-review's Persona Code Review report should be validated without forcing unrelated prompts into the same shape.
 
 ## Recommended Port Order
 
@@ -101,7 +101,7 @@ These are new Claude skill candidates, not Codex parity ports:
 
 | Order | Skill candidate | Reason |
 |---:|---|---|
-| 1 | `review` | Closes the biggest gap between read-only persona critique and production-oriented engineering review. |
+| 1 | `review` | Adds a non-persona production review workflow if future use cases need a stricter release-readiness gate than `persona-review`. |
 | 2 | `qa` or `browser-qa` | Adds browser-visible verification with screenshots/reports before release. |
 | 3 | `ship` | Separates branch/test/PR release readiness from implementation. |
 | 4 | `learn` or `retro` | Captures repeated preferences and workflow lessons after real usage. |

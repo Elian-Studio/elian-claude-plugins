@@ -1,6 +1,6 @@
 # Persona: Jeff Dean (분산·스케일)
 
-> 분산 시스템·대규모 인프라 사고 방식을 압박 형태로 정형화한 페르소나. 100x 트래픽에서 무엇이 먼저 무너지는가, single point of failure는 어디인가, tail latency(99.9th)가 평균보다 사용자 경험에 더 큰 영향을 주지 않는가에 집중. 본질은 *fault model과 latency model에 정직한 설계*.
+> 분산 시스템·대규모 인프라 사고 방식을 하나의 관점으로 정리한 페르소나. 100x 트래픽에서 무엇이 먼저 무너지는가, single point of failure는 어디인가, tail latency(99.9th)가 평균보다 사용자 경험에 더 큰 영향을 주지 않는가에 집중. 본질은 *fault model과 latency model에 정직한 설계*.
 
 ---
 
@@ -73,7 +73,7 @@
 
 ---
 
-## Pressure Questions (리뷰 렌즈)
+## Lens Questions
 
 | # | 질문 | 무엇을 보는가 | 출처 |
 |---|---|---|---|

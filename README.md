@@ -41,7 +41,7 @@ Then in Claude Code:
 | [brainstorm](plugins/elian-store/skills/brainstorm/) | ✅ bundled | Conversational discovery for fuzzy requests: Socratic probing → 3+ options → tradeoff matrix → decision → handoff. | `/elian-store:brainstorm` |
 | [manage-skills](plugins/elian-store/skills/manage-skills/) | ✅ bundled | Detect verify-skill drift after code changes and create/update verify-* skills so project verification stays current. | `/elian-store:manage-skills` |
 | [verify-implementation](plugins/elian-store/skills/verify-implementation/) | ✅ bundled | Discover and run project verify-* skills before shipping; report failures and apply fixes only with approval. | `/elian-store:verify-implementation` |
-| [persona-review](plugins/elian-store/skills/persona-review/) | ✅ bundled | Review a plan/design/doc through `daniel`, `evans`, `dean`, `martin`, or a custom persona with a locked 5-block format. | `/elian-store:persona-review` |
+| [persona-review](plugins/elian-store/skills/persona-review/) | ✅ bundled | Review code, PRs, design, architecture, refactoring, domain models, and tests through `evans`, `dean`, `martin`, `fowler`, and `beck` lenses. | `/elian-store:persona-review` |
 
 New skills land via `/plugin update elian-store@elian` — no separate install per skill.
 
@@ -55,7 +55,7 @@ This repo also ships an **independent** OpenAI Codex CLI config tree under [`cod
 
 | Skill | Status | Codex command |
 |-------|--------|---------------|
-| [persona-review](codex/prompts/persona-review.md) | ✅ reference port | `/persona-review <target> [--persona daniel\|evans\|dean\|martin\|all\|comma-list\|<path>] [--depth quick\|deep\|interview]` |
+| [persona-review](codex/prompts/persona-review.md) | ✅ reference port | `/persona-review <target> [--persona evans\|dean\|martin\|fowler\|beck\|all\|comma-list\|<path>] [--depth quick\|deep\|interview] [--apply]` |
 
 Install or update the Codex prompt:
 

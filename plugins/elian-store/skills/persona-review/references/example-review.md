@@ -1,252 +1,124 @@
-# Example: /persona-review 자유 형식 사례
+# Example: /persona-review Persona Code Review
 
-이 파일은 출력 고정 템플릿이 아니다. 같은 대상을 보더라도 페르소나마다 무엇을 먼저 보고, 어떤 형식으로 압박하는지가 달라야 한다.
+이 파일은 `persona-review`가 어떤 식으로 코드/설계 리뷰를 묶어야 하는지 보여주는 짧은 예시다. 실제 리뷰에서는 코드에서 확인한 사실과 추론을 구분하고, 발견 사항이 없으면 "특이 사항 없음"이라고 쓴다.
 
 금지되는 방향:
 
-- 모든 페르소나가 같은 5개 섹션으로 답함
-- `Pressure Questions`를 전부 표로 펼쳐 점수화함
-- 확인되지 않은 내용을 추측으로 채움
+- persona 이름만 붙이고 일반적인 리뷰를 반복함
+- persona별 점수화를 출력함
+- 확인하지 않은 운영 조건, 트래픽, 도메인 규칙을 사실처럼 단정함
+- 사용자가 요청하지 않았는데 파일을 수정함
 
 권장되는 방향:
 
-- 페르소나가 가장 중요하게 보는 판단부터 시작
-- 필요한 경우에만 표·목록·다이어그램 사용
-- 마지막에 다음 질문 또는 다음 액션 1개를 남김
+- 먼저 `git diff`, 관련 파일, 테스트, 설정을 확인함
+- 핵심 발견 사항은 P0/P1/P2/P3 우선순위로 정리함
+- 각 persona는 자기 렌즈의 품질 관점을 대변함
+- 충돌하는 관점은 현실적인 절충안으로 조정함
+- 수정 요청이 있으면 가장 작고 안전한 변경부터 적용함
 
 ---
 
-## Example 1 — Daniel: 운영 가능성 리뷰
+## Example — PR diff review
 
 ### BEFORE
 
 ```markdown
-# 결제 플로우
-
-사용자가 결제 버튼을 누르면 백엔드가 PG사 API를 호출한다.
-PG사가 200을 주면 주문 상태를 PAID로 바꾸고 알림톡을 보낸다.
-
-## Sequence
-1. FE: POST /orders/{id}/pay
-2. BE: PG사 결제 요청 (sync)
-3. PG사: 결제 승인
-4. BE: order.status = PAID
-5. BE: 알림톡 발송
-6. FE: 완료 화면
-
-운영자는 매일 아침 결제 실패 로그를 확인한다.
+CRM 발송 대상자를 계산하는 `AudienceService`가 예약 이력, 환자 태그, 메시지 채널 정책을 모두 조회한다.
+이번 PR은 성능 개선을 위해 캐시를 추가하고, 일부 조건을 controller에서 미리 걸러낸다.
 ```
 
 ### 호출
 
 ```bash
-/persona-review docs/architecture/payment-flow.md --persona daniel
+/persona-review src/crm/AudienceService.ts --depth deep
 ```
 
 ### AFTER
-
-```markdown
-이 문서는 성공 경로 설명이지 운영 설계가 아님.
-
-가장 먼저 잠글 건 sync/async가 아니라 "실패를 어떤 상태로 남길 것인가"야. 지금은 PG timeout, 승인 성공 후 DB update 실패, 알림톡 실패가 모두 같은 빈칸으로 남아 있음. "운영자가 매일 아침 로그 확인"도 시스템 설계가 아니라 기억 의존 프로세스라 부패한다.
-
-운영 관점에서 바로 깨지는 지점:
-
-| 지점 | 지금 문서 | 필요한 결정 |
-|---|---|---|
-| PG timeout | 없음 | 결제 요청 상태를 `REQUESTED`/`UNKNOWN`으로 남길지, 즉시 실패 처리할지 |
-| 승인 후 DB 실패 | 없음 | PG 승인 조회 reconciliation이 있는지 |
-| 알림톡 실패 | 결제 플로우 안에 섞임 | 결제 성공과 알림 발송을 같은 성공 조건으로 볼지 |
-| 로그 확인 | 사람이 매일 확인 | 실패 상태 dashboard/alert로 자동화 |
-
-이 설계는 "돌아간다" 수준에서는 충분할 수 있지만 "신뢰할 수 있다" 수준은 아님. 실패 상태 모델과 재처리 경로가 없으면 장애 때 주문/결제 상태를 수동 추측하게 된다.
-
-다음 질문: PG 승인 성공 후 우리 DB 업데이트가 실패하면, 고객에게는 결제가 된 상태인데 주문은 어떤 상태로 남겨야 해?
-```
-
----
-
-## Example 2 — Evans: 도메인 모델 리뷰
-
-### BEFORE
-
-```markdown
-UserService가 User, Patient, Reservation 정보를 모두 받아 NoShowScore를 계산한다.
-점수가 높으면 CRM 메시지 대상자로 분류한다.
-```
-
-### 호출
-
-```bash
-/persona-review "UserService가 User, Patient, Reservation 정보를 모두 받아 NoShowScore를 계산한다..." --persona evans
-```
-
-### AFTER
-
-```markdown
-여기서 제일 이상한 이름은 `UserService`야. 도메인 이야기는 "노쇼 위험 환자 선별"인데 모델 이름은 generic user로 시작한다. 이건 코드가 도메인 언어를 따라가지 못하고 있다는 신호다.
-
-모델을 이렇게 다시 물어봐야 함:
 
 ```text
-CRM Context
-  Patient
-  ReservationHistory
-  NoShowRiskAssessment
-  CampaignAudienceCandidate
-```
+# Persona Code Review
 
-`NoShowScore`가 값인지, 평가 행위인지, 캠페인 대상 선정의 중간 결과인지도 아직 섞여 있다. 도메인 전문가가 "점수"라고 말하는지 "위험도"라고 말하는지 확인해야 한다. 두 말이 다르면 코드 이름도 달라져야 한다.
+## 1. 전체 평가
 
-bounded context 경계도 불명확하다. 예약 이력은 Reservation context의 사실이고, CRM은 그 사실을 가져와 대상자를 선별한다. CRM이 Reservation 내부 모델을 직접 들고 계산하면 context leak이다. 필요한 건 `ReservationHistorySnapshot` 같은 anti-corruption layer일 가능성이 높다.
+- 결론: 캐시 추가 자체보다 대상자 선정 규칙이 service/controller/cache 경계에 흩어진 점이 더 큰 리스크다.
+- 가장 큰 리스크: 같은 환자가 서로 다른 경로에서 다른 대상 여부로 판정될 수 있다.
+- 가장 먼저 고칠 것: 대상자 선정 불변식을 `AudienceService` 또는 도메인 정책 객체 한 곳으로 모은다.
+- 수정 여부:
+  - 리뷰만 수행했다.
+  - 패치는 적용하지 않았다.
+  - 사용자가 수정 요청을 명시하지 않았기 때문이다.
 
-다음 질문: 도메인 전문가가 실제로 쓰는 말은 "노쇼 점수"야, "노쇼 위험도"야, 아니면 "재방문 유도 대상"이야?
-```
+## 2. 핵심 발견 사항
 
----
+| 우선순위 | 관점 | 문제 | 영향 | 추천 조치 |
+|---|---|---|---|---|
+| P1 | evans | 대상자 선정 규칙이 controller와 service에 나뉨 | 도메인 규칙이 호출 경로별로 달라질 수 있음 | 대상자 정책을 하나의 도메인 규칙으로 모으기 |
+| P1 | dean | 캐시 invalidation 조건이 명확하지 않음 | 태그 변경 후 stale audience 가능 | cache key와 만료 조건을 테스트로 고정 |
+| P2 | martin | `AudienceService`가 조회, 필터, 채널 정책을 모두 담당 | 변경 이유가 과도하게 많음 | policy/query/dispatch decision 경계 분리 |
+| P2 | fowler | 성능 최적화가 구조 문제를 가림 | 다음 조건 추가 시 변경 범위가 커짐 | 먼저 추출 가능한 policy부터 작게 리팩터링 |
+| P2 | beck | 관찰 가능한 행위 테스트가 부족함 | 캐시 구현 테스트에 묶일 위험 | "태그 변경 후 대상 제외" 같은 행위 테스트 추가 |
 
-## Example 3 — Dean: 분산·스케일 리뷰
+## 3. 페르소나별 리뷰
 
-### BEFORE
+### `evans` — DDD/도메인 모델
 
-```markdown
-예약 리마인더 배치는 매일 09:00에 모든 예약자를 조회하고,
-대상자마다 알림톡 API를 동기로 호출한다.
-실패하면 즉시 3번 재시도한다.
-```
+- 좋은 점: "대상자"라는 도메인 개념은 코드에 드러난다.
+- 문제: 대상자 선정 불변식이 도메인 중심이 아니라 호출 계층에 흩어져 있다.
+- 개선 제안: `AudienceEligibilityPolicy`처럼 도메인 언어를 담은 경계로 규칙을 모은다.
+- 확인하면 좋은 질문: 실제 업무 언어는 "대상자", "발송 가능 환자", "캠페인 후보" 중 무엇인가?
 
-### 호출
+### `dean` — 성능/확장성/신뢰성
 
-```bash
-/persona-review docs/reminder-batch.md --persona dean --depth deep
-```
+- 좋은 점: 반복 계산 비용을 줄이려는 방향은 타당하다.
+- 문제: 캐시 무효화 조건과 중복 처리 정책이 확인되지 않는다.
+- 개선 제안: 태그/예약/채널 정책 변경 이벤트와 cache key를 명시한다.
+- 확인하면 좋은 질문: stale audience가 허용되는 최대 시간은 얼마인가?
 
-### AFTER
+### `martin` — Clean Code/SOLID
 
-```markdown
-이 설계의 병목은 DB 조회가 아니라 동기 외부 호출 fan-out이다.
+- 좋은 점: 서비스 이름은 주요 use case를 드러낸다.
+- 문제: 조회, 필터링, 채널 판단, 캐시가 한 책임으로 묶였다.
+- 개선 제안: 먼저 query와 eligibility policy를 분리해 테스트 가능성을 높인다.
+- 확인하면 좋은 질문: notification 채널 정책은 audience 선정의 일부인가, 발송 결정의 일부인가?
 
-대상자가 10만 명이고 알림톡 API p99가 800ms면, 단일 worker가 순차 호출하는 순간 배치 시간은 시간 단위로 늘어난다. 병렬화해도 즉시 3회 retry가 붙으면 실패 시점에 외부 API와 우리 worker를 같이 두들긴다. retry budget과 backpressure가 먼저 필요하다.
+### `fowler` — 리팩터링/아키텍처 진화
 
-fault model:
+- 좋은 점: 작은 성능 개선 PR로 시작한 점은 진화 가능한 변경에 가깝다.
+- 문제: 캐시가 기존 냄새를 감싸면 이후 리팩터링이 더 어려워진다.
+- 개선 제안: 캐시 전후에 동일한 policy 테스트를 두고, policy 추출을 먼저 한다.
+- 확인하면 좋은 질문: 다음 캠페인 조건이 추가되면 어느 파일들이 같이 바뀌는가?
 
-| Failure | 지금 설계의 반응 | 필요한 완충 |
-|---|---|---|
-| 알림톡 API 5xx | 즉시 3회 재시도 | exponential backoff + jitter |
-| API latency 상승 | worker thread 점유 | queue + concurrency limit |
-| 특정 병원 예약자 폭증 | hot partition 가능 | hospital/date 단위 shard 또는 rate limit |
-| 일부 발송 성공 후 배치 중단 | 중복 발송 위험 | idempotency key |
+### `beck` — TDD/단순 설계/피드백
 
-측정 없이 "매일 09:00 전체 조회"를 정하면 09:00 정각의 트래픽 스파이크가 설계에 박힌다. 분산해서 보내도 되는 메시지라면 scheduling jitter를 넣는 게 더 자연스럽다.
+- 좋은 점: 사용자 관점의 대상자 계산 결과를 테스트하기 좋다.
+- 문제: 캐시 내부 구현을 직접 검증하면 리팩터링 안전망이 약해진다.
+- 개선 제안: 입력 조건과 관찰 가능한 대상자 결과 중심으로 테스트를 작성한다.
+- 확인하면 좋은 질문: 실패하는 테스트 하나로 가장 중요한 회귀를 표현하면 무엇인가?
 
-다음 질문: 발송 지연 허용치는 몇 분이야? 09:00 정각 보장이 axiom인지, 09:00~09:30 안에 도착하면 되는 policy인지가 설계를 가른다.
-```
+## 4. 관점 간 충돌과 조정
 
----
+- 충돌: `dean`은 캐시 안정성을 요구하지만 `beck`은 단순한 행위 테스트를 우선한다.
+- 현실적인 절충안: cache implementation 테스트를 늘리기 전에, 캐시 on/off가 같은 대상자 결과를 내는 행위 테스트를 먼저 둔다.
 
-## Example 4 — Martin: 코드 품질 리뷰
+## 5. 추천 액션 플랜
 
-### BEFORE
+- 목표: 대상자 선정 규칙을 한 경계로 모은다.
+- 이유: correctness와 도메인 일관성 리스크가 가장 크다.
+- 예상 변경 범위: `AudienceService`와 관련 테스트.
+- 검증 방법: 주요 조건별 대상자 포함/제외 테스트.
+- 리스크: 기존 controller prefilter와 결과가 달라질 수 있다.
 
-```ts
-function saveUser(data, force, notify, retryCount) {
-  validate(data)
-  if (force) {
-    // ...
-  }
-  save(data)
-  if (notify) sendNotification(data)
-  if (retryCount > 0) retry(data, retryCount)
-}
-```
+## 6. 테스트 및 검증 제안
 
-### 호출
+- 추가해야 할 테스트: 태그 변경, 예약 변경, 채널 제한 변경 후 대상자 결과 테스트.
+- 수정해야 할 테스트: 캐시 내부 호출 횟수만 보는 테스트가 있으면 행위 중심으로 보강.
+- 실행하면 좋은 명령: `npm test -- AudienceService`
+- 수동 검증 포인트: 실제 운영 정책에서 stale audience 허용 시간이 존재하는지 확인.
 
-```bash
-/persona-review src/user/saveUser.ts --persona martin
-```
+## 7. 최종 요약
 
-### AFTER
-
-```markdown
-`saveUser`는 이름보다 많은 일을 한다.
-
-문제는 줄 수가 아니라 변경 이유다. validation, forced save policy, persistence, notification, retry가 한 함수에 묶여 있다. `force`, `notify`, `retryCount`도 호출자가 함수 내부 시나리오를 알아야 한다는 냄새다.
-
-먼저 쪼갤 경계:
-
-```ts
-saveUser(command)
-saveUserIgnoringConflicts(command)
-notifyUserSaved(user)
-retrySaveUser(command, policy)
-```
-
-`force`와 `notify`는 boolean parameter라서 함수 의미를 숨긴다. 테스트도 조합 폭발이 난다. `force=true, notify=false, retryCount=3`이 실제 비즈니스 케이스인지, 우연히 생긴 플래그 조합인지 알 수 없다.
-
-테스트 관점에서 첫 실패 테스트는 "notify 실패가 save 성공을 되돌리지 않는다" 같은 정책이어야 한다. 그 정책이 없다면 이 함수는 구현보다 요구사항이 먼저 더럽다.
-
-다음 질문: notification 실패는 사용자 저장 실패로 취급해야 해, 아니면 별도 후속 작업으로 남겨야 해?
-```
-
----
-
-## Example 5 — `--depth interview`
-
-### BEFORE
-
-```markdown
-백오피스 STAFF에게 정산 메뉴를 숨긴다. 프론트에서 역할에 따라 메뉴/버튼을 조건부 렌더링한다.
-```
-
-### 호출
-
-```bash
-/persona-review docs/backoffice-auth.md --persona daniel --depth interview
-```
-
-### R1
-
-```markdown
-(interview R1/3)
-
-이건 UI 표시 제어인지 권한 시행인지 먼저 갈라야 함.
-
-프론트에서 메뉴를 숨기는 건 UX고, 보안 경계가 아니다. 정산 API가 서버에서 STAFF를 막는다면 이 문서는 "화면 노출 정책" 문서로 보강하면 된다. 서버 인가가 없다면 이건 권한 설계 결함이다.
-
-결론을 가르는 질문 하나: 정산 같은 민감 엔드포인트에 백엔드 역할 검증이 이미 있어?
-```
-
-사용자 답변:
-
-```text
-없음. 프론트 숨김만 있음.
-```
-
-### R2
-
-```markdown
-(interview R2/3)
-
-현재안은 보안 결함이다.
-
-STAFF가 메뉴를 못 보는 것과 `GET /settlements`를 직접 호출하지 못하는 건 다른 문제다. 지금 답변 기준으로는 후자가 막혀 있지 않다. 정산은 민감 데이터라서 "프론트 숨김만"은 policy가 아니라 금지해야 할 상태다.
-
-이번 결정에서 협상 불가능한 것:
-
-- 민감 엔드포인트는 백엔드에서 role을 검증한다.
-- 인가 실패는 서버 로그에 남긴다.
-- 프론트 메뉴 숨김은 UX 보조로만 둔다.
-
-개선 handoff:
-
-```markdown
-(handoff → fix docs/backoffice-auth.md)
-- persona: daniel
-- judgment: FE-only role hiding is not authorization.
-- change intent: add backend authorization requirement for settlement endpoints.
-- evidence: user confirmed no server-side role check exists.
-- risks to preserve: direct API access, audit logging, endpoint coverage.
-- out of scope: redesigning the whole RBAC model.
-```
+- 지금 반드시 고칠 것: 대상자 선정 규칙이 계층별로 갈라진 구조.
+- 나중에 개선해도 되는 것: 캐시 구현 세부 최적화.
+- 설계적으로 가장 중요한 판단: audience eligibility는 성능 최적화보다 먼저 안정적인 도메인 경계를 가져야 한다.
 ```

@@ -10,6 +10,27 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## Marketplace (`elian`)
 
+### 3.0.0 — 2026-06-01
+
+#### BREAKING — `/persona-review` is now a Persona Code Review skill
+- **Removed the Daniel persona from active persona-review routing and references.** The skill now uses five software-quality lenses: `evans`, `dean`, `martin`, `fowler`, and `beck`.
+- **Changed `/persona-review` from a general persona-perspective review into a development review skill** for code, PRs, design, architecture, refactoring plans, domain models, and test strategy.
+- **Changed the default report contract** to `# Persona Code Review` with overall assessment, prioritized findings, persona sections, lens conflicts, action plan, verification suggestions, and final summary.
+
+#### Added
+- **Fowler lens** for refactoring, enterprise architecture, module boundaries, code smells, and evolutionary design.
+- **Beck lens** for TDD, XP, simple design, fast feedback, YAGNI, behavior-focused tests, and small delivery steps.
+- **Read-only reviewer agents** for Fowler and Beck.
+
+#### Changed
+- **Codex `/persona-review` prompt** now mirrors the same five-lens Persona Code Review behavior and uses `--apply` only when the user explicitly requests modifications.
+- **Persona reference and example docs** now describe review lenses instead of shared scoring or generic persona imitation.
+- **Claude/Codex parity docs and README entries** now describe `persona-review` as an engineering review skill.
+- **Marketplace + plugin metadata** bumped to `3.0.0` because active skill behavior changed and Daniel routing was removed.
+
+#### Notes
+- `validate_skill.py` was intentionally not used as the release gate for this change.
+
 ### 2.7.3 — 2026-05-29
 
 #### Changed

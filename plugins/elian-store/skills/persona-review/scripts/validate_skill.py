@@ -14,10 +14,10 @@ What it checks:
   - frontmatter required fields + name == dir name
   - disable-model-invocation: true (read-only/user-agency guard)
   - required sections present
-  - persona-first/free-form review contract is documented
+  - persona code review output contract is documented
   - Agent-based dispatch contract is documented
-  - required persona reviewer agent files exist and are read-only
-  - the old locked scorecard/5-block contract is not reintroduced
+  - required persona agent files exist and are read-only
+  - old shared scoring contract is not reintroduced
   - references/ has personas/*.md + example-review.md and SKILL.md links them
   - persona override and interview mode are documented
 """
@@ -40,29 +40,33 @@ REQUIRED_FRONTMATTER = ["name", "description", "when_to_use", "argument-hint", "
 
 REQUIRED_SECTIONS = [
     r"^##\s+Modes",
-    r"^##\s+Persona library",
-    r"^##\s+Common Review Contract",
+    r"^##\s+Review Lenses",
     r"^##\s+Subagent Execution Contract",
     r"^##\s+Workflow",
-    r"^##\s+Pitfalls",
+    r"^##\s+Output Format",
+    r"^##\s+Conflict Handling",
+    r"^##\s+Modification Rules",
     r"^##\s+Forbidden",
     r"^##\s+Validation",
 ]
 
-FREE_FORM_MARKERS = [
-    "페르소나별 자유 형식",
-    "No scorecard",
-    "전부 행으로 펼치거나 점수화하지 않는다",
-    "점수표·등급표·전수 체크리스트 출력",
+OUTPUT_CONTRACT_MARKERS = [
+    "# Persona Code Review",
+    "## 2. 핵심 발견 사항",
+    "## 3. 페르소나별 리뷰",
+    "## 4. 관점 간 충돌과 조정",
+    "## 6. 테스트 및 검증 제안",
+    "P0: 즉시 수정해야 하는 correctness",
+    "사용자 요청 없이 파일 수정",
 ]
 
-FORBIDDEN_LOCKED_CONTRACT_PATTERNS = [
-    r"^##\s+OUTPUT FORMAT",
+FORBIDDEN_SHARED_SCORECARD_PATTERNS = [
     r"잠긴 OUTPUT FORMAT",
-    r"locked 5-block",
+    r"locked\s+shared\s+score",
     r"LOCKED OUTPUT FORMAT",
     r"^##\s+페르소나 압박 질문",
     r"\|\s*#\s*\|\s*질문\s*\|\s*점수\s*\|",
+    r"공통\s*점수표를\s*사용",
 ]
 
 PERSONA_FORBIDDEN_PATTERNS = [
@@ -77,10 +81,11 @@ PERSONA_FORBIDDEN_PATTERNS = [
 PERSONAS_DIR_NAME = "personas"
 REQUIRED_REFERENCE_FILES = ["example-review.md"]
 REQUIRED_AGENT_FILES = [
-    "persona-daniel-reviewer.md",
     "persona-evans-reviewer.md",
     "persona-dean-reviewer.md",
     "persona-martin-reviewer.md",
+    "persona-fowler-reviewer.md",
+    "persona-beck-reviewer.md",
     "persona-custom-reviewer.md",
 ]
 REQUIRED_AGENT_NAMES = [p[:-3] for p in REQUIRED_AGENT_FILES]
@@ -170,11 +175,11 @@ def check_required_sections() -> CheckResult:
     )
 
 
-def check_free_form_contract() -> CheckResult:
+def check_output_contract() -> CheckResult:
     text = _read(SKILL_FILE)
-    missing = [marker for marker in FREE_FORM_MARKERS if marker not in text]
+    missing = [marker for marker in OUTPUT_CONTRACT_MARKERS if marker not in text]
     return CheckResult(
-        name="persona-first free-form contract documented",
+        name="persona code review output contract documented",
         passed=not missing,
         detail="all markers found" if not missing else f"missing={missing}",
     )
@@ -185,9 +190,8 @@ def check_subagent_dispatch_contract() -> CheckResult:
     missing = [name for name in REQUIRED_AGENT_NAMES if name not in text]
     required_phrases = [
         "Subagent Execution Contract",
-        "Agent prompt payload",
-        "single persona",
-        "multiple personas",
+        "persona-fowler-reviewer",
+        "persona-beck-reviewer",
         "persona-custom-reviewer",
     ]
     missing.extend([phrase for phrase in required_phrases if phrase not in text])
@@ -198,13 +202,13 @@ def check_subagent_dispatch_contract() -> CheckResult:
     )
 
 
-def check_no_locked_contract() -> CheckResult:
+def check_no_shared_scorecard_contract() -> CheckResult:
     text = _read(SKILL_FILE)
-    hits = [p for p in FORBIDDEN_LOCKED_CONTRACT_PATTERNS if re.search(p, text, re.MULTILINE | re.IGNORECASE)]
+    hits = [p for p in FORBIDDEN_SHARED_SCORECARD_PATTERNS if re.search(p, text, re.MULTILINE | re.IGNORECASE)]
     return CheckResult(
-        name="old locked scorecard/5-block contract not reintroduced",
+        name="old shared scoring contract not reintroduced",
         passed=not hits,
-        detail="no locked contract patterns" if not hits else f"hits={hits}",
+        detail="no shared scorecard patterns" if not hits else f"hits={hits}",
     )
 
 
@@ -251,7 +255,7 @@ def check_references_linked() -> CheckResult:
 def check_agent_files_exist() -> CheckResult:
     missing = [path.name for path in _agent_files() if not path.is_file()]
     return CheckResult(
-        name="persona reviewer agent files exist",
+        name="persona agent files exist",
         passed=not missing and AGENTS_DIR.is_dir(),
         detail=(
             f"agents={REQUIRED_AGENT_FILES}"
@@ -274,7 +278,7 @@ def check_agent_files_read_only() -> CheckResult:
         if "Do not output a scorecard" not in text:
             hits.append(f"{path.name}:missing no-scorecard instruction")
     return CheckResult(
-        name="persona reviewer agents are read-only and no-scorecard",
+        name="persona agents are read-only and no-scorecard",
         passed=not hits,
         detail="all read-only" if not hits else f"hits={hits}",
     )
@@ -318,9 +322,9 @@ CHECKS = [
     check_disable_model_invocation,
     check_agent_tool_allowed,
     check_required_sections,
-    check_free_form_contract,
+    check_output_contract,
     check_subagent_dispatch_contract,
-    check_no_locked_contract,
+    check_no_shared_scorecard_contract,
     check_references_dir,
     check_references_linked,
     check_agent_files_exist,
