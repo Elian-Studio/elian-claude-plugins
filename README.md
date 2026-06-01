@@ -73,7 +73,7 @@ Setup: see [`codex/README.md`](codex/README.md). ⚠️ The two trees have **no 
 
 ## 🧩 Local Agent Skills
 
-This repository can also carry local Agent Skill drafts outside the `elian-store` marketplace plugin and outside the `codex/prompts` tree. These files are copied into the tool-specific skill locations directly and are not pulled by `/plugin update elian-store@elian`. They are currently ungated drafts; the 90-point Skill Quality Gate covers plugin-distributed skills under `plugins/**/skills/**/SKILL.md`.
+This repository can also carry local Agent Skill drafts outside the `elian-store` marketplace plugin and outside the `codex/prompts` tree. These files are copied into the tool-specific skill locations directly and are not pulled by `/plugin update elian-store@elian`. Like the plugin-distributed skills under `plugins/**/skills/**/SKILL.md`, they are reviewed manually — there is no automated score gate.
 
 | Skill | Purpose | Codex path | Claude path |
 |-------|---------|------------|-------------|
