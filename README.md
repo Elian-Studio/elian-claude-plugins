@@ -7,7 +7,7 @@
 
 > **A Claude Code skill bundle that reduces decision fatigue and smooths workflow.**
 > One plugin install (`elian-store`) gives you the full workflow skill set, and new skills land automatically on update.
-> Every SKILL.md change must pass a 90-point heuristic quality gate before it can merge to `main`.
+> Every plugin-distributed SKILL.md change must pass a 90-point heuristic quality gate before it can merge to `main`.
 
 **Latest: v3.0.0 — Persona Code Review**
 
@@ -70,6 +70,17 @@ cp codex/prompts/*.md ~/.codex/prompts/
 ```
 
 Setup: see [`codex/README.md`](codex/README.md). ⚠️ The two trees have **no shared source** — editing skill logic on one side requires manually syncing the other (intentional trade-off; see `CONTRIBUTING.md` → "Claude vs Codex"). Current Claude/Codex parity status: [`docs/claude-codex-skill-parity.md`](docs/claude-codex-skill-parity.md).
+
+---
+
+## 🧩 Local Agent Skills
+
+This repository can also carry local Agent Skill drafts outside the `elian-store` marketplace plugin and outside the `codex/prompts` tree. These files are copied into the tool-specific skill locations directly and are not pulled by `/plugin update elian-store@elian`. They are currently ungated drafts; the 90-point Skill Quality Gate covers plugin-distributed skills under `plugins/**/skills/**/SKILL.md`.
+
+| Skill | Purpose | Codex path | Claude path |
+|-------|---------|------------|-------------|
+| [pr-writer](.agents/skills/pr-writer/SKILL.md) | Draft PR/MR titles and Markdown bodies from diffs, commits, branches, issue context, tests, and PR templates. Output-only: it does not create, push, submit, or merge PRs unless explicitly asked. | `.agents/skills/pr-writer/SKILL.md` | `.claude/skills/pr-writer/SKILL.md` |
+| [vue-nuxt-best-practices](.agents/skills/vue-nuxt-best-practices/SKILL.md) | Vercel-style rules pack for Vue 3 + Nuxt 3/4 work. `SKILL.md` routes to focused `rules/` for SSR/hydration, data fetching, components, performance, Nitro/server, state, accessibility, and testing. | `.agents/skills/vue-nuxt-best-practices/` | `.claude/skills/vue-nuxt-best-practices/` |
 
 ---
 
