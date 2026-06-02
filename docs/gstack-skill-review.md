@@ -32,7 +32,7 @@ The relevant transferable patterns are:
 
 Verdict: **PASS with lifecycle gaps**.
 
-The current bundle is structurally healthy: all 12 Claude skills pass the local 90-point gate, all frontmatter parses as YAML, and every bundled skill has scripts and/or references. However, compared with gstack's lifecycle coverage, the bundle is concentrated around planning, implementation, document generation, and verification orchestration. It does not yet have first-class release, browser QA, post-deploy monitoring, benchmarking, security, or learning commands.
+The current bundle is structurally healthy: all 13 Claude skills pass the local 90-point gate, all frontmatter parses as YAML, and every bundled skill has scripts and/or references. However, compared with gstack's lifecycle coverage, the bundle is concentrated around planning, implementation, document generation, engineering review, and verification orchestration. It does not yet have first-class release, browser QA, post-deploy monitoring, benchmarking, security, or learning commands.
 
 ## Skill Matrix
 
@@ -42,20 +42,20 @@ The current bundle is structurally healthy: all 12 Claude skills pass the local 
 | `ai-assisted-feature-development` | `/spec`, plan reviews | Good | Broad scope; should remain planning/artifact focused, not implementation |
 | `design-ui` | `/design-consultation`, `/design-html` | Mostly good | Needs real browser/design QA follow-up lane |
 | `decision-dashboard` | plan review / decision artifact | Good | Strong artifact continuity; keep it narrow |
-| `implement` | implementation phase before `/review` | Good | Downstream `/review` and `/ship` are referenced but not present |
+| `implement` | implementation phase before `/review` | Good | Downstream `/ship` is referenced but not present |
 | `fix` | `/investigate`, `/qa` | Good | Has root-cause/TDD posture but lacks live browser QA loop |
 | `improve` | improvement + review | Good | Needs measured before/after verification integration |
 | `generate-teammate` | multi-agent routing | Platform-specific | Strong Claude fit; Codex parity should be plan-only unless delegation exists |
 | `create-document` | doc generation utility | Good utility | Best kept as deterministic script wrapper |
 | `manage-skills` | skill maintenance / learning hygiene | Good | Could learn from gstack's generated-doc/catalog-drift checks |
 | `verify-implementation` | `/health`, verification orchestrator | Mostly good | Should not pretend to replace QA/release/canary |
-| `persona-review` | `/review`, plan review variants | Good | Read-only critique is clear; not a full engineering review/auto-fix skill |
+| `persona-review` | `/review`, plan review variants | Good | Read-only critique is clear; complements but does not replace engineering review |
+| `review` | `/review` | Good | Read-only engineering findings are covered; keep fixes and release behavior out of scope |
 
 ## Portfolio Gaps
 
 | Gap | Why it matters | Recommended follow-up |
 |---|---|---|
-| Engineering review | gstack has `/review` for bugs that pass CI but fail production expectations | Add `/review` as read/fix-gated staff engineer review |
 | Browser QA | gstack's `/qa` and `/browse` make UI verification concrete | Add `/qa` or `/browser-qa` with screenshot/report artifacts |
 | Release readiness | gstack separates implementation from `/ship` | Add `/ship` for branch sanity, tests, changelog, PR creation |
 | Merge/deploy verification | gstack has `/land-and-deploy` plus canary checks | Document as future, not immediate, unless deployment targets exist |
@@ -66,11 +66,14 @@ The current bundle is structurally healthy: all 12 Claude skills pass the local 
 
 ## Recommended Follow-up PR Order
 
-1. Add `/review`: read-first staff engineer review with optional approved fixes, PR-ready findings, and no release behavior.
-2. Add `/qa` or `/browser-qa`: browser-visible test/report workflow with screenshot artifacts and regression-test handoff.
-3. Add `/ship`: branch sanity, local verification, changelog/version check, push/PR creation; no deploy.
-4. Add `/learn` or `/retro`: capture repeated preferences, failure modes, and project-specific rules.
-5. Add `/security-review`, `/benchmark`, and deploy/canary skills only after the above have real usage patterns.
+1. Add `/qa` or `/browser-qa`: browser-visible test/report workflow with screenshot artifacts and regression-test handoff.
+2. Add `/ship`: branch sanity, local verification, changelog/version check, push/PR creation; no deploy.
+3. Add `/learn` or `/retro`: capture repeated preferences, failure modes, and project-specific rules.
+4. Add `/security-review`, `/benchmark`, and deploy/canary skills only after the above have real usage patterns.
+
+Completed:
+
+- `/review`: read-first engineering review with PR-ready findings and no release behavior.
 
 ## Operating Rule
 

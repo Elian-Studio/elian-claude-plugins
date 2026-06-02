@@ -10,6 +10,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## Marketplace (`elian`)
 
+### 2.8.0 — 2026-06-02
+
+#### Added
+- **`/review`** — read-only engineering review skill at `plugins/elian-store/skills/review/`. Reviews worktree/staged/branch/PR/path targets, leads with severity-ordered findings, cites file/line evidence, names test/verification gaps, and hands off fixes/QA/ship instead of editing code.
+- **`/review` self-validator** — stdlib-only `scripts/validate_skill.py` with `--json` and `--quiet`, checking read-only boundaries, required sections, reference links, and the findings-first contract.
+- **Review findings reference** — `references/example-findings.md` with BEFORE/AFTER examples, severity examples, and no-findings output guidance.
+
+#### Changed
+- **Marketplace + plugin metadata** bumped to `2.8.0` for the new bundled skill.
+- **README skill inventory** now includes `/review` and updates the lifecycle gap note so engineering review is no longer listed as missing.
+
+#### Notes
+- `/review` intentionally does not replace `/persona-review`, `/verify-implementation`, `/browser-qa`, or `/ship`. It fills the engineering findings gap between implementation/fix/improve and verification/release readiness.
+
 ### 2.7.3 — 2026-05-29
 
 #### Changed

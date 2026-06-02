@@ -101,7 +101,7 @@ Before adding or materially changing a skill, answer:
 | Verification orchestration | `verify-implementation` | Covered. Should not pretend to replace QA, review, or release readiness. |
 | Skill maintenance | `manage-skills` | Covered. Good place to add drift checks over time. |
 | Persona review | `persona-review` | Covered. Keep persona-specific review style, not a forced universal scorecard. |
-| Engineering review | Missing | High-priority gap. |
+| Engineering review | `review` | Covered. Keep it read-only, findings-first, and separate from persona review, verification, browser QA, and ship. |
 | Browser QA | Missing | High-priority gap for UI/user-visible flows. |
 | Ship/PR readiness | Missing | High-priority gap, separate from implementation. |
 | Learning/retro | Missing | Medium-priority gap after workflows stabilize. |
@@ -120,14 +120,15 @@ Before adding or materially changing a skill, answer:
 
 ### P1: Close Core Workflow Gaps
 
-1. Add `review`.
-   Read-first engineering review for bugs, regressions, missing tests, and production risks. It should produce findings and optionally propose fixes only after approval.
-
-2. Add `browser-qa` or `qa`.
+1. Add `browser-qa` or `qa`.
    Browser-visible verification for UI and deployed/local web flows. It should produce reproduction steps, screenshots or evidence paths, and regression-test handoff.
 
-3. Add `ship`.
+2. Add `ship`.
    Release-readiness workflow for branch sanity, local verification, changelog/version checks, push/PR preparation, and final user approval. It should not deploy.
+
+Done:
+
+- `review` exists as the read-only engineering review lane.
 
 ### P2: Add Learning and Risk Controls
 

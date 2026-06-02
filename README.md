@@ -40,12 +40,13 @@ Then in Claude Code:
 | [improve](plugins/elian-store/skills/improve/) | ✅ bundled | Behavior-changing improvement to working features with quantified BEFORE/AFTER and Characterization Tests. | `/elian-store:improve` |
 | [brainstorm](plugins/elian-store/skills/brainstorm/) | ✅ bundled | Conversational discovery for fuzzy requests: Socratic probing → 3+ options → tradeoff matrix → decision → handoff. | `/elian-store:brainstorm` |
 | [manage-skills](plugins/elian-store/skills/manage-skills/) | ✅ bundled | Detect verify-skill drift after code changes and create/update verify-* skills so project verification stays current. | `/elian-store:manage-skills` |
+| [review](plugins/elian-store/skills/review/) | ✅ bundled | Read-only engineering review of code, diffs, PRs, or changed files with findings-first output and downstream handoff. | `/elian-store:review` |
 | [verify-implementation](plugins/elian-store/skills/verify-implementation/) | ✅ bundled | Discover and run project verify-* skills before shipping; report failures and apply fixes only with approval. | `/elian-store:verify-implementation` |
-| [persona-review](plugins/elian-store/skills/persona-review/) | ✅ bundled | Review a plan/design/doc through `daniel`, `evans`, `dean`, `martin`, or a custom persona with a locked 5-block format. | `/elian-store:persona-review` |
+| [persona-review](plugins/elian-store/skills/persona-review/) | ✅ bundled | Review a plan/design/doc through `daniel`, `evans`, `dean`, `martin`, or a custom persona in each persona's native style. | `/elian-store:persona-review` |
 
 New skills land via `/plugin update elian-store@elian` — no separate install per skill.
 
-Portfolio management: [`docs/plugin-portfolio-hybrid-model.md`](docs/plugin-portfolio-hybrid-model.md) records the Anthropic + Vercel + gstack hybrid operating model. [`docs/gstack-skill-review.md`](docs/gstack-skill-review.md) tracks lifecycle gaps. Current status: structurally healthy, but not yet lifecycle-complete; first-class review, browser QA, release, benchmark, security, and learning skills are tracked as roadmap gaps.
+Portfolio management: [`docs/plugin-portfolio-hybrid-model.md`](docs/plugin-portfolio-hybrid-model.md) records the Anthropic + Vercel + gstack hybrid operating model. [`docs/gstack-skill-review.md`](docs/gstack-skill-review.md) tracks lifecycle gaps. Current status: structurally healthy, but not yet lifecycle-complete; first-class browser QA, release, benchmark, security, and learning skills are tracked as roadmap gaps.
 
 ---
 

@@ -30,13 +30,13 @@ A Claude skill and Codex prompt are considered aligned only when all of these ma
 
 | Area | Claude | Codex | Status |
 |---|---:|---:|---|
-| Catalog entries | 12 skills | 1 prompt | Not equal |
+| Catalog entries | 13 skills | 1 prompt | Not equal |
 | Command naming | `/elian-store:<skill>` | `/<prompt-file>` | Mostly alignable |
 | Current matched command | `persona-review` | `persona-review` | Aligned |
 | Legacy `on-call-elian` | Removed from current Claude skill catalog | Removed from current Codex prompt catalog | Aligned |
-| Quality gate | 12/12 pass | 1/1 pass | Passing, but asymmetric |
+| Quality gate | 13/13 pass | 1/1 pass | Passing, but asymmetric |
 
-Current conclusion: **the two trees are not identical yet**. The name drift around `on-call-elian` is fixed, but 11 Claude skills have no Codex prompt counterpart.
+Current conclusion: **the two trees are not identical yet**. The name drift around `on-call-elian` is fixed, but 12 Claude skills have no Codex prompt counterpart.
 
 ## gstack Portfolio Lens
 
@@ -47,7 +47,7 @@ Current conclusion: **the two trees are not identical yet**. The name drift arou
 | Product/spec planning | `brainstorm`, `ai-assisted-feature-development`, `decision-dashboard` | Missing | Partial |
 | Design planning | `design-ui` | Missing | Partial |
 | Implementation/fix/improve | `implement`, `fix`, `improve` | Missing | Claude-only |
-| Engineering review | `persona-review` is read-only critique, not full review | `persona-review` | Gap |
+| Engineering review | `review`; `persona-review` remains persona-lens critique | `persona-review` only | Claude-only |
 | Browser QA | None | None | Gap |
 | Ship/release | Referenced by downstream handoffs, no skill | None | Gap |
 | Deploy/canary/benchmark/security | None | None | Gap |
@@ -70,30 +70,32 @@ Do not treat these gaps as immediate parity bugs. They are roadmap gaps and shou
 | `create-document` | Deterministically render schema-validated JSON into HTML/MD templates | Good utility | This is closer to a shared script wrapper than a conversational skill. Codex parity should call the same scripts rather than duplicate rendering logic in prose. | Missing |
 | `manage-skills` | Detect and repair verify-skill drift | Good, but Claude-specific | Assumes Claude-style `.claude/skills/verify-*` maintenance. Codex mirror should define whether it maintains Codex prompts, Claude skills, or both. | Missing |
 | `verify-implementation` | Discover and run project verify-* skills before shipping | Good, but Claude-specific | Purpose is correct for projects that have verify-* skills. Codex parity needs a separate discovery rule for Codex prompt validators or explicitly keeps this as Claude-only. | Missing |
-| `persona-review` | Review plans/docs/ideas through persona lenses with locked 5-block output | Good | Claude and Codex names now match. Codex prompt includes the same default persona choices (`daniel`, `evans`, `dean`, `martin`, custom path) and passes the Codex gate; check periodically that detailed persona files stay aligned. | Present |
+| `persona-review` | Review plans/docs/ideas through selected persona lenses with persona-native output | Mostly aligned | Claude and Codex names now match and include the same default persona choices (`daniel`, `evans`, `dean`, `martin`, custom path). Claude now uses persona-specific subagents and free-form persona output; Codex remains a prompt-only port and should be refreshed to remove any legacy fixed-template assumptions. | Present, drift risk |
+| `review` | Read-only engineering review of code, diffs, PRs, or changed files with findings-first output | Good | New Claude skill fills the engineering review lane. Codex parity should be read-only and can preserve the same findings-first contract without Agent-based lenses unless Codex delegation exists. | Missing |
 
 ## Required Work To Make Them Identical
 
 Minimum parity work:
 
-1. Add Codex prompt counterparts for the 11 missing Claude skills.
+1. Add Codex prompt counterparts for the 12 missing Claude skills.
 2. Keep command names exactly equal to Claude skill directory names.
 3. For side-effect skills (`implement`, `fix`, `improve`, `manage-skills`, `verify-implementation`), convert Claude `AskUserQuestion` and tool-gate behavior into Codex "ask and stop" instructions.
 4. For utility skills (`create-document`, `decision-dashboard`), call shared scripts/templates instead of duplicating generated output logic in prompt prose.
 5. For Claude-only runtime skills (`generate-teammate`, parts of `verify-implementation`), document the Codex limitation in the prompt and make the Codex version produce a handoff plan rather than pretending to spawn agents.
-6. Keep `scripts/score_codex_prompt.py` generic. Skill-specific contracts such as persona-review's 5-block output should be validated without forcing unrelated prompts into the same shape.
+6. Keep `scripts/score_codex_prompt.py` generic. Skill-specific contracts should be validated without forcing unrelated prompts into the same output shape.
 
 ## Recommended Port Order
 
 | Order | Prompt | Reason |
 |---:|---|---|
-| 1 | `brainstorm` | Read-heavy, conversational, low risk; good template for Codex ask-and-wait behavior. |
-| 2 | `ai-assisted-feature-development` | Planning artifact skill; useful without direct code mutation. |
-| 3 | `design-ui` | Artifact-generating but can be gated clearly. |
-| 4 | `implement`, `fix`, `improve` | Core code-changing trio; needs careful approval wording. |
-| 5 | `decision-dashboard`, `create-document` | Should share deterministic scripts/templates; avoid prompt-only reimplementation. |
-| 6 | `manage-skills`, `verify-implementation` | Needs a cross-tool definition of what gets verified. |
-| 7 | `generate-teammate` | Most platform-specific because Claude Agent/Team tools do not have a direct Codex equivalent here. |
+| 1 | `review` | Read-only, findings-first, low mutation risk; strongest immediate Codex parity candidate. |
+| 2 | `brainstorm` | Read-heavy, conversational, low risk; good template for Codex ask-and-wait behavior. |
+| 3 | `ai-assisted-feature-development` | Planning artifact skill; useful without direct code mutation. |
+| 4 | `design-ui` | Artifact-generating but can be gated clearly. |
+| 5 | `implement`, `fix`, `improve` | Core code-changing trio; needs careful approval wording. |
+| 6 | `decision-dashboard`, `create-document` | Should share deterministic scripts/templates; avoid prompt-only reimplementation. |
+| 7 | `manage-skills`, `verify-implementation` | Needs a cross-tool definition of what gets verified. |
+| 8 | `generate-teammate` | Most platform-specific because Claude Agent/Team tools do not have a direct Codex equivalent here. |
 
 ## Recommended New-Skill Order From gstack Review
 
@@ -101,10 +103,13 @@ These are new Claude skill candidates, not Codex parity ports:
 
 | Order | Skill candidate | Reason |
 |---:|---|---|
-| 1 | `review` | Closes the biggest gap between read-only persona critique and production-oriented engineering review. |
-| 2 | `qa` or `browser-qa` | Adds browser-visible verification with screenshots/reports before release. |
-| 3 | `ship` | Separates branch/test/PR release readiness from implementation. |
-| 4 | `learn` or `retro` | Captures repeated preferences and workflow lessons after real usage. |
+| 1 | `qa` or `browser-qa` | Adds browser-visible verification with screenshots/reports before release. |
+| 2 | `ship` | Separates branch/test/PR release readiness from implementation. |
+| 3 | `learn` or `retro` | Captures repeated preferences and workflow lessons after real usage. |
+
+Completed:
+
+- `review` now closes the biggest gap between read-only persona critique and production-oriented engineering review.
 
 ## Operating Rule Going Forward
 
