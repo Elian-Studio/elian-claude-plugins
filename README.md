@@ -69,7 +69,7 @@ cp codex/AGENTS.md ~/.codex/AGENTS.md
 cp codex/config.toml.example ~/.codex/config.toml
 ```
 
-Codex currently ships reference `/review` and `/persona-review` prompts. See [codex/README.md](codex/README.md).
+Codex currently ships reference `/review`, `/brainstorm`, and `/persona-review` prompts. See [codex/README.md](codex/README.md).
 
 ---
 
@@ -103,6 +103,7 @@ Path: [codex/](codex/)
 
 | File | Role |
 |---|---|
+| [codex/prompts/brainstorm.md](codex/prompts/brainstorm.md) | Reference Codex prompt for `/brainstorm`. |
 | [codex/prompts/review.md](codex/prompts/review.md) | Reference Codex prompt for `/review`. |
 | [codex/prompts/persona-review.md](codex/prompts/persona-review.md) | Reference Codex prompt for `/persona-review`. |
 | [codex/AGENTS.md](codex/AGENTS.md) | Codex project/global instruction template. |

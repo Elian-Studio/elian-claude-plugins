@@ -30,13 +30,13 @@ A Claude skill and Codex prompt are considered aligned only when all of these ma
 
 | Area | Claude | Codex | Status |
 |---|---:|---:|---|
-| Catalog entries | 13 skills | 2 prompts | Not equal |
+| Catalog entries | 13 skills | 3 prompts | Not equal |
 | Command naming | `/elian-store:<skill>` | `/<prompt-file>` | Mostly alignable |
-| Current matched commands | `review`, `persona-review` | `review`, `persona-review` | Aligned |
+| Current matched commands | `brainstorm`, `review`, `persona-review` | `brainstorm`, `review`, `persona-review` | Aligned |
 | Legacy `on-call-elian` | Removed from current Claude skill catalog | Removed from current Codex prompt catalog | Aligned |
 | Validation | YAML + skill-owned validators where present | Prompt/config review | Asymmetric, manual |
 
-Current conclusion: **the two trees are not identical yet**. The name drift around `on-call-elian` is fixed, `review` and `persona-review` now match on command name and output contract, but 11 Claude skills still have no Codex prompt counterpart.
+Current conclusion: **the two trees are not identical yet**. The name drift around `on-call-elian` is fixed, `brainstorm`, `review`, and `persona-review` now match on command name and output contract, but 10 Claude skills still have no Codex prompt counterpart.
 
 ## gstack Portfolio Lens
 
@@ -59,7 +59,7 @@ Do not treat these gaps as immediate parity bugs. They are roadmap gaps and shou
 
 | Skill | Purpose | Fit | Notes | Codex parity |
 |---|---|---|---|---|
-| `brainstorm` | Clarify fuzzy requests through context, Socratic probing, options, tradeoff, decision, handoff | Good | Scope boundary is clear: ambiguous requests only; excludes clear implementation and confirmed bugs. | Missing |
+| `brainstorm` | Clarify fuzzy requests through context, Socratic probing, options, tradeoff, decision, handoff | Good | Codex now shares the same discovery flow, option drafting requirement, and handoff outputs. Keep the "ask, do not assume" boundary intact. | Present |
 | `ai-assisted-feature-development` | Produce intent/spec/test/context/task/review artifacts before AI coding | Mostly good | Purpose is planning, not implementation. Because it can write artifacts and has broad triggers, Codex/Claude parity should keep explicit review gates. Consider whether auto invocation should remain enabled. | Missing |
 | `implement` | Build new features through TDD with approval gates | Good | Clear separation from `fix` and `improve`; side-effect posture is correctly non-auto. | Missing |
 | `fix` | Repair confirmed bugs with root-cause analysis and regression test first | Good | Clear exclusion of new features and improvements; matches bug-repair purpose. | Missing |
@@ -88,13 +88,12 @@ Minimum parity work:
 
 | Order | Prompt | Reason |
 |---:|---|---|
-| 1 | `brainstorm` | Read-heavy, conversational, low risk; good template for Codex ask-and-wait behavior. |
-| 2 | `ai-assisted-feature-development` | Planning artifact skill; useful without direct code mutation. |
-| 3 | `design-ui` | Artifact-generating but can be gated clearly. |
-| 4 | `implement`, `fix`, `improve` | Core code-changing trio; needs careful approval wording. |
-| 5 | `decision-dashboard`, `create-document` | Should share deterministic scripts/templates; avoid prompt-only reimplementation. |
-| 6 | `manage-skills`, `verify-implementation` | Needs a cross-tool definition of what gets verified. |
-| 7 | `generate-teammate` | Most platform-specific because Claude Agent/Team tools do not have a direct Codex equivalent here. |
+| 1 | `ai-assisted-feature-development` | Planning artifact skill; useful without direct code mutation. |
+| 2 | `design-ui` | Artifact-generating but can be gated clearly. |
+| 3 | `implement`, `fix`, `improve` | Core code-changing trio; needs careful approval wording. |
+| 4 | `decision-dashboard`, `create-document` | Should share deterministic scripts/templates; avoid prompt-only reimplementation. |
+| 5 | `manage-skills`, `verify-implementation` | Needs a cross-tool definition of what gets verified. |
+| 6 | `generate-teammate` | Most platform-specific because Claude Agent/Team tools do not have a direct Codex equivalent here. |
 
 ## Recommended New-Skill Order From gstack Review
 
@@ -108,6 +107,7 @@ These are new Claude skill candidates, not Codex parity ports:
 
 Completed:
 
+- `brainstorm` now closes the biggest gap in the planning/discovery lane.
 - `review` now closes the biggest gap between read-only persona critique and production-oriented engineering review.
 - `persona-review` now matches the Claude command name and the native free-form review contract.
 
