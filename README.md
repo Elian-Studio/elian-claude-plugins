@@ -69,7 +69,7 @@ cp codex/AGENTS.md ~/.codex/AGENTS.md
 cp codex/config.toml.example ~/.codex/config.toml
 ```
 
-Codex currently ships reference `/review`, `/brainstorm`, `/ai-assisted-feature-development`, `/design-ui`, `/decision-dashboard`, `/create-document`, `/implement`, `/fix`, `/improve`, and `/persona-review` prompts. See [codex/README.md](codex/README.md).
+Codex currently ships reference `/review`, `/brainstorm`, `/ai-assisted-feature-development`, `/design-ui`, `/decision-dashboard`, `/create-document`, `/implement`, `/fix`, `/improve`, `/manage-skills`, `/verify-implementation`, `/generate-teammate`, and `/persona-review` prompts. See [codex/README.md](codex/README.md).
 
 ---
 
@@ -109,6 +109,9 @@ Path: [codex/](codex/)
 | [codex/prompts/implement.md](codex/prompts/implement.md) | Reference Codex prompt for `/implement`. |
 | [codex/prompts/fix.md](codex/prompts/fix.md) | Reference Codex prompt for `/fix`. |
 | [codex/prompts/improve.md](codex/prompts/improve.md) | Reference Codex prompt for `/improve`. |
+| [codex/prompts/manage-skills.md](codex/prompts/manage-skills.md) | Reference Codex prompt for `/manage-skills`. |
+| [codex/prompts/verify-implementation.md](codex/prompts/verify-implementation.md) | Reference Codex prompt for `/verify-implementation`. |
+| [codex/prompts/generate-teammate.md](codex/prompts/generate-teammate.md) | Reference Codex prompt for `/generate-teammate`. |
 | [codex/prompts/decision-dashboard.md](codex/prompts/decision-dashboard.md) | Reference Codex prompt for `/decision-dashboard`. |
 | [codex/prompts/design-ui.md](codex/prompts/design-ui.md) | Reference Codex prompt for `/design-ui`. |
 | [codex/prompts/review.md](codex/prompts/review.md) | Reference Codex prompt for `/review`. |

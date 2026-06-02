@@ -30,13 +30,13 @@ A Claude skill and Codex prompt are considered aligned only when all of these ma
 
 | Area | Claude | Codex | Status |
 |---|---:|---:|---|
-| Catalog entries | 13 skills | 10 prompts | Not equal |
+| Catalog entries | 13 skills | 13 prompts | Not equal |
 | Command naming | `/elian-store:<skill>` | `/<prompt-file>` | Mostly alignable |
-| Current matched commands | `ai-assisted-feature-development`, `brainstorm`, `create-document`, `decision-dashboard`, `design-ui`, `fix`, `improve`, `implement`, `review`, `persona-review` | `ai-assisted-feature-development`, `brainstorm`, `create-document`, `decision-dashboard`, `design-ui`, `fix`, `improve`, `implement`, `review`, `persona-review` | Aligned |
+| Current matched commands | `ai-assisted-feature-development`, `brainstorm`, `create-document`, `decision-dashboard`, `design-ui`, `fix`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `review`, `verify-implementation`, `persona-review` | `ai-assisted-feature-development`, `brainstorm`, `create-document`, `decision-dashboard`, `design-ui`, `fix`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `review`, `verify-implementation`, `persona-review` | Aligned |
 | Legacy `on-call-elian` | Removed from current Claude skill catalog | Removed from current Codex prompt catalog | Aligned |
 | Validation | YAML + skill-owned validators where present | Prompt/config review | Asymmetric, manual |
 
-Current conclusion: **the two trees are not identical yet**. The name drift around `on-call-elian` is fixed, `ai-assisted-feature-development`, `brainstorm`, `create-document`, `decision-dashboard`, `design-ui`, `fix`, `improve`, `implement`, `review`, and `persona-review` now match on command name and output contract, but 3 Claude skills still have no Codex prompt counterpart.
+Current conclusion: **the two trees now cover the same command catalog, but they are not byte-for-byte or runtime-identical yet**. The name drift around `on-call-elian` is fixed, all 13 Claude commands now have Codex prompt counterparts, and the remaining divergence is platform/runtime behavior rather than missing prompt coverage.
 
 ## gstack Portfolio Lens
 
@@ -66,10 +66,10 @@ Do not treat these gaps as immediate parity bugs. They are roadmap gaps and shou
 | `improve` | Make behavior-changing improvements to working features | Good | Codex now preserves BEFORE/AFTER measurement and existing-test protection. | Present |
 | `design-ui` | Produce UI/UX design artifacts through interview, reference, wireframe, gate, visual | Mostly good | Codex now shares the same brief -> reference -> wireframe -> gate -> visual flow. Keep the gate explicit and preserve the artifact set. | Present |
 | `decision-dashboard` | Turn 3+ blocking decisions into a printable decision artifact and JSON | Good | Codex now preserves the JSON-first / HTML-second contract and the `generate` / `finalize` flow. Keep the memo requirement for `Other` explicit. | Present |
-| `generate-teammate` | Decide direct/subagent/team execution and generate teammate/task prompts | Platform-specific | Claude can use Agent/Team tools; Codex prompt can only produce a plan unless a Codex-side delegation system exists. Same command can be mirrored, but runtime behavior cannot be identical today. | Missing |
+| `generate-teammate` | Decide direct/subagent/team execution and generate teammate/task prompts | Platform-specific | Claude can use Agent/Team tools; Codex keeps the same phase analysis and handoff plan, but not actual teammate spawning. | Present (platform-limited) |
 | `create-document` | Deterministically render schema-validated JSON into HTML/MD templates | Good utility | Codex now preserves the validate-first rendering contract and the supported template set. Keep the legacy fixed five-block renderer out of the active path. | Present |
-| `manage-skills` | Detect and repair verify-skill drift | Good, but Claude-specific | Assumes Claude-style `.claude/skills/verify-*` maintenance. Codex mirror should define whether it maintains Codex prompts, Claude skills, or both. | Missing |
-| `verify-implementation` | Discover and run project verify-* skills before shipping | Good, but Claude-specific | Purpose is correct for projects that have verify-* skills. Codex parity needs a separate discovery rule for Codex prompt validators or explicitly keeps this as Claude-only. | Missing |
+| `manage-skills` | Detect and repair verify-skill drift | Good, but Claude-specific | Codex now treats this as verification prompt maintenance and drift repair within the prompt tree; actual `.claude/skills` repair is still Claude-side. | Present (platform-limited) |
+| `verify-implementation` | Discover and run project verify-* skills before shipping | Good, but Claude-specific | Codex now provides a prompt-level verification orchestrator, but project-local verification semantics still depend on the prompt tree rather than Claude Agent tooling. | Present (platform-limited) |
 | `persona-review` | Review plans/docs/ideas through selected persona lenses with persona-native output | Aligned | Claude and Codex now share the same command name, default persona choices (`daniel`, `evans`, `dean`, `martin`, custom path), interview mode, and free-form review contract. Claude still uses persona-specific subagents; Codex keeps the same judgment shape in-process without Claude Agent tools. | Present |
 | `review` | Read-only engineering review of code, diffs, PRs, or changed files with findings-first output | Good | Codex now shares the same findings-first contract and read-only boundary. Keep the target/diff/line evidence discipline aligned with the Claude skill. | Present |
 
@@ -77,7 +77,7 @@ Do not treat these gaps as immediate parity bugs. They are roadmap gaps and shou
 
 Minimum parity work:
 
-1. Add Codex prompt counterparts for the 3 remaining Claude skills.
+1. Keep prompt bodies and runtime assumptions in sync as the remaining platform-specific gaps are refined.
 2. Keep command names exactly equal to Claude skill directory names.
 3. For side-effect skills (`implement`, `fix`, `improve`, `manage-skills`, `verify-implementation`), convert Claude `AskUserQuestion` and tool-gate behavior into Codex "ask and stop" instructions.
 4. For utility skills (`create-document`, `decision-dashboard`), call shared scripts/templates instead of duplicating generated output logic in prompt prose.
@@ -109,9 +109,12 @@ Completed:
 - `decision-dashboard` now closes the decision-dashboard generation lane.
 - `design-ui` now closes the biggest gap in the UX design artifact lane.
 - `fix` now closes the bug-repair lane.
+- `generate-teammate` now closes the execution-planning lane with a Codex handoff-only equivalent.
 - `improve` now closes the behavior-improvement lane.
 - `implement` now closes the new-feature implementation lane.
+- `manage-skills` now closes the verification-drift maintenance lane at the prompt level.
 - `review` now closes the biggest gap between read-only persona critique and production-oriented engineering review.
+- `verify-implementation` now closes the verification orchestration lane at the prompt level.
 - `persona-review` now matches the Claude command name and the native free-form review contract.
 
 ## Operating Rule Going Forward
