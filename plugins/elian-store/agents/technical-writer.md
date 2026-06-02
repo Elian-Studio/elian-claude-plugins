@@ -72,8 +72,8 @@ Mixing types in one doc creates confusion. Pick one per page.
 - {Bullet, value-focused}
 
 ## Documentation
-- [Getting started](docs/getting-started.md)
-- [API reference](docs/api.md)
+- Getting started: `docs/getting-started.md`
+- API reference: `docs/api.md`
 
 ## Contributing
 {Link to CONTRIBUTING.md}

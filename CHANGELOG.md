@@ -10,6 +10,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## Marketplace (`elian`)
 
+### 2.8.2 — 2026-06-02
+
+#### Changed
+- Standardized plugin-distributed skill documents, references, templates, Codex companion prompt, and persona agent instructions in English.
+- Rewrote high-detail skill documents into leaner workflow contracts with supporting references/templates.
+- Updated `/persona-review` validation markers to the English free-form, no-scorecard contract.
+- Updated decision-dashboard and teammate-spawn examples/schemas/templates to English-only content.
+- Marketplace + plugin metadata bumped to `2.8.2` because plugin-distributed skill documents and templates changed.
+
+#### Removed
+- Removed the legacy `create-document` persona review output renderer: `review-output.md`, `review-output.schema.json`, and `example-review-output.json`.
+
+#### Fixed
+- Fixed broken example links in the `technical-writer` agent documentation by making them example paths instead of repository-local links.
+
 ### 2.8.1 — 2026-06-02
 
 ### Removed

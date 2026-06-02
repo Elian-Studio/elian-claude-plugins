@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "Daniel (Elian-Studio)'s Claude Code plugin marketplace. Ships one bundled plugin, elian-store, with workflow skills, agents, hooks, and skill-owned validators.",
-    "version": "2.8.1",
+    "version": "2.8.2",
     "pluginRoot": "./plugins"
   },
   "plugins": [
@@ -14,7 +14,7 @@
       "name": "elian-store",
       "source": "./plugins/elian-store",
       "description": "Workflow bundle with decision artifacts, UI design, AI-assisted feature planning, TDD implementation flows, engineering review, verification orchestration, persona review, and bundled domain agents.",
-      "version": "2.8.1",
+      "version": "2.8.2",
       "author": {
         "name": "Daniel (Elian-Studio)"
       },
