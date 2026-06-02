@@ -66,7 +66,7 @@ PR 의 SKILL.md 변경은 [`scripts/rubric.md`](scripts/rubric.md) 의 100점 �
 
 ### Portfolio review checklist (non-blocking)
 
-90점 게이트는 개별 `SKILL.md` 품질을 본다. gstack식 포트폴리오 리뷰는 별도 체크리스트로 운영하며, 새 스킬을 추가하거나 큰 리팩터링을 할 때 [`docs/gstack-skill-review.md`](docs/gstack-skill-review.md)를 같이 확인한다.
+90점 게이트는 개별 `SKILL.md` 품질을 본다. 포트폴리오 운영 모델은 [`docs/plugin-portfolio-hybrid-model.md`](docs/plugin-portfolio-hybrid-model.md)를 기준으로 하고, gstack식 lifecycle gap은 별도 체크리스트로 운영한다. 새 스킬을 추가하거나 큰 리팩터링을 할 때 [`docs/gstack-skill-review.md`](docs/gstack-skill-review.md)도 같이 확인한다.
 
 - lifecycle coverage: product/spec → design → implement/fix/improve → review → browser QA → ship/release → learning
 - role clarity: 각 skill은 하나의 specialist 역할과 하나의 명확한 job을 가진다.
@@ -145,7 +145,7 @@ plugins/elian-store/
 4. 새 스킬을 Codex 로도 포팅할 때: `codex/prompts/<skill>.md` 작성 → `python3 scripts/score_codex_prompt.py codex/prompts/<skill>.md` 90점 확인 → `codex/README.md` 포팅 목록 갱신.
 5. `codex/` 추가는 elian-store **플러그인 버전과 무관** (마켓플레이스 플러그인이 아닌 sibling 배포 트리). `plugin.json`/`marketplace.json` version bump 대상 아님.
 6. Claude/Codex catalog parity 는 [`docs/claude-codex-skill-parity.md`](docs/claude-codex-skill-parity.md) 를 기준으로 점검한다. 새 Claude skill 은 같은 PR 에 Codex prompt 또는 예외 사유를 남긴다.
-7. gstack lifecycle gaps 는 [`docs/gstack-skill-review.md`](docs/gstack-skill-review.md) 에서 관리한다. gap이 있다고 바로 skill을 추가하지 말고, 먼저 local workflow와 검증 산출물이 있는지 확인한다.
+7. plugin portfolio 운영 모델은 [`docs/plugin-portfolio-hybrid-model.md`](docs/plugin-portfolio-hybrid-model.md) 를 기준으로 한다. gstack lifecycle gaps 는 [`docs/gstack-skill-review.md`](docs/gstack-skill-review.md) 에서 관리한다. gap이 있다고 바로 skill을 추가하지 말고, 먼저 local workflow와 검증 산출물이 있는지 확인한다.
 
 ---
 

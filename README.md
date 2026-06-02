@@ -45,7 +45,7 @@ Then in Claude Code:
 
 New skills land via `/plugin update elian-store@elian` — no separate install per skill.
 
-Portfolio-level review: [`docs/gstack-skill-review.md`](docs/gstack-skill-review.md) compares this bundle against `garrytan/gstack` lifecycle patterns. Current status: structurally healthy, but not yet lifecycle-complete; first-class review, browser QA, release, benchmark, security, and learning skills are tracked as roadmap gaps.
+Portfolio management: [`docs/plugin-portfolio-hybrid-model.md`](docs/plugin-portfolio-hybrid-model.md) records the Anthropic + Vercel + gstack hybrid operating model. [`docs/gstack-skill-review.md`](docs/gstack-skill-review.md) tracks lifecycle gaps. Current status: structurally healthy, but not yet lifecycle-complete; first-class review, browser QA, release, benchmark, security, and learning skills are tracked as roadmap gaps.
 
 ---
 
