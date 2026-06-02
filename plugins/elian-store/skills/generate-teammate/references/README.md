@@ -29,4 +29,4 @@ Every example follows the same structure as the skill execution flow:
 - Reviewing a PR / diff from multiple lenses → **Example 3**
 - Strategic decision-making (launch, pricing, GTM, positioning) → **Example 4**
 
-The 14 plugin-bundled agents cover engineering, design, research, marketing, business, and adversarial lenses. Non-code workflows are first-class — see Example 4.
+The 14 generate-teammate routing agents cover engineering, design, research, marketing, business, and adversarial lenses. Non-code workflows are first-class — see Example 4.

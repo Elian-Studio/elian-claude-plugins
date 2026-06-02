@@ -55,7 +55,7 @@ codex/
    A skill should have one clear job, a compact `SKILL.md`, and supporting files loaded only when needed. Use `references/` for deeper guidance and `scripts/` for deterministic checks or transformations.
 
 3. Validate before expanding.
-   Existing gates stay mandatory: `scripts/score_skill.py`, `scripts/score_codex_prompt.py`, and YAML frontmatter smoke checks. New complex skills should add their own focused validator or example fixture.
+   There is no repository-wide numeric score gate. Keep YAML frontmatter smoke checks mandatory, and make complex skills own focused validators, fixtures, or examples that prove their workflow still works.
 
 4. Manage the portfolio by lifecycle position.
    Every skill must declare where it fits: intent shaping, decision, planning, design, implementation, fix, improvement, review, QA, release, learning, or maintenance.
@@ -148,8 +148,6 @@ Done:
 - Run the smallest meaningful verification first:
 
 ```bash
-python3 scripts/score_skill.py plugins/elian-store/skills/*/SKILL.md
-python3 scripts/score_codex_prompt.py codex/prompts/*.md
 ruby -EUTF-8 -ryaml -e 'Dir["plugins/elian-store/skills/*/SKILL.md"].sort.each { |p| s=File.read(p, encoding: "UTF-8"); YAML.safe_load(s.split(/^---\s*$/,3)[1] || "", permitted_classes: [], aliases: false); puts "OK #{p}" }'
 ```
 

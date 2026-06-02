@@ -57,21 +57,21 @@ LLM writes the teammate as JSON; `create-document/scripts/render.py --template t
 {
   "name": "frontend-builder",
   "subagent_type": "frontend-architect",
-  "role": "Vue 3 관리자 화면에서 재발송 트리거 UI 와 상태 표시를 구현한다.",
+  "role": "Implement the resend trigger UI and status display for the Vue 3 admin screen.",
   "owned_files": ["mobidoc-front/src/views/notifications/"],
   "tech_stack": ["Vue 3", "TypeScript", "Pinia", "SCSS"],
-  "task": "재발송 트리거 버튼, 진행 polling, 실패 사유 표시 컴포넌트를 구현한다.",
-  "interfaces": "Backend /api/notifications/retry 호출. 응답을 Pinia store 에 캐싱.",
-  "definition_of_done": "vue-tsc 통과, 단위 테스트로 로딩/에러/성공 모두 커버, 키보드 a11y 확인.",
-  "communication": "API spec 변경은 backend-builder 에게 PR 코멘트로 묻기."
+  "task": "Build the resend trigger button, progress polling, and failure-reason display components.",
+  "interfaces": "Call backend /api/notifications/retry and cache the response in the Pinia store.",
+  "definition_of_done": "vue-tsc passes, unit tests cover loading/error/success states, and keyboard accessibility is checked.",
+  "communication": "Ask backend-builder in a PR comment before changing the API contract."
 }
 ```
 
 Schema enforces:
 - 7 required fields
 - minLength on every field (long enough to be useful, not "thing")
-- `mustMatch` on `task` (must contain an action verb — 구현/설계/검증/build/test 등)
-- `mustMatch` on `definition_of_done` (must contain a measurable signal — 통과/커버/lint/test 등)
+- `mustMatch` on `task` (must contain an action verb such as implement, design, verify, build, or test)
+- `mustMatch` on `definition_of_done` (must contain a measurable signal such as pass, cover, lint, or test)
 - `forbid` patterns: `help build`, `do something`, `TODO`, `FIXME`, `...`
 
 Failure mode: render exits 1, stderr lists every violating field. Fix JSON, re-render. No partial output.
@@ -101,8 +101,8 @@ See [example-teammate-spawn.json](../../create-document/references/example-teamm
 If JSON omits `communication`, render fails:
 
 ```
-✗ schema invalid (1 error):
-  teammates[0].communication: 필수 필드 누락
+schema invalid (1 error):
+  teammates[0].communication: required field missing
 exit 1
 ```
 

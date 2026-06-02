@@ -6,12 +6,6 @@ __pycache__/
 venv/
 .pytest_cache/
 
-# Evaluation artifacts (CI 가 생성)
-evaluation-results.json
-evaluation-output.txt
-codex-evaluation-results.json
-codex-evaluation-output.txt
-
 # OS
 .DS_Store
 Thumbs.db

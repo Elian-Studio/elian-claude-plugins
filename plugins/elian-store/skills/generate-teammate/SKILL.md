@@ -19,7 +19,7 @@ disable-model-invocation: true
 
 > **Custom agent types**: Custom `subagent_type` values like `frontend-architect`, `backend-architect` require an agent definition file at `~/.claude/agents/{name}.md`, `.claude/agents/{name}.md`, or a plugin's `agents/` directory. Built-in types (`Explore`, `Plan`, `general-purpose`) work immediately without a definition file.
 >
-> **This plugin ships 14 standalone custom agents** in `plugins/elian-store/agents/`. Engineering: `frontend-architect`, `backend-architect`, `system-architect`, `security-engineer`, `performance-engineer`, `quality-engineer`, `devops-architect`, `requirements-analyst`. Design / research / strategy: `ui-ux-designer`, `technical-writer`, `ux-researcher`, `marketing-strategist`, `business-analyst`, `devil-advocate`. They have no external skill dependencies and work as soon as the plugin is installed.
+> **This skill's routing catalog uses 14 standalone custom agents** in `plugins/elian-store/agents/`. Engineering: `frontend-architect`, `backend-architect`, `system-architect`, `security-engineer`, `performance-engineer`, `quality-engineer`, `devops-architect`, `requirements-analyst`. Design / research / strategy: `ui-ux-designer`, `technical-writer`, `ux-researcher`, `marketing-strategist`, `business-analyst`, `devil-advocate`. They have no external skill dependencies and work as soon as the plugin is installed.
 
 ## Core Philosophy
 
@@ -200,7 +200,7 @@ Design / research / strategy roles:
 > **Read-only built-in caution** — `Explore` and `Plan` only allow Read/Grep/Glob; they cannot Edit/Write.
 > Never assign implementation work to them. Use them for exploration / analysis / planning only.
 >
-> **All 14 custom agents above ship with this plugin** as standalone definitions in `plugins/elian-store/agents/`. They do **not** depend on any other plugin or user-level skill — install elian-store and they work.
+> **All 14 generate-teammate custom agents above ship with this plugin** as standalone definitions in `plugins/elian-store/agents/`. They do **not** depend on any other plugin or user-level skill — install elian-store and they work.
 
 ### Subagent Phase Design
 
@@ -253,10 +253,10 @@ See [execution-guide.md](execution-guide.md) for output format, execution code, 
 | `role` | minLength 15, forbid `help build` / `do something` |
 | `owned_files` | array, minItems 1 (file-conflict prevention) |
 | `tech_stack` | array, minItems 1 |
-| `task` | minLength 30, **mustMatch** action verb (`implement` / `구현` / `build` / `설계` / ...), forbid `TODO` / `...` |
+| `task` | minLength 30, **mustMatch** action verb (`implement` / `build` / `design` / `verify` / ...), forbid `TODO` / `...` |
 | `reference_docs` | array (can be empty if none) |
 | `interfaces` | minLength 20 (cross-teammate contract) |
-| `definition_of_done` | minLength 30, **mustMatch** measurable signal (`test` / `통과` / `lint` / `cover` / ...) |
+| `definition_of_done` | minLength 30, **mustMatch** measurable signal (`test` / `pass` / `lint` / `cover` / ...) |
 | `communication` | minLength 15 |
 
 #### Render command
@@ -379,7 +379,7 @@ What this skill decides automatically vs what needs the user's taste:
 | Strategy classification (single / hybrid) | ✅ | — |
 | Pattern matching (Implementation / Research / Review / Design / Documentation / Strategy / Focused) | ✅ | — |
 | File-ownership conflict detection | ✅ | — |
-| `subagent_type` selection from the 14 catalog | ✅ | — |
+| `subagent_type` selection from the 14-agent generate-teammate catalog | ✅ | — |
 | Team size 2-5 recommendation | ✅ | — |
 | Final approval to spawn | — | ✅ (AskUserQuestion gate) |
 | Per-teammate spawn prompt content | drafted automatically | ✅ user reviews before spawn |
@@ -424,14 +424,16 @@ Four BEFORE/AFTER comparisons live in [references/before-after-patterns.md](refe
 
 ## Skill verification
 
-To validate that the skill follows its own rules, run:
+Manual checks for this skill:
 
-```bash
-python3 [scripts/validate_skill.py](scripts/validate_skill.py)
-python3 [scripts/validate_skill.py](scripts/validate_skill.py) --json
-```
-
-The validator (stdlib only, argparse + `--json` support) checks: no `model:` on Agent, no legacy `Task({`, no `addBlockedBy` in TaskCreate, `disable-model-invocation: true` set, all 14 agents present and self-contained, references/ has ≥ 4 traces, team-patterns includes Documentation + Strategy + Design variants. Exits 0 on PASS, 1 on FAIL.
+- `Agent({...})` examples do not include a `model` parameter.
+- Legacy `Task({` usage is not reintroduced.
+- `TaskCreate` examples do not use `addBlockedBy`; use `TaskUpdate` for dependencies.
+- `disable-model-invocation: true` remains set.
+- The 14 generate-teammate routing agents are present in `plugins/elian-store/agents/`.
+- Plugin agent definitions remain self-contained and do not use `skills:` frontmatter.
+- `references/` keeps at least four end-to-end traces.
+- `team-patterns.md` keeps Documentation Team, Strategy Team, and Design Team variants.
 
 ## Pre-flight checklist
 
@@ -452,4 +454,4 @@ Before spawning the team, confirm each of:
 4. **Cleanup**: always finish with `SendMessage(shutdown_request)` → `TeamDelete()` in that order.
 5. **Display Mode**: configure `teammateMode` to `"in-process"` (default, all terminals) or `"tmux"` (split-pane, requires tmux/iTerm2).
 6. **Plan Approval**: for risky tasks, spawn teammates in plan mode; the lead approves before they switch to implementation. Use the prompt "Require plan approval before they make any changes."
-7. **Quality Gate Hooks**: `TeammateIdle` (when a teammate is about to go idle) and `TaskCompleted` (when a task is being marked complete) hooks can enforce automated checks. Exit code 2 returns feedback.
+7. **Quality Hooks**: `TeammateIdle` (when a teammate is about to go idle) and `TaskCompleted` (when a task is being marked complete) hooks can enforce automated checks. Exit code 2 returns feedback.

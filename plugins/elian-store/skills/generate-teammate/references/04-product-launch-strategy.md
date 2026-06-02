@@ -265,4 +265,4 @@ This is the canonical "diverge → converge → diverge" hybrid shape, applied t
 - Research synthesis
 - Crisis response (incident commander pattern)
 
-The 14 plugin-bundled agents cover engineering, design, research, marketing, business, and adversarial lenses, so non-code teams are first-class.
+The 14 generate-teammate routing agents cover engineering, design, research, marketing, business, and adversarial lenses, so non-code teams are first-class.

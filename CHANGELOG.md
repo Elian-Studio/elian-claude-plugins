@@ -10,6 +10,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## Marketplace (`elian`)
 
+### 2.8.1 — 2026-06-02
+
+### Removed
+- Removed the repository-wide numeric score gate: `scripts/score_skill.py`, `scripts/score_codex_prompt.py`, their rubric docs, and the GitHub Actions workflows that enforced them.
+- Removed `plugins/elian-store/skills/generate-teammate/scripts/validate_skill.py`; `/generate-teammate` now documents manual validation checks instead of shipping that validator.
+
+### Changed
+- Validation guidance now centers on YAML/frontmatter smoke tests, skill-owned validators, artifact checks, purpose review, and Claude/Codex parity review.
+- Marketplace + plugin metadata bumped to `2.8.1` because plugin-distributed validation docs changed.
+- Active operating docs now use English as the documentation language.
+
 ### 2.8.0 — 2026-06-02
 
 #### Added

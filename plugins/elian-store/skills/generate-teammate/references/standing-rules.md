@@ -31,7 +31,7 @@ The user owns the decision; the skill produces the recommendation. Never spawn w
 
 ## 7. Self-contained agents only
 
-This plugin's 14 agents work without external skills. Do not introduce dependencies on user-level skills the user may not have.
+This skill's 14 routing agents work without external skills. Do not introduce dependencies on user-level skills the user may not have.
 
 ## 8. Spawn prompt is JSON-first
 

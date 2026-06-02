@@ -46,7 +46,7 @@ Compare this repository's Claude plugin and skill documentation against:
 
 - Plugin layout is broadly correct: `plugins/elian-store/.claude-plugin/plugin.json`, `plugins/elian-store/skills/*/SKILL.md`, root `.claude-plugin/marketplace.json`.
 - The plugin is a single bundle, which matches the current repo strategy and avoids one plugin per skill.
-- The current skill set has `references/` and `scripts/` coverage, and all `SKILL.md` files pass the local 90-point quality gate.
+- The current skill set has `references/` and `scripts/` coverage, and `SKILL.md` frontmatter is expected to pass an actual YAML parse smoke test.
 - Most side-effect workflows use `disable-model-invocation: true`.
 
 ### Problems Found
@@ -57,8 +57,8 @@ Compare this repository's Claude plugin and skill documentation against:
 - CONTRIBUTING still contained stale validation examples from the old standalone `decision-dashboard` layout.
 - CONTRIBUTING did not explain the important official rule that `plugin.json.version` wins and must be bumped for installed users to receive updates.
 - Several frontmatter descriptions carried procedure-level detail that belongs in the body, not in the always-visible skill listing.
-- `persona-review` passed the local score but lacked an explicit `Modes` section, making its quick/deep/interview behavior harder to scan.
-- The local rubric cited alirezarezvani as a simple rule source without explaining the conflict between its stricter conventions and current Claude Code optional frontmatter support.
+- `persona-review` had no explicit `Modes` section, making its quick/deep/interview behavior harder to scan.
+- Earlier local quality guidance cited alirezarezvani as a simple rule source without explaining the conflict between its stricter conventions and current Claude Code optional frontmatter support.
 
 ## Applied Changes
 
@@ -67,7 +67,7 @@ Compare this repository's Claude plugin and skill documentation against:
 - Updated README skill inventory to match all 12 bundled skills.
 - Renamed the Codex prompt to `codex/prompts/persona-review.md` and aligned README, CONTRIBUTING, codex README, and Codex prompt rubric references.
 - Updated CONTRIBUTING with current validation paths and explicit Claude skill/plugin operating rules.
-- Updated `scripts/rubric.md` to document the source-priority rule and the official optional-frontmatter baseline.
+- Updated local quality guidance to document the source-priority rule and the official optional-frontmatter baseline.
 - Shortened high-noise frontmatter descriptions for:
   - `ai-assisted-feature-development`
   - `create-document`
@@ -81,7 +81,7 @@ Compare this repository's Claude plugin and skill documentation against:
 - Use alirezarezvani/claude-skills as an operating-pattern reference, especially for progressive disclosure, stdlib tools, references, and marketplace discipline.
 - Keep `description` short and trigger-oriented; move procedure detail to the body.
 - Keep `when_to_use` trigger-rich but under the combined listing cap.
-- Quote frontmatter strings that contain YAML control syntax such as `: `, bracket-style argument hints, or long trigger lists. Local scoring must fail YAML-unsafe plain scalars before PR merge.
+- Quote frontmatter strings that contain YAML control syntax such as `: `, bracket-style argument hints, or long trigger lists. YAML/frontmatter smoke tests should catch unsafe plain scalars before PR merge.
 - Keep each `SKILL.md` under 500 lines and target 10KB where practical.
 - Bump `plugin.json.version`, marketplace version, README, and CHANGELOG together for plugin-distributed changes.
 - Keep generated artifacts out of plugin docs unless they are the requested deliverable or canonical examples.

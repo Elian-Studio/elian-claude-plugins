@@ -4,7 +4,7 @@ Date: 2026-05-28
 
 ## Goal
 
-Make the Claude plugin catalog and Codex prompt catalog use the same command names, intent boundaries, and quality gates where the platforms allow it.
+Make the Claude plugin catalog and Codex prompt catalog use the same command names, intent boundaries, approval posture, and validation expectations where the platforms allow it.
 
 This does **not** mean byte-for-byte identical files:
 
@@ -22,9 +22,9 @@ A Claude skill and Codex prompt are considered aligned only when all of these ma
 - Same approval posture: read-only, write-artifact, or code-changing.
 - Same output contract or same handoff artifact.
 - Platform-specific tool differences are explicit, not hidden.
-- Both pass their local gates:
-  - Claude: `python3 scripts/score_skill.py plugins/elian-store/skills/*/SKILL.md`
-  - Codex: `python3 scripts/score_codex_prompt.py codex/prompts/*.md`
+- Both have a relevant verification path:
+  - Claude: YAML/frontmatter smoke test plus the skill-owned validator when present.
+  - Codex: prompt/config review plus parity review against the Claude counterpart.
 
 ## Current Parity Status
 
@@ -34,7 +34,7 @@ A Claude skill and Codex prompt are considered aligned only when all of these ma
 | Command naming | `/elian-store:<skill>` | `/<prompt-file>` | Mostly alignable |
 | Current matched command | `persona-review` | `persona-review` | Aligned |
 | Legacy `on-call-elian` | Removed from current Claude skill catalog | Removed from current Codex prompt catalog | Aligned |
-| Quality gate | 13/13 pass | 1/1 pass | Passing, but asymmetric |
+| Validation | YAML + skill-owned validators where present | Prompt/config review | Asymmetric, manual |
 
 Current conclusion: **the two trees are not identical yet**. The name drift around `on-call-elian` is fixed, but 12 Claude skills have no Codex prompt counterpart.
 
@@ -82,7 +82,7 @@ Minimum parity work:
 3. For side-effect skills (`implement`, `fix`, `improve`, `manage-skills`, `verify-implementation`), convert Claude `AskUserQuestion` and tool-gate behavior into Codex "ask and stop" instructions.
 4. For utility skills (`create-document`, `decision-dashboard`), call shared scripts/templates instead of duplicating generated output logic in prompt prose.
 5. For Claude-only runtime skills (`generate-teammate`, parts of `verify-implementation`), document the Codex limitation in the prompt and make the Codex version produce a handoff plan rather than pretending to spawn agents.
-6. Keep `scripts/score_codex_prompt.py` generic. Skill-specific contracts should be validated without forcing unrelated prompts into the same output shape.
+6. Keep Codex validation prompt-specific. Skill-specific contracts should be validated without forcing unrelated prompts into the same output shape.
 
 ## Recommended Port Order
 

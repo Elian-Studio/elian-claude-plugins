@@ -3,133 +3,205 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Latest Release](https://img.shields.io/github/v/release/Elian-Studio/elian-claude-plugins?label=release)](https://github.com/Elian-Studio/elian-claude-plugins/releases)
 [![Plugin: elian-store](https://img.shields.io/badge/plugin-elian--store-blue)](plugins/elian-store/)
-[![Skill Quality Gate](https://img.shields.io/badge/quality_gate-90%2F100-brightgreen)](scripts/rubric.md)
 
-> **A Claude Code skill bundle that reduces decision fatigue and smooths workflow.**
-> One plugin install (`elian-store`) gives you the full workflow skill set, and new skills land automatically on update.
-> Every SKILL.md change must pass a 90-point heuristic quality gate before it can merge to `main`.
+Claude Code plugin marketplace for `elian-store`, plus a separate Codex CLI prompt/config tree.
+
+This repo intentionally has two distribution surfaces:
+
+- **Claude Code plugin**: install `elian-store` from this marketplace. This is the primary product.
+- **Codex CLI config**: copy selected prompts/config from `codex/`. This is an independent companion tree, not a generated mirror.
+
+For the full structure and edit map, see [docs/repository-operating-map.md](docs/repository-operating-map.md).
 
 ---
 
-## 🚀 Quick Start
+## Install
+
+### Claude Code
 
 ```shell
 /plugin marketplace add Elian-Studio/elian-claude-plugins
 /plugin install elian-store@elian
 ```
 
-Then in Claude Code:
-
-> "I have 4 decisions piling up. Make me a decision dashboard."
-
-→ The `decision-dashboard` skill inside `elian-store` is invoked automatically and produces a printable HTML dashboard. Explicit invocation: `/elian-store:decision-dashboard`.
-
----
-
-## 📦 Skills inside elian-store
-
-| Skill | Status | Description | Invocation |
-|-------|--------|-------------|------------|
-| [decision-dashboard](plugins/elian-store/skills/decision-dashboard/) | ✅ bundled | Capture 3+ blocking decisions in a printable HTML artifact with downloadable JSON for downstream skills. | `/elian-store:decision-dashboard` |
-| [generate-teammate](plugins/elian-store/skills/generate-teammate/) | ✅ bundled | Decompose work into phases, decide Agent Team / Subagent / direct execution per phase, and render JSON-first teammate prompts. | `/elian-store:generate-teammate` |
-| [create-document](plugins/elian-store/skills/create-document/) | ✅ bundled | Render structured HTML/MD from JSON through schema validation and templates. Used directly or by other skills. | `/elian-store:create-document` |
-| [design-ui](plugins/elian-store/skills/design-ui/) | ✅ bundled | Design UI/UX through Interview → Reference → Wireframe → Gate → Visual → Deliver. | `/elian-store:design-ui` |
-| [ai-assisted-feature-development](plugins/elian-store/skills/ai-assisted-feature-development/) | ✅ bundled | Turn feature work into intent, BDD/SDD/DDD, tests, context, agentic tasks, review, and SPDD archive. | `/elian-store:ai-assisted-feature-development` |
-| [implement](plugins/elian-store/skills/implement/) | ✅ bundled | TDD-driven feature build: context → plan → approval gate → Red→Green→Refactor → verify → review → report. | `/elian-store:implement` |
-| [fix](plugins/elian-store/skills/fix/) | ✅ bundled | Root-cause-first bug repair: regression test first, then fix, with side-effect audit. | `/elian-store:fix` |
-| [improve](plugins/elian-store/skills/improve/) | ✅ bundled | Behavior-changing improvement to working features with quantified BEFORE/AFTER and Characterization Tests. | `/elian-store:improve` |
-| [brainstorm](plugins/elian-store/skills/brainstorm/) | ✅ bundled | Conversational discovery for fuzzy requests: Socratic probing → 3+ options → tradeoff matrix → decision → handoff. | `/elian-store:brainstorm` |
-| [manage-skills](plugins/elian-store/skills/manage-skills/) | ✅ bundled | Detect verify-skill drift after code changes and create/update verify-* skills so project verification stays current. | `/elian-store:manage-skills` |
-| [review](plugins/elian-store/skills/review/) | ✅ bundled | Read-only engineering review of code, diffs, PRs, or changed files with findings-first output and downstream handoff. | `/elian-store:review` |
-| [verify-implementation](plugins/elian-store/skills/verify-implementation/) | ✅ bundled | Discover and run project verify-* skills before shipping; report failures and apply fixes only with approval. | `/elian-store:verify-implementation` |
-| [persona-review](plugins/elian-store/skills/persona-review/) | ✅ bundled | Review a plan/design/doc through `daniel`, `evans`, `dean`, `martin`, or a custom persona in each persona's native style. | `/elian-store:persona-review` |
-
-New skills land via `/plugin update elian-store@elian` — no separate install per skill.
-
-Portfolio management: [`docs/plugin-portfolio-hybrid-model.md`](docs/plugin-portfolio-hybrid-model.md) records the Anthropic + Vercel + gstack hybrid operating model. [`docs/gstack-skill-review.md`](docs/gstack-skill-review.md) tracks lifecycle gaps. Current status: structurally healthy, but not yet lifecycle-complete; first-class browser QA, release, benchmark, security, and learning skills are tracked as roadmap gaps.
-
----
-
-## 🤖 Codex CLI config (independent tree)
-
-This repo also ships an **independent** OpenAI Codex CLI config tree under [`codex/`](codex/) — separate from the Claude `plugins/` tree, with its own quality gate (`scripts/score_codex_prompt.py`) and CI (`codex-config-gate.yml`).
-
-| Skill | Status | Codex command |
-|-------|--------|---------------|
-| [persona-review](codex/prompts/persona-review.md) | ✅ reference port | `/persona-review <target> [--persona daniel\|evans\|dean\|martin\|all\|comma-list\|<path>] [--depth quick\|deep\|interview]` |
-
-Install or update the Codex prompt:
-
-```shell
-mkdir -p ~/.codex/prompts
-rm -f ~/.codex/prompts/on-call-elian.md  # remove legacy command from old installs
-cp codex/prompts/*.md ~/.codex/prompts/
-```
-
-Setup: see [`codex/README.md`](codex/README.md). ⚠️ The two trees have **no shared source** — editing skill logic on one side requires manually syncing the other (intentional trade-off; see `CONTRIBUTING.md` → "Claude vs Codex"). Current Claude/Codex parity status: [`docs/claude-codex-skill-parity.md`](docs/claude-codex-skill-parity.md).
-
----
-
-## 🎯 decision-dashboard — what does it look like?
-
-![decision-dashboard preview](docs/screenshots/decision-dashboard-overview.png)
-
-Left sidebar groups decisions by priority (P0/P1/P2). Right pane shows the expanded card: background → guiding question → options (A/B/C/D + "Other — custom input") → notes. Footer carries progress + JSON/MD download buttons.
-
-### Use case
-
-**Before** — 4 decisions are scattered across chat threads; the PO doesn't read to the bottom; downstream work stalls.
-
-**After** — invoke `decision-dashboard` → 4 cards generated automatically → share the HTML with the PO → receive JSON in 5 minutes → downstream skills consume that JSON as context.
-
-Core principles:
-- **Card-body LANGUAGE GATE** — class names, table names, internal acronyms are filtered out automatically. The decision-maker doesn't need to read code.
-- **"Other — custom input" is mandatory** — escape hatch when none of the offered options fit.
-- **Two modes** — `generate` (first creation) vs `finalize` (persist JSON + clean up HTML).
-- **Persistent artifact** — `decisions-final.json` is consumed as context by downstream skills.
-
-Full usage: [`plugins/elian-store/skills/decision-dashboard/SKILL.md`](plugins/elian-store/skills/decision-dashboard/SKILL.md)
-
----
-
-## 🔄 Update
+Update later:
 
 ```shell
 /plugin marketplace update elian
 /plugin update elian-store@elian
 ```
 
-New skills are pulled along with the plugin update.
+Claude invocation format:
+
+```text
+/elian-store:<skill-name>
+```
+
+Example:
+
+```text
+/elian-store:review worktree --depth deep
+```
+
+### Codex CLI
+
+Install or update the independent Codex prompt/config files:
+
+```shell
+mkdir -p ~/.codex/prompts
+rm -f ~/.codex/prompts/on-call-elian.md
+cp codex/prompts/*.md ~/.codex/prompts/
+```
+
+Optional project/global defaults:
+
+```shell
+cp codex/AGENTS.md ~/.codex/AGENTS.md
+cp codex/config.toml.example ~/.codex/config.toml
+```
+
+Codex currently ships only a reference `/persona-review` prompt. See [codex/README.md](codex/README.md).
 
 ---
 
-## ⚠️ v1.x → v2.x migration
+## What Ships
 
-In v1.x, `decision-dashboard` was a standalone plugin. From v2.0.0, it lives **as a skill inside the `elian-store` bundle**. The reason: bundling lets multiple skills land via a single install.
+### Claude Plugin: `elian-store`
 
-If you installed v1.x:
+Path: [plugins/elian-store/](plugins/elian-store/)
+
+`elian-store` is a single bundled Claude Code plugin. One install gives all bundled skills, agents, and hooks.
+
+| Skill | Purpose | Invocation |
+|---|---|---|
+| [brainstorm](plugins/elian-store/skills/brainstorm/) | Clarify fuzzy thoughts and surface criteria before committing to a direction. | `/elian-store:brainstorm` |
+| [decision-dashboard](plugins/elian-store/skills/decision-dashboard/) | Turn 3+ blocking decisions into a printable HTML + downstream JSON artifact. | `/elian-store:decision-dashboard` |
+| [ai-assisted-feature-development](plugins/elian-store/skills/ai-assisted-feature-development/) | Structure AI-assisted feature work through framing, specs, tests, context, tasks, review, and archive. | `/elian-store:ai-assisted-feature-development` |
+| [design-ui](plugins/elian-store/skills/design-ui/) | Produce UI/UX design artifacts through interview, references, wireframe, gate, visual, and delivery. | `/elian-store:design-ui` |
+| [implement](plugins/elian-store/skills/implement/) | Build new features through approval-gated TDD. | `/elian-store:implement` |
+| [fix](plugins/elian-store/skills/fix/) | Repair bugs through root-cause analysis and regression-test-first TDD. | `/elian-store:fix` |
+| [improve](plugins/elian-store/skills/improve/) | Make behavior-changing improvements with BEFORE/AFTER evidence. | `/elian-store:improve` |
+| [review](plugins/elian-store/skills/review/) | Perform read-only engineering review of code, diffs, PRs, or changed files with findings-first output. | `/elian-store:review` |
+| [verify-implementation](plugins/elian-store/skills/verify-implementation/) | Discover and run project verify-* skills before shipping. | `/elian-store:verify-implementation` |
+| [manage-skills](plugins/elian-store/skills/manage-skills/) | Detect and repair verify-skill drift after code changes. | `/elian-store:manage-skills` |
+| [generate-teammate](plugins/elian-store/skills/generate-teammate/) | Decide direct/subagent/team execution and render teammate prompts. | `/elian-store:generate-teammate` |
+| [create-document](plugins/elian-store/skills/create-document/) | Render schema-validated JSON into HTML/Markdown templates. | `/elian-store:create-document` |
+| [persona-review](plugins/elian-store/skills/persona-review/) | Review plans/docs/ideas through selected persona lenses in each persona's native style. | `/elian-store:persona-review` |
+
+### Codex Companion Tree
+
+Path: [codex/](codex/)
+
+| File | Role |
+|---|---|
+| [codex/prompts/persona-review.md](codex/prompts/persona-review.md) | Reference Codex prompt for `/persona-review`. |
+| [codex/AGENTS.md](codex/AGENTS.md) | Codex project/global instruction template. |
+| [codex/config.toml.example](codex/config.toml.example) | Safe read-only-oriented Codex config sample. |
+
+The Claude and Codex trees are intentionally independent. When behavior changes in both, update both explicitly and record parity status in [docs/claude-codex-skill-parity.md](docs/claude-codex-skill-parity.md).
+
+---
+
+## Repository Map
+
+```text
+.claude-plugin/
+  marketplace.json                 # Claude marketplace catalog
+plugins/
+  elian-store/                     # Primary Claude plugin
+    .claude-plugin/plugin.json      # Plugin metadata and version
+    agents/                         # Plugin-bundled Claude agents
+    hooks/                          # Plugin hooks
+    skills/<skill>/                 # Skill packages
+      SKILL.md
+      scripts/
+      references/
+codex/                              # Independent Codex CLI companion tree
+  prompts/
+  AGENTS.md
+  config.toml.example
+docs/                               # Architecture, parity, and roadmap docs
+```
+
+Important distinction:
+
+- `.claude-plugin/marketplace.json` is the marketplace entrypoint.
+- `plugins/elian-store/.claude-plugin/plugin.json` is the installed plugin manifest.
+- `codex/` is not part of the Claude plugin install.
+- `.claude/` is local Claude settings/state and is not the plugin source of truth.
+
+---
+
+## Where To Edit
+
+| Task | Edit |
+|---|---|
+| Change a Claude skill | `plugins/elian-store/skills/<skill>/SKILL.md` and its `references/` or `scripts/` |
+| Add a Claude skill | new `plugins/elian-store/skills/<skill>/`, then update plugin metadata, marketplace metadata, README, CHANGELOG, and parity docs |
+| Change plugin install metadata | `plugins/elian-store/.claude-plugin/plugin.json` |
+| Change marketplace catalog metadata | `.claude-plugin/marketplace.json` |
+| Change Codex prompt behavior | `codex/prompts/<command>.md` |
+| Change Codex setup guidance | `codex/README.md`, `codex/AGENTS.md`, or `codex/config.toml.example` |
+| Change portfolio roadmap | `docs/plugin-portfolio-hybrid-model.md` and `docs/gstack-skill-review.md` |
+| Change Claude/Codex parity | `docs/claude-codex-skill-parity.md` |
+
+Version rule: plugin-distributed behavior changes require updating `plugin.json`, root marketplace metadata, README, and CHANGELOG together.
+
+---
+
+## Validate
+
+There is no repository-wide numeric score gate. Use concrete checks instead: parse metadata, run the validator owned by the changed skill, and review purpose/boundaries manually.
+
+```shell
+ruby -EUTF-8 -ryaml -e 'Dir["plugins/elian-store/skills/*/SKILL.md"].sort.each { |p| s=File.read(p, encoding: "UTF-8"); YAML.safe_load(s.split(/^---\s*$/,3)[1] || "", permitted_classes: [], aliases: false); puts "OK #{p}" }'
+```
+
+When changing a skill, run that skill's self-validator when present:
+
+```shell
+python3 plugins/elian-store/skills/review/scripts/validate_skill.py
+```
+
+---
+
+## Operating Model
+
+The repo follows a hybrid model:
+
+- Anthropic-style marketplace/plugin boundary.
+- Vercel-style self-contained skill packages with scripts and references.
+- gstack-style lifecycle portfolio planning.
+
+See [docs/plugin-portfolio-hybrid-model.md](docs/plugin-portfolio-hybrid-model.md).
+
+Current high-priority gaps:
+
+1. `browser-qa` or `qa`
+2. `ship`
+3. `learn` or `retro`
+
+---
+
+## Releases
+
+Full change history: [CHANGELOG.md](CHANGELOG.md).
+
+For v1.x users:
+
 ```shell
 /plugin uninstall decision-dashboard@elian
 /plugin install elian-store@elian
 ```
 
-Invocation format change:
-```
-/decision-dashboard:decision-dashboard   →   /elian-store:decision-dashboard
-```
+The old standalone invocation changed:
 
-Natural-language invocation ("make a decision dashboard") is unchanged.
+```text
+/decision-dashboard:decision-dashboard -> /elian-store:decision-dashboard
+```
 
 ---
 
-## 📜 License
+## License
 
-MIT — see `plugins/elian-store/.claude-plugin/plugin.json`.
-
----
-
-## 🤝 Contributing / forks / maintainer guide
-
-To open a PR or run your own fork, see [`CONTRIBUTING.md`](CONTRIBUTING.md) — workflow, local validation, evaluation rubric, new-skill workflow, and branch-protection / release procedure are all there.
-
-Full change history: [`CHANGELOG.md`](CHANGELOG.md). Release notes: [Releases](https://github.com/Elian-Studio/elian-claude-plugins/releases).
+MIT. See [LICENSE](LICENSE).

@@ -205,12 +205,11 @@ Findings
 
 ## Validation
 
-Run the skill self-check and the repository gate:
+Run the skill self-check:
 
 ```bash
 python3 plugins/elian-store/skills/review/scripts/validate_skill.py
 python3 plugins/elian-store/skills/review/scripts/validate_skill.py --json
-python3 scripts/score_skill.py plugins/elian-store/skills/review/SKILL.md
 ```
 
 The validator checks frontmatter, read-only boundaries, required sections, reference links, and the findings-first contract.

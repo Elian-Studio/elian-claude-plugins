@@ -1,10 +1,8 @@
 <!--
 PR guide:
-- When SKILL.md changes, the Skill Quality Gate (90 points) runs automatically.
-- Heuristic scorer (Python stdlib only, no external API dependency) posts the result as a PR comment.
-- Below 90 = merge blocked (branch protection).
-- Rubric: scripts/rubric.md. Scorer: scripts/score_skill.py.
-- Local pre-check: `python3 scripts/score_skill.py <SKILL.md>` (zero dependencies).
+- There is no repository-wide numeric score gate.
+- When SKILL.md changes, run YAML/frontmatter smoke checks and the changed skill's own validator when present.
+- Review purpose, non-use boundary, output contract, references, and side-effect posture manually.
 -->
 
 ## Summary
@@ -25,38 +23,33 @@ PR guide:
 ### Always
 
 - [ ] Working on `feature/*` or `fix/*` branch (no direct push to `main`)
-- [ ] Single-responsibility PR (one change to one plugin)
+- [ ] Single-responsibility PR
 
 ### When SKILL.md changes
 
-- [ ] `plugin.json` `version` bumped
-- [ ] `marketplace.json` plugin entry `version` bumped (both recommended)
-- [ ] `CHANGELOG.md` updated (Added / Changed / Fixed / Removed)
-- [ ] Local score passes — `python3 scripts/score_skill.py <SKILL.md>` (≥ 90)
+- [ ] `plugin.json` `version` bumped when installed behavior changes
+- [ ] `marketplace.json` plugin entry `version` bumped when plugin version changes
+- [ ] `CHANGELOG.md` updated
+- [ ] YAML/frontmatter smoke check passed
+- [ ] Changed skill's own validator passed when present
+- [ ] Purpose, non-use boundary, output contract, and side-effect posture reviewed
 
 ### When adding a new plugin
 
 - [ ] `plugins/<name>/.claude-plugin/plugin.json` written
-- [ ] `marketplace.json` `plugins[]` updated with the new entry
+- [ ] `.claude-plugin/marketplace.json` `plugins[]` updated with the new entry
 - [ ] `README.md` plugin list updated
 - [ ] License declared (`plugin.json.license`)
 
-## Skill Quality Gate score (manual pre-check)
+## Skill Quality Notes
 
-The CI scorer posts a result automatically after PR creation. Before that, self-check expected losses by axis:
-
-- [ ] 1. Frontmatter compliance (10/10 expected)
-- [ ] 2. Description auto-invocation reliability (10/10 expected)
-- [ ] 3. Progressive disclosure (10/10 expected)
-- [ ] 4. Standing instructions (10/10 expected)
-- [ ] 5. Example completeness (10/10 expected)
-- [ ] 6. Anti-pattern / failure-mode (10/10 expected)
-- [ ] 7. Validation self-check (10/10 expected)
-- [ ] 8. Security / permission (10/10 expected)
-- [ ] 9. Generalization / portability (10/10 expected)
-- [ ] 10. Decision design / artifacts (10/10 expected)
-
-**Expected total**: ___ / 100 (≥ 90 required)
+<!--
+For skill changes, summarize:
+- why this skill should exist or why this change fits its current purpose
+- what it refuses to do
+- what validator/example/manual path proves it still works
+- whether Codex parity changed or was intentionally deferred
+-->
 
 ## Related issues / context
 

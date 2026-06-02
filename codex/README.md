@@ -1,49 +1,53 @@
-# codex/ — OpenAI Codex CLI 설정 트리
+# codex/ - OpenAI Codex CLI Companion Tree
 
-이 트리는 `plugins/` (Claude Code 마켓플레이스) 와 **완전히 독립**된, Codex CLI 용 배포 가능 설정 묶음이다.
+This tree is an independent Codex CLI distribution bundle. It is separate from the Claude Code marketplace tree under `plugins/`.
 
 | | Claude Code | Codex CLI |
 |---|---|---|
-| 진입점 | `plugins/elian-store/skills/*/SKILL.md` (YAML frontmatter) | `codex/prompts/*.md` (순수 마크다운, 파일명 = `/명령`) |
-| 프로젝트 지침 | `CLAUDE.md` + `.claude/` | `AGENTS.md` + `~/.codex/config.toml` |
-| 권한 모델 | frontmatter `allowed-tools` | `config.toml` 의 `approval_policy` / `sandbox_mode` |
-| 배포 | marketplace.json 으로 install | 사용자가 파일을 `~/.codex/` 로 복사/심볼릭 |
-| 품질 게이트 | `scripts/score_skill.py` (10축×10점) | `scripts/score_codex_prompt.py` (경량 구조 검사) |
+| Entry point | `plugins/elian-store/skills/*/SKILL.md` with YAML frontmatter | `codex/prompts/*.md`, plain Markdown, filename = slash command |
+| Project guidance | `CLAUDE.md` + `.claude/` | `AGENTS.md` + `~/.codex/config.toml` |
+| Permission model | Frontmatter `allowed-tools` | `config.toml` `approval_policy` / `sandbox_mode` |
+| Distribution | Installed through marketplace metadata | Copied or symlinked into `~/.codex/` by the user |
+| Validation | YAML/frontmatter smoke test + skill-owned validator | Prompt/config/parity review |
 
-## ⚠️ Drift 경고 (의도된 트레이드오프)
+## Drift Warning
 
-이 repo 는 **독립 2-트리** 모델을 택했다. **단일 진실원이 없다.** `codex/prompts/persona-review.md` 와 `plugins/elian-store/skills/persona-review/SKILL.md` 는 *별개 파일* 이고, 한쪽 로직을 바꾸면 다른 쪽 동기화는 **작성자 수동 책임**이다.
+This repository intentionally uses an independent two-tree model. There is no single source of truth. `codex/prompts/persona-review.md` and `plugins/elian-store/skills/persona-review/SKILL.md` are separate files. When one side changes, the author must check the other side manually.
 
-> 한쪽만 고치고 다른 쪽을 잊으면 두 도구의 동작이 갈린다. 이게 정확히 v2.5.0 에서 잡았던 "산문↔절차 drift" 버그의 트리-레벨 버전이다. PR 시 두 파일 diff 를 같이 확인하라.
+Forgetting one side can make Claude and Codex behave differently. Pull requests should inspect both diffs when a command exists in both trees.
 
-## 설치
+## Install
 
 ```bash
-# 1) 커스텀 프롬프트 (스킬 analog) — /persona-review 로 호출 가능해짐
+# 1) Custom prompts, available as slash commands in Codex
 mkdir -p ~/.codex/prompts
-rm -f ~/.codex/prompts/on-call-elian.md  # legacy command cleanup
+rm -f ~/.codex/prompts/on-call-elian.md
 cp codex/prompts/*.md ~/.codex/prompts/
 
-# 2) 프로젝트 지침 (선택) — 작업 repo 루트에 두거나 ~/.codex/AGENTS.md 로
+# 2) Optional project/global guidance
 cp codex/AGENTS.md ~/.codex/AGENTS.md
 
-# 3) 전역 설정 (선택) — 모델/승인/샌드박스 기본값
-cp codex/config.toml.example ~/.codex/config.toml   # 그 후 직접 편집
+# 3) Optional global config sample
+cp codex/config.toml.example ~/.codex/config.toml
 ```
 
-설치 후 Codex TUI 에서 `/persona-review <target> [--persona daniel|evans|dean|martin|all|comma-list|<path>] [--depth quick|deep|interview]` 로 사용.
+After installation, use this command in Codex TUI:
 
-## 구조
-
+```text
+/persona-review <target> [--persona daniel|evans|dean|martin|all|comma-list|<path>] [--depth quick|deep|interview]
 ```
+
+## Structure
+
+```text
 codex/
-  README.md            ← 이 파일
-  AGENTS.md            ← Codex 프로젝트 지침 템플릿 (Daniel standing rules)
+  README.md
+  AGENTS.md
   prompts/
-    persona-review.md  ← /persona-review 의 Codex 네이티브 포팅 (레퍼런스)
-  config.toml.example  ← ~/.codex/config.toml 샘플 (read-only 리뷰 안전 기본값)
+    persona-review.md
+  config.toml.example
 ```
 
-스킬 포팅 범위: 현재 `persona-review` 1개만 (레퍼런스). 나머지 elian-store 스킬은 패턴 검증 후 점진 추가.
+Current porting scope: `persona-review` only. Other `elian-store` skills should be added gradually after the pattern is proven.
 
-Claude/Codex catalog parity 현황과 포팅 순서는 [`../docs/claude-codex-skill-parity.md`](../docs/claude-codex-skill-parity.md) 를 기준으로 관리한다.
+Claude/Codex catalog parity status and porting order are tracked in [`../docs/claude-codex-skill-parity.md`](../docs/claude-codex-skill-parity.md).

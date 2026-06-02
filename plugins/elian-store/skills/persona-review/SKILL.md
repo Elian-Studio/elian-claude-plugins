@@ -310,7 +310,6 @@ BEFORE/AFTER 예시는 [`references/example-review.md`](references/example-revie
 
 ```bash
 python3 plugins/elian-store/skills/persona-review/scripts/validate_skill.py
-python3 scripts/score_skill.py plugins/elian-store/skills/persona-review/SKILL.md
 ```
 
 자가 검증은 다음을 확인한다.
