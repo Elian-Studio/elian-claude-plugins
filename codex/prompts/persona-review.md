@@ -159,6 +159,39 @@ If the result should move to implementation, emit a payload only:
 - More than three interview rounds.
 - Executing the handoff payload.
 
+## Output Contract
+
+Default output:
+
+```text
+Review summary
+- Persona: <persona>
+- Depth: <quick|deep|interview>
+- Recommendation: <what should happen next>
+
+Key observations
+- <observation 1>
+- <observation 2>
+
+Open questions
+- <unresolved item>
+
+Next
+- <next question or next action>
+```
+
+Handoff output:
+
+```text
+(handoff -> improve/implement/fix <target>)
+- persona: <name>
+- judgment: <one-line judgment>
+- change intent: <what should change>
+- evidence: <key evidence>
+- risks to preserve: <risks that must not be lost>
+- out of scope: <what not to do now>
+```
+
 ## Pre-Output Self-Check
 
 - [ ] Target and persona are clear.
