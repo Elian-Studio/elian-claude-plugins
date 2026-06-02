@@ -1,6 +1,6 @@
 # Claude / Codex Skill Parity Review
 
-Date: 2026-05-28
+Date: 2026-06-02
 
 ## Goal
 
@@ -36,7 +36,7 @@ A Claude skill and Codex prompt are considered aligned only when all of these ma
 | Legacy `on-call-elian` | Removed from current Claude skill catalog | Removed from current Codex prompt catalog | Aligned |
 | Validation | YAML + skill-owned validators where present | Prompt/config review | Asymmetric, manual |
 
-Current conclusion: **the two trees are not identical yet**. The name drift around `on-call-elian` is fixed, but 12 Claude skills have no Codex prompt counterpart.
+Current conclusion: **the two trees are not identical yet**. The name drift around `on-call-elian` is fixed, `persona-review` now matches on command name and output contract, but 12 Claude skills still have no Codex prompt counterpart.
 
 ## gstack Portfolio Lens
 
@@ -70,7 +70,7 @@ Do not treat these gaps as immediate parity bugs. They are roadmap gaps and shou
 | `create-document` | Deterministically render schema-validated JSON into HTML/MD templates | Good utility | This is closer to a shared script wrapper than a conversational skill. Codex parity should call the same scripts rather than duplicate rendering logic in prose. | Missing |
 | `manage-skills` | Detect and repair verify-skill drift | Good, but Claude-specific | Assumes Claude-style `.claude/skills/verify-*` maintenance. Codex mirror should define whether it maintains Codex prompts, Claude skills, or both. | Missing |
 | `verify-implementation` | Discover and run project verify-* skills before shipping | Good, but Claude-specific | Purpose is correct for projects that have verify-* skills. Codex parity needs a separate discovery rule for Codex prompt validators or explicitly keeps this as Claude-only. | Missing |
-| `persona-review` | Review plans/docs/ideas through selected persona lenses with persona-native output | Mostly aligned | Claude and Codex names now match and include the same default persona choices (`daniel`, `evans`, `dean`, `martin`, custom path). Claude now uses persona-specific subagents and free-form persona output; Codex remains a prompt-only port and should be refreshed to remove any legacy fixed-template assumptions. | Present, drift risk |
+| `persona-review` | Review plans/docs/ideas through selected persona lenses with persona-native output | Aligned | Claude and Codex now share the same command name, default persona choices (`daniel`, `evans`, `dean`, `martin`, custom path), interview mode, and free-form review contract. Claude still uses persona-specific subagents; Codex keeps the same judgment shape in-process without Claude Agent tools. | Present |
 | `review` | Read-only engineering review of code, diffs, PRs, or changed files with findings-first output | Good | New Claude skill fills the engineering review lane. Codex parity should be read-only and can preserve the same findings-first contract without Agent-based lenses unless Codex delegation exists. | Missing |
 
 ## Required Work To Make Them Identical

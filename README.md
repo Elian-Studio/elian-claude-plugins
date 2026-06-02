@@ -4,7 +4,14 @@
 [![Latest Release](https://img.shields.io/github/v/release/Elian-Studio/elian-claude-plugins?label=release)](https://github.com/Elian-Studio/elian-claude-plugins/releases)
 [![Plugin: elian-store](https://img.shields.io/badge/plugin-elian--store-blue)](plugins/elian-store/)
 
-Claude Code plugin marketplace for `elian-store`, plus a separate Codex CLI prompt/config tree.
+This repository ships `elian-store`, a Claude Code plugin marketplace bundle, plus a separate Codex CLI prompt/config tree.
+
+Start here:
+
+- Install the Claude plugin if you want the bundled skills, agents, and hooks.
+- Open [plugins/elian-store/README.md](plugins/elian-store/README.md) for the plugin-local operating guide.
+- Open [codex/README.md](codex/README.md) for the Codex companion tree.
+- Open [docs/claude-codex-skill-parity.md](docs/claude-codex-skill-parity.md) when you need the current parity state.
 
 This repo intentionally has two distribution surfaces:
 
@@ -42,6 +49,8 @@ Example:
 ```text
 /elian-store:review worktree --depth deep
 ```
+
+For the bundled plugin guide, use [plugins/elian-store/README.md](plugins/elian-store/README.md).
 
 ### Codex CLI
 
@@ -109,6 +118,7 @@ The Claude and Codex trees are intentionally independent. When behavior changes 
   marketplace.json                 # Claude marketplace catalog
 plugins/
   elian-store/                     # Primary Claude plugin
+    README.md                      # Plugin-local usage guide
     .claude-plugin/plugin.json      # Plugin metadata and version
     agents/                         # Plugin-bundled Claude agents
     hooks/                          # Plugin hooks
@@ -138,6 +148,7 @@ Important distinction:
 |---|---|
 | Change a Claude skill | `plugins/elian-store/skills/<skill>/SKILL.md` and its `references/` or `scripts/` |
 | Add a Claude skill | new `plugins/elian-store/skills/<skill>/`, then update plugin metadata, marketplace metadata, README, CHANGELOG, and parity docs |
+| Change plugin-local usage guide | `plugins/elian-store/README.md` |
 | Change plugin install metadata | `plugins/elian-store/.claude-plugin/plugin.json` |
 | Change marketplace catalog metadata | `.claude-plugin/marketplace.json` |
 | Change Codex prompt behavior | `codex/prompts/<command>.md` |
