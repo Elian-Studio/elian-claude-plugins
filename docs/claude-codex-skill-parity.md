@@ -30,13 +30,13 @@ A Claude skill and Codex prompt are considered aligned only when all of these ma
 
 | Area | Claude | Codex | Status |
 |---|---:|---:|---|
-| Catalog entries | 13 skills | 4 prompts | Not equal |
+| Catalog entries | 13 skills | 5 prompts | Not equal |
 | Command naming | `/elian-store:<skill>` | `/<prompt-file>` | Mostly alignable |
-| Current matched commands | `ai-assisted-feature-development`, `brainstorm`, `review`, `persona-review` | `ai-assisted-feature-development`, `brainstorm`, `review`, `persona-review` | Aligned |
+| Current matched commands | `ai-assisted-feature-development`, `brainstorm`, `design-ui`, `review`, `persona-review` | `ai-assisted-feature-development`, `brainstorm`, `design-ui`, `review`, `persona-review` | Aligned |
 | Legacy `on-call-elian` | Removed from current Claude skill catalog | Removed from current Codex prompt catalog | Aligned |
 | Validation | YAML + skill-owned validators where present | Prompt/config review | Asymmetric, manual |
 
-Current conclusion: **the two trees are not identical yet**. The name drift around `on-call-elian` is fixed, `ai-assisted-feature-development`, `brainstorm`, `review`, and `persona-review` now match on command name and output contract, but 9 Claude skills still have no Codex prompt counterpart.
+Current conclusion: **the two trees are not identical yet**. The name drift around `on-call-elian` is fixed, `ai-assisted-feature-development`, `brainstorm`, `design-ui`, `review`, and `persona-review` now match on command name and output contract, but 8 Claude skills still have no Codex prompt counterpart.
 
 ## gstack Portfolio Lens
 
@@ -64,7 +64,7 @@ Do not treat these gaps as immediate parity bugs. They are roadmap gaps and shou
 | `implement` | Build new features through TDD with approval gates | Good | Clear separation from `fix` and `improve`; side-effect posture is correctly non-auto. | Missing |
 | `fix` | Repair confirmed bugs with root-cause analysis and regression test first | Good | Clear exclusion of new features and improvements; matches bug-repair purpose. | Missing |
 | `improve` | Make behavior-changing improvements to working features | Good | Correctly excludes new features, bugs, and behavior-preserving refactors. | Missing |
-| `design-ui` | Produce UI/UX design artifacts through interview, reference, wireframe, gate, visual | Mostly good | Purpose is clear. Since it can write design artifacts and fetch references, Codex parity should preserve explicit gates before visual generation. | Missing |
+| `design-ui` | Produce UI/UX design artifacts through interview, reference, wireframe, gate, visual | Mostly good | Codex now shares the same brief -> reference -> wireframe -> gate -> visual flow. Keep the gate explicit and preserve the artifact set. | Present |
 | `decision-dashboard` | Turn 3+ blocking decisions into a printable decision artifact and JSON | Good | Purpose is narrow and artifact-driven. Watch the cleanup permission pattern in Claude (`rm claudedocs/*`) if expanded. | Missing |
 | `generate-teammate` | Decide direct/subagent/team execution and generate teammate/task prompts | Platform-specific | Claude can use Agent/Team tools; Codex prompt can only produce a plan unless a Codex-side delegation system exists. Same command can be mirrored, but runtime behavior cannot be identical today. | Missing |
 | `create-document` | Deterministically render schema-validated JSON into HTML/MD templates | Good utility | This is closer to a shared script wrapper than a conversational skill. Codex parity should call the same scripts rather than duplicate rendering logic in prose. | Missing |
@@ -88,11 +88,10 @@ Minimum parity work:
 
 | Order | Prompt | Reason |
 |---:|---|---|
-| 1 | `design-ui` | Artifact-generating but can be gated clearly. |
-| 2 | `implement`, `fix`, `improve` | Core code-changing trio; needs careful approval wording. |
-| 3 | `decision-dashboard`, `create-document` | Should share deterministic scripts/templates; avoid prompt-only reimplementation. |
-| 4 | `manage-skills`, `verify-implementation` | Needs a cross-tool definition of what gets verified. |
-| 5 | `generate-teammate` | Most platform-specific because Claude Agent/Team tools do not have a direct Codex equivalent here. |
+| 1 | `implement`, `fix`, `improve` | Core code-changing trio; needs careful approval wording. |
+| 2 | `decision-dashboard`, `create-document` | Should share deterministic scripts/templates; avoid prompt-only reimplementation. |
+| 3 | `manage-skills`, `verify-implementation` | Needs a cross-tool definition of what gets verified. |
+| 4 | `generate-teammate` | Most platform-specific because Claude Agent/Team tools do not have a direct Codex equivalent here. |
 
 ## Recommended New-Skill Order From gstack Review
 
@@ -108,6 +107,7 @@ Completed:
 
 - `ai-assisted-feature-development` now closes the biggest gap in the pre-implementation planning lane.
 - `brainstorm` now closes the biggest gap in the planning/discovery lane.
+- `design-ui` now closes the biggest gap in the UX design artifact lane.
 - `review` now closes the biggest gap between read-only persona critique and production-oriented engineering review.
 - `persona-review` now matches the Claude command name and the native free-form review contract.
 
