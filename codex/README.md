@@ -12,7 +12,7 @@ This tree is an independent Codex CLI distribution bundle. It is separate from t
 
 ## Drift Warning
 
-This repository intentionally uses an independent two-tree model. There is no single source of truth. `codex/prompts/persona-review.md` and `plugins/elian-store/skills/persona-review/SKILL.md` are separate files. When one side changes, the author must check the other side manually.
+This repository intentionally uses an independent two-tree model. There is no single source of truth. `codex/prompts/review.md`, `codex/prompts/persona-review.md`, and their Claude counterparts are separate files. When one side changes, the author must check the other side manually.
 
 Forgetting one side can make Claude and Codex behave differently. Pull requests should inspect both diffs when a command exists in both trees.
 
@@ -34,6 +34,7 @@ cp codex/config.toml.example ~/.codex/config.toml
 After installation, use this command in Codex TUI:
 
 ```text
+/review <target> [--depth quick|deep] [--lenses security,performance,quality,design,adversarial]
 /persona-review <target> [--persona daniel|evans|dean|martin|all|comma-list|<path>] [--depth quick|deep|interview]
 ```
 
@@ -44,10 +45,11 @@ codex/
   README.md
   AGENTS.md
   prompts/
+    review.md
     persona-review.md
   config.toml.example
 ```
 
-Current porting scope: `persona-review` only. Other `elian-store` skills should be added gradually after the pattern is proven.
+Current porting scope: `review` and `persona-review`. Other `elian-store` skills should be added gradually after the pattern is proven.
 
 Claude/Codex catalog parity status and porting order are tracked in [`../docs/claude-codex-skill-parity.md`](../docs/claude-codex-skill-parity.md).
