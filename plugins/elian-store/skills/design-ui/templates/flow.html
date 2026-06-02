@@ -1,126 +1,107 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Flow — {{FEATURE_NAME}}</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Design Flow</title>
   <style>
     :root {
-      --bg: #fafafa; --ink: #333; --ink-soft: #888;
-      --box: #ffffff; --box-line: #c4c4c4;
-      --entry: #1a7f53; --line: #888;
-      --font: ui-sans-serif, -apple-system, "Helvetica Neue", sans-serif;
+      color-scheme: light;
+      --bg: #f7f8fa;
+      --ink: #1d232b;
+      --muted: #667085;
+      --line: #cfd6df;
+      --box: #ffffff;
+      --accent: #246bfe;
     }
     * { box-sizing: border-box; }
-    body { margin: 0; padding: 32px; background: var(--bg); font: 14px/1.5 var(--font); color: var(--ink); }
-    h1 { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 24px; }
-
-    .sitemap { display: flex; flex-direction: column; gap: 0; align-items: center; max-width: 720px; margin: 0 auto; }
-
-    .page-card {
-      background: var(--box); border: 1px solid var(--box-line);
-      border-radius: 8px; padding: 16px 24px; min-width: 280px;
-      position: relative;
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.5;
     }
-    .page-card.entry { border-color: var(--entry); border-width: 2px; }
-    .page-card.entry::before {
-      content: "ENTRY"; position: absolute; top: -10px; left: 12px;
-      background: var(--entry); color: white; font-size: 10px; font-weight: 700;
-      padding: 2px 6px; border-radius: 3px; letter-spacing: 0.06em;
+    main {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 32px 20px;
     }
-    .page-card .slug { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); }
-    .page-card .name { font-size: 16px; font-weight: 600; margin: 2px 0 6px; color: var(--ink); }
-    .page-card .purpose { font-size: 13px; color: var(--ink); line-height: 1.5; }
-
-    .arrow {
-      display: flex; flex-direction: column; align-items: center;
-      margin: 8px 0; min-height: 40px;
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    .note { margin: 0 0 24px; color: var(--muted); }
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      align-items: stretch;
     }
-    .arrow .trigger {
-      font-size: 11px; padding: 2px 8px; background: white;
-      border: 1px dashed var(--line); border-radius: 12px; color: var(--ink-soft);
-      margin-bottom: 4px;
+    .page {
+      min-height: 180px;
+      border: 1px solid var(--line);
+      background: var(--box);
+      border-radius: 8px;
+      padding: 18px;
+      box-shadow: 0 1px 2px rgba(16, 24, 40, .06);
     }
-    .arrow .line {
-      width: 2px; flex: 1; background: var(--line); position: relative;
+    .page strong { display: block; font-size: 18px; }
+    .page small { display: block; color: var(--muted); margin-top: 4px; }
+    .actions { margin-top: 16px; display: grid; gap: 8px; }
+    .action {
+      border-left: 3px solid var(--accent);
+      padding-left: 10px;
+      color: var(--ink);
+      font-size: 14px;
     }
-    .arrow .line::after {
-      content: ""; position: absolute; bottom: -1px; left: -4px;
-      width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent;
-      border-top: 7px solid var(--line);
+    .return {
+      margin-top: 24px;
+      padding: 16px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      color: var(--muted);
+      background: #fff;
     }
-    .arrow.back .line::after {
-      content: ""; bottom: auto; top: -1px;
-      border-top: 0; border-bottom: 7px solid var(--line);
+    @media (max-width: 760px) {
+      .flow { grid-template-columns: 1fr; }
     }
-    .arrow.back .trigger { order: 2; margin: 4px 0 0; }
-    .arrow.back .line { order: 1; }
-
-    .branch {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 32px;
-      align-items: start; width: 100%;
-    }
-    .branch .arrow { margin-top: 0; }
-
-    .legend {
-      max-width: 720px; margin: 32px auto 0;
-      font-size: 12px; color: var(--ink-soft);
-      padding: 12px 16px; background: white;
-      border: 1px solid var(--box-line); border-radius: 6px;
-    }
-    .legend b { color: var(--ink); }
   </style>
 </head>
 <body>
-  <h1>Sitemap · {{FEATURE_NAME}} · {{TODAY}}</h1>
+  <main>
+    <h1>Page Flow</h1>
+    <p class="note">Replace labels and triggers with the signed-off design brief. Keep page IDs consistent across flow, wireframe, and visual.</p>
 
-  <!--
-    Replace this scaffold with your real pages.
-    Every page must have:
-      - .slug      (page-1, page-2, …)  matches brief.md, wireframe.html, visual.html
-      - .name      (human label)
-      - .purpose   (one-line)
-    Every transition must have:
-      - .trigger   (what user clicks)
-      - direction  (default = forward; .arrow.back for return path)
-    Mark the entry page with .page-card.entry.
-  -->
+    <section class="flow" aria-label="Page flow">
+      <article class="page" id="page-1">
+        <strong>page-1: Overview</strong>
+        <small>Entry page. User sees the state of the work and chooses a task.</small>
+        <div class="actions">
+          <div class="action">Row click -> page-2 detail</div>
+          <div class="action">Primary action -> page-3 confirm</div>
+        </div>
+      </article>
 
-  <div class="sitemap">
+      <article class="page" id="page-2">
+        <strong>page-2: Detail</strong>
+        <small>Focused inspection or edit. Receives selected item from page-1.</small>
+        <div class="actions">
+          <div class="action">Save or continue -> page-3 confirm</div>
+          <div class="action">Back -> page-1 overview</div>
+        </div>
+      </article>
 
-    <div class="page-card entry">
-      <div class="slug">page-1</div>
-      <div class="name">[Page 1 name]</div>
-      <div class="purpose">[Purpose — 한 줄]</div>
-    </div>
+      <article class="page" id="page-3">
+        <strong>page-3: Confirm</strong>
+        <small>Review, confirm, or result state. Receives selected items and decisions.</small>
+        <div class="actions">
+          <div class="action">Confirm -> result on page-3</div>
+          <div class="action">Return -> page-1 overview</div>
+        </div>
+      </article>
+    </section>
 
-    <div class="arrow">
-      <div class="trigger">[행 클릭]</div>
-      <div class="line"></div>
-    </div>
-
-    <div class="page-card">
-      <div class="slug">page-2</div>
-      <div class="name">[Page 2 name]</div>
-      <div class="purpose">[Purpose]</div>
-    </div>
-
-    <div class="arrow back">
-      <div class="line"></div>
-      <div class="trigger">[닫기] → page-1 복귀</div>
-    </div>
-
-    <div class="page-card">
-      <div class="slug">page-3</div>
-      <div class="name">[Page 3 name]</div>
-      <div class="purpose">[Purpose]</div>
-    </div>
-
-  </div>
-
-  <div class="legend">
-    <b>읽는 법:</b> 위에서 아래로 전이. 점선 캡슐은 트리거(클릭 대상).
-    <b>back</b> 표시 화살표는 entry 페이지로 돌아오는 경로 — 모든 페이지에 최소 한 개는 있어야 함.
-  </div>
+    <section class="return">
+      Every page has a return path to page-1. No dead-end page is allowed.
+    </section>
+  </main>
 </body>
 </html>

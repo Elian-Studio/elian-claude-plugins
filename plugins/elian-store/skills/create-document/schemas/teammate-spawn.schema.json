@@ -3,7 +3,7 @@
   "required": ["team_name", "phase", "teammates"],
   "properties": {
     "team_name": { "type": "string", "minLength": 3 },
-    "phase":     { "type": "string", "minLength": 3 },
+    "phase": { "type": "string", "minLength": 3 },
     "context_summary": { "type": "string", "minLength": 20 },
     "teammates": {
       "type": "array",
@@ -75,8 +75,7 @@
             "type": "string",
             "minLength": 30,
             "mustMatch": [
-              "(?i)(implement|design|review|build|refactor|verify|write|test|analyze|generate|optimize|migrate)",
-              "구현|설계|작성|검증|리뷰|구축|테스트|리팩토링|분석|생성|최적화|마이그|반영|보강"
+              "(?i)(implement|design|review|build|refactor|verify|write|test|analyze|generate|optimize|migrate|apply|strengthen)"
             ],
             "forbid": [
               "(?i)\\bhelp\\s+(build|make|do)\\b",
@@ -100,8 +99,7 @@
             "type": "string",
             "minLength": 30,
             "mustMatch": [
-              "(?i)(test|pass|verif|cover|lint|type|merge|deploy|integration|fixture|fix|gate)",
-              "테스트|통과|커버|린트|타입|머지|배포|통합|픽스처|픽스|검증|게이트"
+              "(?i)(test|pass|verif|cover|lint|type|merge|deploy|integration|fixture|fix|gate)"
             ],
             "forbid": ["TODO", "FIXME", "\\.{3,}"]
           },

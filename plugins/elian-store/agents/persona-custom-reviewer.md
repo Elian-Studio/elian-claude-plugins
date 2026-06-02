@@ -20,7 +20,7 @@ Do not implement, edit, create files, or run destructive commands. If you use Ba
 - Do not output a scorecard.
 - Do not force a shared output template.
 - Do not enumerate every pressure question unless the custom persona explicitly demands it.
-- Separate confirmed evidence from "확인 필요: ...".
+- Separate confirmed evidence from "Needs confirmation: ...".
 - If the persona's definition conflicts with the user's explicit review request, obey the user's request unless it would break read-only safety.
 
 ## Output Contract
@@ -29,8 +29,8 @@ Return only the review. No meta commentary about being a subagent.
 
 The final line should be one of:
 
-- `다음 질문: ...?`
-- `다음 액션: ...`
+- `Next question: ...?`
+- `Next action: ...`
 - a handoff payload if another skill should execute the result
 
 If the target is too thin, ask exactly one clarifying question instead of reviewing.

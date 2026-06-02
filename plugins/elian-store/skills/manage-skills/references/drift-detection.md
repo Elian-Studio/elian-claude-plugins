@@ -1,175 +1,96 @@
-# Drift Detection — 변경 ↔ 스킬 매핑 + 4종 갭 분류
+# Drift Detection
 
-manage-skills 의 핵심 알고리즘. Mode 1 (analyze) 의 Step 3-4 에 해당.
+This reference defines how `manage-skills` maps code changes to project-local `verify-*` skills.
 
----
+## Inputs
 
-## 입력
+- Changed files from `git diff`, branch diff, and recent commits.
+- Project-local `.claude/skills/verify-*/SKILL.md`.
+- Each verification skill's `Related Files`, `Workflow`, and `Exceptions` sections.
 
-- `CHANGED_FILES`: `git diff HEAD --name-only` + `git diff main...HEAD --name-only` 합집합
-- `SKILLS`: 프로젝트의 모든 `.claude/skills/verify-*/SKILL.md`
+## Mapping Algorithm
 
-## 출력
+1. Discover all local `verify-*` skills.
+2. Extract candidate file patterns from `Related Files`.
+3. Extract command patterns from `Workflow`.
+4. Compare each changed file with every candidate pattern.
+5. Mark a direct match when a file path or glob matches.
+6. Mark a weak match when a workflow command clearly inspects the changed path family.
+7. If one file maps to multiple skills, stop and ask the user which skill owns it.
+8. If no skill maps, classify the file as a coverage gap.
 
-각 변경 파일별 1개의 **갭 분류 카드**:
+## Drift Classes
 
-```
-File: src/payment/refund-policy.ts (NEW)
-Classification: COVERAGE_GAP
-Hint: verify-payment-rules 의 Related Files 가 명시 리스트 사용 — 추가 필요
-Action proposal: UPDATE-ADD
-```
+| Class | Meaning | Example |
+|---|---|---|
+| Coverage Gap | Changed file is not covered by any `verify-*` skill | New `src/i18n/` file with no i18n verifier |
+| Invalid Reference | Skill references a path that no longer exists | `Related Files` points to deleted `src/old-api/` |
+| Missing Check | Skill covers the file but does not test a new rule | New enum value is added, but verifier checks only old values |
+| Outdated Value | Skill encodes a stale constant or threshold | Validator expects max length 100 but product changed to 120 |
 
----
+## Matching Signals
 
-## 매핑 알고리즘
+Strong signals:
 
-각 SKILL.md 에서 다음을 추출:
+- Exact path match.
+- Glob match.
+- Workflow command explicitly scans the changed path.
+- The changed file imports or updates a symbol named in the skill.
 
-1. **Related Files 섹션** — 명시 경로 리스트 또는 glob 패턴
-2. **Workflow 섹션 안의 Grep / Glob 명령어** — 검사 대상 파일 패턴
-3. **Workflow 섹션 안의 직접 경로 참조** — 코드블록 안의 path
+Weak signals:
 
-이 세 개를 모아 **`SkillCoveragePattern[]`** 만든다:
+- Same directory but no explicit glob.
+- Same domain term in skill name and file name.
+- Test file names imply the same contract.
 
-```
-{
-  skill: "verify-payment-rules",
-  patterns: [
-    "src/payment/payment.service.ts",
-    "src/payment/payment.repository.ts",
-    "src/payment/**/*.test.ts"  // glob
-  ]
-}
-```
+Weak signals should produce a question, not an automatic update.
 
-각 변경 파일에 대해 모든 SkillCoveragePattern 을 순회하며 매칭:
+## Ambiguity Rules
 
-- 명시 경로: 정확 일치
-- glob: fnmatch 또는 minimatch
-- 매칭되는 스킬 0개, 1개, 2+개 별 분기
+Ask the user when:
 
----
+- Two or more skills match with similar strength.
+- A file belongs to both domain and infrastructure rules.
+- A verifier would need a new rule, not just a new path.
+- A change looks intentional but could be exempt.
 
-## 4종 갭 분류
+Question format:
 
-### 1. Coverage Gap
+```text
+This file matches multiple verify skills:
+- verify-api-contract
+- verify-business-rules
 
-**정의**: 변경 파일이 어떤 verify-* 스킬에도 매핑되지 않음.
-
-**탐지**:
-```
-for f in CHANGED_FILES:
-    matches = [s for s in SKILLS if matches_pattern(f, s.patterns)]
-    if not matches:
-        emit COVERAGE_GAP(f)
-```
-
-**Action 후보**: UPDATE-ADD (가장 가까운 스킬에 추가) 또는 CREATE (3+ 누적 시).
-
-### 2. Invalid Reference
-
-**정의**: 스킬의 Related Files / Workflow 가 **실제 존재하지 않는 파일/디렉토리** 를 참조.
-
-**탐지**:
-```
-for s in SKILLS:
-    for path in s.explicit_paths:  # 명시 경로만 (glob 제외)
-        if not file_exists(path):
-            emit INVALID_REFERENCE(s, path)
+Which skill should own the new check, or should this be exempt?
 ```
 
-**Action 후보**: UPDATE-REMOVE (stale 제거).
+## Stale Reference Detection
 
-> 주의: 변경 파일이 RENAME 됐을 가능성 — `git log --follow` 로 새 경로 추적 후 UPDATE-ADD 가 더 적절할 수 있음.
+For each path or glob in `Related Files`:
 
-### 3. Missing Check
+- Exact path must exist.
+- Glob must match at least one file.
+- Deleted paths should be proposed for removal.
+- Empty globs may be valid only when the skill explicitly says the path is optional.
 
-**정의**: 새 패턴/규칙이 코드에 도입됐지만 어떤 verify-* 스킬도 그 패턴을 검사 안 함.
+## Output Fields
 
-**탐지 (heuristic)**:
-- 변경 파일에서 새로 등장한 import, decorator, 함수 호출, naming 컨벤션 추출
-- 같은 패턴이 3+ 파일에 등장하면 후보
-- 어떤 verify-* 의 Workflow Grep 도 그 패턴을 검사 안 하면 MISSING_CHECK
+Each drift row should include:
 
-**Action 후보**: UPDATE (기존 스킬에 새 Workflow 단계 추가) 또는 CREATE.
+- `changed_file`
+- `matching_skills`
+- `drift_class`
+- `proposed_action`
+- `confidence`
+- `question` when ambiguous
 
-### 4. Outdated Value
+Example:
 
-**정의**: 스킬의 Workflow Grep/Glob 패턴이 코드 변경으로 더 이상 매칭 안 됨.
-
-**탐지**:
+```text
+changed_file: src/features/messages/i18n/en.json
+matching_skills: []
+drift_class: Coverage Gap
+proposed_action: CREATE verify-i18n or UPDATE existing language verifier
+confidence: medium
+question: Should this project have a dedicated verify-i18n skill?
 ```
-for s in SKILLS:
-    for cmd in s.workflow_commands:
-        if cmd.is_grep_or_glob:
-            result = execute(cmd)  # dry-run
-            if result.empty and was_non_empty_at_last_commit:
-                emit OUTDATED_VALUE(s, cmd)
-```
-
-**Action 후보**: UPDATE (Grep/Glob 패턴 갱신).
-
----
-
-## 매칭 신뢰도 (선택)
-
-각 매칭에 0.0~1.0 신뢰도 부여 (사용자 결정 보조용):
-
-| 신호 | 신뢰도 |
-|------|------|
-| 명시 경로 정확 일치 | 1.0 |
-| glob 명확 매칭 (`src/auth/**`) | 0.9 |
-| 디렉토리만 매칭 (`src/auth/` 일부) | 0.6 |
-| 확장자만 매칭 (`*.ts`) | 0.3 |
-| 명명 규칙만 매칭 (`use*.ts`) | 0.4 |
-
-신뢰도 < 0.5 인 매칭은 사용자 질문 (다중 매칭 또는 모호 케이스).
-
----
-
-## 면제 규칙 (drift 검사 대상에서 제외)
-
-다음은 변경됐어도 갭 분석 안 함:
-
-- Lock files (`*.lock`, `package-lock.json` 등)
-- Generated (`dist/**`, `build/**`, `*.generated.*`)
-- Test fixtures (`**/fixtures/**`)
-- Vendor (`vendor/**`, `node_modules/**`)
-- CLAUDE.md 자체
-
-면제된 변경은 보고서의 "면제된 변경" 섹션에 카운트만 남김.
-
----
-
-## 의사 코드
-
-```python
-def detect_drift(changed_files, skills):
-    gaps = []
-    for f in changed_files:
-        if is_exempt(f):
-            continue
-        matches = [s for s in skills if matches_pattern(f, s.patterns)]
-        if not matches:
-            gaps.append(("COVERAGE_GAP", f, hint(f)))
-        elif len(matches) > 1:
-            gaps.append(("AMBIGUOUS", f, matches))
-
-    for s in skills:
-        for path in s.explicit_paths:
-            if not file_exists(path):
-                gaps.append(("INVALID_REFERENCE", s, path))
-        for cmd in s.workflow_commands:
-            if cmd.is_grep_or_glob and dry_run_empty(cmd):
-                gaps.append(("OUTDATED_VALUE", s, cmd))
-
-    new_patterns = extract_new_patterns(changed_files)
-    for pat in new_patterns:
-        if not any(s.checks(pat) for s in skills) and pat.count >= 3:
-            gaps.append(("MISSING_CHECK", pat))
-
-    return gaps
-```
-
-실제 구현은 manage-skills 가 Claude 에이전트 워크플로우로 실행 — 위 로직을 코드로 자동화하지 않고 reasoning + tool use 로 수행.

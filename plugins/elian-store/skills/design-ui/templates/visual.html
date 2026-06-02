@@ -1,352 +1,318 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{{FEATURE_NAME}}</title>
-
-  <!--
-    Visual stage. Replace token values below with the system you chose.
-    Do NOT keep Inter / Roboto / Arial / system-ui as fallback families.
-    Pick a real display font + body font pair before shipping.
-  -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="stylesheet" href="{{FONT_HREF}}" />
-
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Visual Prototype</title>
   <style>
     :root {
-      /* === Typography === */
-      --font-display: {{FONT_DISPLAY}};
-      --font-body:    {{FONT_BODY}};
-      --fs-body:   16px;   /* baseline — do not drop below 16 */
-      --fs-small:  14px;
-      --fs-h3:     20px;
-      --fs-h2:     28px;
-      --fs-h1:     40px;
-      --lh-tight:  1.2;
-      --lh-body:   1.6;
-      --measure:   65ch;   /* line length — keep 45–75ch */
-
-      /* === Color === */
-      --ink:        {{COLOR_INK}};
-      --ink-soft:   {{COLOR_INK_SOFT}};
-      --bg:         {{COLOR_BG}};
-      --bg-elev:    {{COLOR_BG_ELEV}};
-      --accent:     {{COLOR_ACCENT}};
-      --accent-ink: {{COLOR_ACCENT_INK}};
-      --line:       {{COLOR_LINE}};
-      --danger:     {{COLOR_DANGER}};
-      --success:    {{COLOR_SUCCESS}};
-
-      /* === Space (8-base) === */
-      --sp-1: 4px; --sp-2: 8px; --sp-3: 12px;
-      --sp-4: 16px; --sp-5: 24px; --sp-6: 32px;
-      --sp-7: 48px; --sp-8: 64px;
-
-      /* === Radius + motion === */
-      --r-sm: 4px; --r-md: 8px; --r-lg: 16px;
-      --easing: cubic-bezier(.2,.7,.2,1);
-      --dur-fast: 120ms;
-      --dur-base: 180ms;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --ink: #17202a;
+      --muted: #64748b;
+      --line: #d7dee8;
+      --primary: #1263d8;
+      --primary-ink: #ffffff;
+      --accent: #0f766e;
+      --danger: #b42318;
+      --shadow: 0 8px 28px rgba(15, 23, 42, .10);
+      --radius: 8px;
     }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { animation: none !important; transition: none !important; }
-    }
-
     * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; }
     body {
+      margin: 0;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: var(--bg);
       color: var(--ink);
-      font-family: var(--font-body);
-      font-size: var(--fs-body);
-      line-height: var(--lh-body);
-      -webkit-font-smoothing: antialiased;
+      line-height: 1.5;
     }
-
-    h1, h2, h3 {
-      font-family: var(--font-display);
-      line-height: var(--lh-tight);
-      margin: 0 0 var(--sp-3);
-      color: var(--ink);
-    }
-    h1 { font-size: var(--fs-h1); }
-    h2 { font-size: var(--fs-h2); }
-    h3 { font-size: var(--fs-h3); }
-    p  { max-width: var(--measure); margin: 0 0 var(--sp-4); }
-
-    a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
-    a:focus-visible, button:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 3px;
-      border-radius: var(--r-sm);
-    }
-
-    .container { max-width: 1200px; margin: 0 auto; padding: var(--sp-5); }
-
-    /* === Buttons — 44×44 minimum hit area === */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+    button, select {
+      font: inherit;
       min-height: 44px;
-      min-width: 44px;
-      padding: var(--sp-3) var(--sp-5);
-      border-radius: var(--r-md);
-      font: 600 var(--fs-body)/1 var(--font-body);
-      border: 1px solid transparent;
-      cursor: pointer;
-      transition: transform var(--dur-fast) var(--easing), background var(--dur-fast) var(--easing);
     }
-    .btn-primary   { background: var(--accent); color: var(--accent-ink); }
-    .btn-primary:hover { transform: translateY(-1px); }
-    .btn-secondary { background: var(--bg-elev); color: var(--ink); border-color: var(--line); }
-
-    /* === Cards / surfaces === */
-    .card {
-      background: var(--bg-elev);
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      background: rgba(255, 255, 255, .94);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(12px);
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    select, .btn {
       border: 1px solid var(--line);
-      border-radius: var(--r-lg);
-      padding: var(--sp-5);
+      border-radius: var(--radius);
+      background: #fff;
+      color: var(--ink);
+      padding: 8px 12px;
     }
-
-    /* === Layout grid === */
-    .grid-12 { display: grid; grid-template-columns: repeat(12, 1fr); gap: var(--sp-5); }
-    .span-8 { grid-column: span 8; }
-    .span-4 { grid-column: span 4; }
-    @media (max-width: 768px) {
-      .grid-12 > * { grid-column: span 12; }
+    .btn {
+      cursor: pointer;
     }
-
-    /* === States: default / empty / loading / error ===
-       Wired to <body data-state="..."> via #state-switch handler.
-       Mark default content with .state-default and each variant with the
-       matching class; only the active state is displayed. */
-    .state-default, .state-empty, .state-loading, .state-error { display: none; }
-    body[data-state="default"] .state-default { display: block; }
-    body[data-state="empty"]   .state-empty   { display: block; }
-    body[data-state="loading"] .state-loading { display: block; }
-    body[data-state="error"]   .state-error   { display: block; }
-
-    .state-empty,
-    .state-loading,
-    .state-error {
-      padding: var(--sp-6);
-      text-align: center;
-      border: 1px dashed var(--line);
-      border-radius: var(--r-md);
-      color: var(--ink-soft);
+    .btn.primary {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: var(--primary-ink);
     }
-    .state-error { color: var(--danger); border-color: var(--danger); }
-    .skeleton {
-      height: 1em;
-      background: linear-gradient(90deg, var(--bg-elev), var(--line), var(--bg-elev));
-      background-size: 200% 100%;
-      animation: shimmer 1.4s linear infinite;
-      border-radius: var(--r-sm);
+    .btn.ghost {
+      background: transparent;
     }
-    @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
-
-    /* === Multi-page hash routing === */
+    main {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 24px 18px 72px;
+    }
     .page-mock { display: none; }
     .page-mock.active { display: block; }
-
-    .proto-banner {
-      background: #fff8db; border-bottom: 1px solid #e4d27a;
-      padding: 8px var(--sp-5); font-size: 13px; color: #6b5400;
-      display: flex; justify-content: space-between; align-items: center; gap: var(--sp-4);
-      position: sticky; top: 0; z-index: 50;
+    .hero {
+      display: grid;
+      grid-template-columns: 1.4fr .8fr;
+      gap: 18px;
+      align-items: stretch;
+      margin-bottom: 18px;
     }
-    .proto-banner b { font-weight: 600; }
-    .proto-controls { display: flex; gap: 12px; align-items: center; }
-    .proto-controls label { font-size: 12px; color: var(--ink-soft); }
-    .proto-controls select {
-      font: 500 12px var(--font-body); padding: 4px 8px;
-      border: 1px solid var(--line); border-radius: var(--r-sm); background: white;
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+    h1, h2, h3 { margin: 0; }
+    h1 { font-size: 30px; line-height: 1.2; }
+    h2 { font-size: 24px; line-height: 1.25; margin-bottom: 8px; }
+    h3 { font-size: 18px; margin-bottom: 8px; }
+    p { margin: 8px 0 0; color: var(--muted); }
+    .metric {
+      display: grid;
+      gap: 4px;
+    }
+    .metric strong {
+      font-size: 30px;
+      color: var(--ink);
+    }
+    .list {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      cursor: pointer;
+    }
+    .row:hover { border-color: var(--primary); }
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: #ecfdf5;
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .danger { color: var(--danger); }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+    .state-box {
+      margin-top: 16px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+      min-height: 128px;
+    }
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      display: none;
+      padding: 12px 14px;
+      border-radius: var(--radius);
+      background: var(--ink);
+      color: #fff;
+      box-shadow: var(--shadow);
+    }
+    .toast.show { display: block; }
+    :focus-visible {
+      outline: 3px solid #93c5fd;
+      outline-offset: 2px;
+    }
+    @media (max-width: 760px) {
+      .hero { grid-template-columns: 1fr; }
+      .row { grid-template-columns: 1fr; }
     }
   </style>
 </head>
-<body data-state="default">
-
-  <div class="proto-banner">
-    <span><b>프로토타입 모드</b> · <span id="proto-current">page-1</span></span>
-    <span class="proto-controls">
-      <label for="page-jump">Jump to:</label>
-      <!-- Options are generated at load time from .page-mock[id] in the DOM,
-           so any number of pages (1–5) stays in sync without hand-editing. -->
-      <select id="page-jump"></select>
-      <label for="state-switch">State:</label>
-      <select id="state-switch">
-        <option value="default">default</option>
-        <option value="empty">empty</option>
-        <option value="loading">loading</option>
-        <option value="error">error</option>
-      </select>
-    </span>
+<body>
+  <div class="topbar">
+    <strong>Prototype mode</strong>
+    <div class="controls">
+      <label>Page
+        <select id="pageSelect">
+          <option value="page-1">page-1 Overview</option>
+          <option value="page-2">page-2 Detail</option>
+          <option value="page-3">page-3 Confirm</option>
+        </select>
+      </label>
+      <label>State
+        <select id="stateSelect">
+          <option value="default">default</option>
+          <option value="empty">empty</option>
+          <option value="loading">loading</option>
+          <option value="error">error</option>
+        </select>
+      </label>
+    </div>
   </div>
 
-  <!-- ══════════ PAGE 1 ══════════ -->
-  <section class="page-mock active" id="page-1">
-    <main class="container">
-
-    <header style="display:flex; align-items:center; justify-content:space-between; margin-bottom: var(--sp-6);">
-      <strong style="font-family: var(--font-display); font-size: var(--fs-h3);">{{APP_NAME}}</strong>
-      <nav style="display:flex; gap: var(--sp-4);">
-        <a href="#">Item A</a>
-        <a href="#">Item B</a>
-        <a href="#">Item C</a>
-      </nav>
-    </header>
-
-    <section style="margin-bottom: var(--sp-7);">
-      <h1>{{PAGE_TITLE}}</h1>
-      <p>{{PAGE_SUBTITLE}}</p>
-      <button class="btn btn-primary">{{PRIMARY_CTA}}</button>
+  <main>
+    <section class="page-mock" id="page-1">
+      <div class="hero">
+        <div class="panel">
+          <h1>Overview</h1>
+          <p>Entry page for scanning work, selecting an item, and starting the primary task.</p>
+          <div class="actions">
+            <button class="btn primary" data-go="page-3">Start primary action</button>
+            <button class="btn ghost" id="toggleMask">Toggle masking</button>
+          </div>
+        </div>
+        <div class="panel metric">
+          <span>Selected items</span>
+          <strong id="selectedCount">0</strong>
+          <span class="badge">Ready</span>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Work Area</h2>
+        <div class="state-box" data-state-area="page-1"></div>
+        <div class="list" id="workList">
+          <button class="row" data-select="Alpha case" data-go="page-2">
+            <span><strong>Alpha case</strong><br><small>Click to inspect detail.</small></span>
+            <span class="badge">Open</span>
+          </button>
+          <button class="row" data-select="Beta case" data-go="page-2">
+            <span><strong>Beta case</strong><br><small>Click to inspect detail.</small></span>
+            <span class="badge">Open</span>
+          </button>
+        </div>
+      </div>
     </section>
 
-    <section class="grid-12" style="margin-bottom: var(--sp-7);">
-      <article class="card span-8">
-        <h2>{{PRIMARY_SECTION_TITLE}}</h2>
-
-        <!-- Four siblings, one per state. Body[data-state] toggles visibility.
-             Use the State control in the proto-banner to exercise each one. -->
-        <div class="state-default">
-          <p>{{PRIMARY_SECTION_BODY}}</p>
+    <section class="page-mock" id="page-2">
+      <div class="panel">
+        <h1>Detail</h1>
+        <p>Selected item: <strong id="selectedName">None selected</strong></p>
+        <div class="state-box" data-state-area="page-2"></div>
+        <div class="actions">
+          <button class="btn ghost" data-go="page-1">Back to overview</button>
+          <button class="btn primary" data-go="page-3">Continue to confirm</button>
         </div>
-
-        <div class="state-loading" aria-busy="true" aria-live="polite">
-          <div class="skeleton" style="width: 60%; margin: 0 auto var(--sp-3);"></div>
-          <div class="skeleton" style="width: 40%; margin: 0 auto;"></div>
-        </div>
-
-        <div class="state-empty">{{EMPTY_MESSAGE}}</div>
-        <div class="state-error" role="alert">{{ERROR_MESSAGE}}</div>
-      </article>
-
-      <aside class="card span-4">
-        <h3>{{SIDEBAR_TITLE}}</h3>
-        <p>{{SIDEBAR_BODY}}</p>
-      </aside>
+      </div>
     </section>
 
-    </main>
-  </section>
-
-  <!-- ══════════ PAGE 2 ══════════ -->
-  <section class="page-mock" id="page-2">
-    <main class="container">
-      <header style="display:flex; align-items:center; gap: var(--sp-4); margin-bottom: var(--sp-6);">
-        <a href="#page-1" class="btn btn-secondary" aria-label="page-1로 돌아가기">← 돌아가기</a>
-        <h1 style="margin:0;">{{PAGE_2_TITLE}}</h1>
-      </header>
-      <section class="card">
-        <h2>{{PAGE_2_BODY_TITLE}}</h2>
-        <p>{{PAGE_2_BODY}}</p>
-        <!-- page-1에서 받은 state를 여기서 렌더 (JS에서 주입) -->
-        <div id="page-2-from-state"></div>
-      </section>
-      <div style="display:flex; gap: var(--sp-3); margin-top: var(--sp-5);">
-        <button class="btn btn-primary" id="page-2-confirm">{{PAGE_2_CONFIRM_CTA}}</button>
-        <a href="#page-1" class="btn btn-secondary">취소</a>
+    <section class="page-mock" id="page-3">
+      <div class="panel">
+        <h1>Confirm</h1>
+        <p>Review the selected state before committing the action.</p>
+        <div class="state-box" data-state-area="page-3"></div>
+        <div class="actions">
+          <button class="btn primary" id="confirmBtn">Confirm</button>
+          <button class="btn ghost" data-go="page-1">Return to overview</button>
+        </div>
       </div>
-    </main>
-  </section>
+    </section>
+  </main>
 
-  <!-- ══════════ PAGE 3 ══════════
-       Default scaffold matches flow.html and the brief template, which both
-       reserve a 3rd page. Delete this entire <section> if your flow only has
-       two pages — the dynamic jump control and routing will adapt. -->
-  <section class="page-mock" id="page-3">
-    <main class="container">
-      <header style="display:flex; align-items:center; gap: var(--sp-4); margin-bottom: var(--sp-6);">
-        <a href="#page-1" class="btn btn-secondary" aria-label="page-1로 돌아가기">← 돌아가기</a>
-        <h1 style="margin:0;">{{PAGE_3_TITLE}}</h1>
-      </header>
-      <section class="card">
-        <h2>{{PAGE_3_BODY_TITLE}}</h2>
-        <p>{{PAGE_3_BODY}}</p>
-      </section>
-      <div style="display:flex; gap: var(--sp-3); margin-top: var(--sp-5);">
-        <a href="#page-1" class="btn btn-secondary">page-1로</a>
-        <a href="#page-2" class="btn btn-secondary">page-2로</a>
-      </div>
-    </main>
-  </section>
+  <div class="toast" id="toast" role="status" aria-live="polite">Confirmed</div>
 
   <script>
-    // ============================================================
-    // Hash routing — single-file multi-page prototype
-    // Pages: any number of <section class="page-mock" id="page-N">.
-    // Jump control and routing both adapt to the pages that actually exist.
-    // ============================================================
-    const sharedState = {
-      // Put cross-page state here. Example: selectedItems: new Set(),
+    const state = {
+      selectedName: '',
+      selectedCount: 0,
+      masked: false,
+      viewState: 'default'
     };
 
-    function getPages() {
-      return Array.from(document.querySelectorAll('.page-mock'));
+    const pages = ['page-1', 'page-2', 'page-3'];
+    const pageSelect = document.getElementById('pageSelect');
+    const stateSelect = document.getElementById('stateSelect');
+    const selectedName = document.getElementById('selectedName');
+    const selectedCount = document.getElementById('selectedCount');
+    const toast = document.getElementById('toast');
+
+    function renderStateBox(area) {
+      const value = state.viewState;
+      if (value === 'loading') return '<strong>Loading</strong><p>Fetching current data...</p>';
+      if (value === 'empty') return '<strong>No items</strong><p>There is nothing to act on right now.</p>';
+      if (value === 'error') return '<strong class="danger">Error</strong><p>Data could not be loaded. Retry remains available.</p>';
+      return '<strong>Default state</strong><p>Primary content is available and ready for action.</p>';
     }
 
-    function buildJumpControl() {
-      const sel = document.getElementById('page-jump');
-      if (!sel) return;
-      sel.innerHTML = '';
-      getPages().forEach((p, i) => {
-        const opt = document.createElement('option');
-        opt.value = p.id;
-        opt.textContent = i === 0 ? `${p.id} (Entry)` : p.id;
-        sel.appendChild(opt);
+    function showPage(id) {
+      const page = pages.includes(id) ? id : 'page-1';
+      document.querySelectorAll('.page-mock').forEach(el => el.classList.toggle('active', el.id === page));
+      pageSelect.value = page;
+      if (location.hash !== '#' + page) location.hash = page;
+      render();
+    }
+
+    function render() {
+      selectedName.textContent = state.selectedName || 'None selected';
+      selectedCount.textContent = String(state.selectedCount);
+      document.querySelectorAll('[data-state-area]').forEach(el => {
+        el.innerHTML = renderStateBox(el.dataset.stateArea);
       });
+      document.body.dataset.masked = state.masked ? 'true' : 'false';
     }
 
-    function routeToHash() {
-      const pages = getPages();
-      if (pages.length === 0) return;
-      const hash = (location.hash || '').replace('#', '');
-      const found = pages.find(p => p.id === hash);
-      const active = found || pages[0]; // unknown / empty hash → entry
-      pages.forEach(p => p.classList.toggle('active', p === active));
-
-      const sel = document.getElementById('page-jump');
-      if (sel) sel.value = active.id;
-      const cur = document.getElementById('proto-current');
-      if (cur) cur.textContent = active.id;
-
-      if (!found && hash) {
-        console.warn(`[prototype] Unknown page hash: #${hash} — fell back to ${active.id}`);
-        // Normalize URL so the back button doesn't keep replaying a bad hash.
-        history.replaceState(null, '', '#' + active.id);
+    document.addEventListener('click', (event) => {
+      const target = event.target.closest('[data-go], [data-select], #toggleMask, #confirmBtn');
+      if (!target) return;
+      if (target.dataset.select) {
+        state.selectedName = target.dataset.select;
+        state.selectedCount = 1;
       }
-      window.scrollTo(0, 0);
-      // Optional: hydrate page-N from sharedState here
-    }
-
-    function applyState(state) {
-      const valid = ['default', 'empty', 'loading', 'error'];
-      const next = valid.includes(state) ? state : 'default';
-      document.body.dataset.state = next;
-      const sel = document.getElementById('state-switch');
-      if (sel) sel.value = next;
-    }
-
-    // Wire-up
-    buildJumpControl();
-    window.addEventListener('hashchange', routeToHash);
-    document.getElementById('page-jump')?.addEventListener('change', (e) => {
-      location.hash = '#' + e.target.value;
+      if (target.id === 'toggleMask') {
+        state.masked = !state.masked;
+        target.textContent = state.masked ? 'Masking on' : 'Toggle masking';
+      }
+      if (target.id === 'confirmBtn') {
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 1600);
+      }
+      if (target.dataset.go) showPage(target.dataset.go);
+      render();
     });
-    document.getElementById('state-switch')?.addEventListener('change', (e) => {
-      applyState(e.target.value);
-    });
-    routeToHash();
-    applyState('default');
 
-    // Per-page action handlers go here. Use location.hash = '#page-N' to navigate.
-    document.getElementById('page-2-confirm')?.addEventListener('click', () => {
-      // perform action, then return to entry
-      location.hash = '#page-1';
+    pageSelect.addEventListener('change', () => showPage(pageSelect.value));
+    stateSelect.addEventListener('change', () => {
+      state.viewState = stateSelect.value;
+      render();
     });
+    window.addEventListener('hashchange', () => showPage(location.hash.replace('#', '')));
+    showPage(location.hash.replace('#', '') || 'page-1');
   </script>
 </body>
 </html>

@@ -80,7 +80,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 #### BREAKING — `/on-call-elian` renamed to `/persona-review`
 
-User feedback flagged that `on-call-elian` is too company-specific for a persona-library skill, and that the default persona's `Identity` section (의료/Vue3/Java/Kubernetes) is environment metadata, not persona essence. The 8 pressure questions are the essence — environment-agnostic. This release reshapes the skill around a **persona library** with multiple thinkers' lenses, not a single fixed Daniel persona.
+User feedback flagged that `on-call-elian` is too company-specific for a persona-library skill, and that the default persona's `Identity` section (healthcare/Vue 3/Java/Kubernetes) is environment metadata, not persona essence. The 8 pressure questions are the essence — environment-agnostic. This release reshapes the skill around a **persona library** with multiple thinkers' lenses, not a single fixed Daniel persona.
 
 Migration:
 - Slash command `/on-call-elian` → `/persona-review`
@@ -88,13 +88,13 @@ Migration:
 - Env var `${ON_CALL_ELIAN_DEFAULT}` → `${PERSONA_REVIEW_DEFAULT}`
 - Env var `${ON_CALL_ELIAN_DEPTH}` → `${PERSONA_REVIEW_DEPTH}`
 - Persona file `references/persona-daniel.md` → `references/personas/daniel.md`
-- Trigger phrases: replace `'/on-call-elian'` with `'/persona-review'`; add persona-specific phrases like `'에반스로 도메인 점검'`, `'딘 시각으로 스케일 압박'`, `'마틴으로 클린코드 점검'`
+- Trigger phrases: replace `'/on-call-elian'` with `'/persona-review'`; add persona-specific English phrases such as `'Evans domain review'`, `'Dean scale review'`, and `'Martin clean-code review'`.
 
 #### Added
-- **`/ai-assisted-feature-development`** — disciplined 9-phase feature-development methodology skill at `plugins/elian-store/skills/ai-assisted-feature-development/`. Phases: Feature Framing → BDD → SDD → DDD (필요 시) → AI-TDD → Context Engineering → Agentic Coding → Review → SPDD Archive. Modes: `full` (all 9), `design-only` (1-5), `task-only` (6-7), `review-only` (8). Risk-gated depth (LOW/MEDIUM/HIGH). 8 references: master-prompt, stage-prompts (9 per-phase prompts), login-example, other-feature-examples (file-upload / order-cancel / post-create / search / notification / permissions / signup), artifact-structure, definition-of-done (11 DoD items + 10 merge-block conditions), anti-patterns (10 vibe-coding anti-patterns), quick-start. Applies to any feature — login is one example, not the scope.
+- **`/ai-assisted-feature-development`** — disciplined 9-phase feature-development methodology skill at `plugins/elian-store/skills/ai-assisted-feature-development/`. Phases: Feature Framing -> BDD -> SDD -> DDD (when needed) -> AI-TDD -> Context Engineering -> Agentic Coding -> Review -> SPDD Archive. Modes: `full` (all 9), `design-only` (1-5), `task-only` (6-7), `review-only` (8). Risk-gated depth (LOW/MEDIUM/HIGH). 8 references: master-prompt, stage-prompts (9 per-phase prompts), login-example, other-feature-examples (file-upload / order-cancel / post-create / search / notification / permissions / signup), artifact-structure, definition-of-done (11 DoD items + 10 merge-block conditions), anti-patterns (10 vibe-coding anti-patterns), quick-start. Applies to any feature — login is one example, not the scope.
 - **`/persona-review`** — persona library skill at `plugins/elian-store/skills/persona-review/`. Default `daniel` (operational mindset). Library: `daniel.md`, `evans.md` (DDD), `dean.md` (distributed-scale), `martin.md` (Clean Code/SOLID/TDD). All four follow the same 7-section structure (Voice / Hard Rules / Decision Heuristics / Priorities / Forbidden / Pressure Questions / Blind Spots). Identity section is now **optional** (only when domain/stack genuinely changes the pressure axis).
 - **Persona matching guide** in SKILL.md: which situation → which persona. Phase 0 of the workflow recommends a persona based on the target file path / diff pattern.
-- **Custom persona authoring guide** simplified — 7 required sections, Identity demoted to optional with explicit "Vue 개발자·의료 도메인 같은 환경 정보는 페르소나가 아니다" guidance.
+- **Custom persona authoring guide** simplified — 7 required sections, Identity demoted to optional with explicit "environment metadata such as Vue developer or healthcare domain is not persona essence" guidance.
 
 #### Changed
 - `validate_skill.py`: recognizes both `references/personas/*.md` (new layout) and `references/persona-*.md` (legacy) so persona files can live either way. 5-block contract check accepts Korean + English header variants.
@@ -150,7 +150,7 @@ Not a plugin release. `codex/` is a sibling distributable tree, independent of t
 
 #### Changed
 - `.gitignore`: Codex per-developer state (`.codex/`, `codex/config.toml`) + gate artifacts.
-- `CONTRIBUTING.md`: new "Claude vs Codex — 어디를 수정하나" section + directory tree; `README.md`: Codex CLI section.
+- `CONTRIBUTING.md`: new "Claude vs Codex — where to edit" section + directory tree; `README.md`: Codex CLI section.
 
 #### Notes
 - **No single source of truth.** `codex/prompts/on-call-elian.md` and `plugins/elian-store/skills/on-call-elian/SKILL.md` are separate files; cross-tree sync is a manual PR-author responsibility. This is the intentional cost of the independent-tree model.
@@ -162,8 +162,8 @@ Not a plugin release. `codex/` is a sibling distributable tree, independent of t
 
 #### Added
 - **`/on-call-elian` — `--depth interview` mode** (new option, MINOR):
-  - **Phase 4.5 convergence loop**: instead of a one-shot 5-block review, picks the 1–2 weakest points (압박 질문 `✗` > `△` > "상황에 따라 다름" branch var), re-interviews via `AskUserQuestion`, and re-emits the full 5 blocks. Terminates on any of: 결론 becomes 단정 / no `✗` left / user stops / **3-round hard cap** (infinite-loop guard). Round counter shown as `(interview R{n}/3)`.
-  - **Phase 5 handoff payload**: once converged, emits a ready-to-run `/improve` invocation + context block (결론 / 채택 옵션 / 잔여 리스크 / In·Out). **Emit-only** — on-call-elian never calls `/improve` itself, preserving the read-only axiom.
+  - **Phase 4.5 convergence loop**: instead of a one-shot 5-block review, picks the 1–2 weakest points (pressure question failure > partial concern > context-dependent branch variable), re-interviews via `AskUserQuestion`, and re-emits the full 5 blocks. Terminates when the conclusion becomes firm, no blocking concern remains, the user stops, or the **3-round hard cap** is reached. Round counter shown as `(interview R{n}/3)`.
+  - **Phase 5 handoff payload**: once converged, emits a ready-to-run `/improve` invocation + context block (conclusion / selected option / residual risk / in-out scope). **Emit-only** — on-call-elian never calls `/improve` itself, preserving the read-only axiom.
 - `references/example-review.md`: Example 3 (interview 1-round → converge → handoff).
 
 #### Changed
@@ -181,7 +181,7 @@ Not a plugin release. `codex/` is a sibling distributable tree, independent of t
 
 #### Added
 - **New skill** in `elian-store`:
-  - `/on-call-elian` — Review a plan/design/document through a fixed persona lens (default `daniel`) with a **locked 5-block OUTPUT FORMAT** (결론 → 트레이드오프 표 → 운영 리스크 → 8가지 압박 질문 → 다음 질문). Read-only. Pairs with `/brainstorm` (발산) as the 수렴 압박 step. Persona body in `references/persona-daniel.md`; custom personas via `--persona <path>` or `${ON_CALL_ELIAN_DEFAULT}`. Self-contained, gate 98/100.
+  - `/on-call-elian` — Review a plan/design/document through a fixed persona lens (default `daniel`) with a **locked 5-block OUTPUT FORMAT** (conclusion -> trade-off table -> operational risks -> 8 pressure questions -> next question). Read-only. Pairs with `/brainstorm` as the divergent-input step followed by convergence pressure. Persona body in `references/persona-daniel.md`; custom personas via `--persona <path>` or `${ON_CALL_ELIAN_DEFAULT}`. Self-contained, gate 98/100.
 
 #### Changed
 - Marketplace and plugin descriptions updated to mention `/on-call-elian`.

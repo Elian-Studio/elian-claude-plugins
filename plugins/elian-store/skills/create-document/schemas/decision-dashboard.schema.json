@@ -2,10 +2,10 @@
   "type": "object",
   "required": ["issue", "branch", "date", "title", "subtitle", "priority_groups"],
   "properties": {
-    "issue":    { "type": "string", "minLength": 1 },
-    "branch":   { "type": "string", "minLength": 1 },
-    "date":     { "type": "string", "minLength": 1 },
-    "title":    { "type": "string", "minLength": 1 },
+    "issue": { "type": "string", "minLength": 1 },
+    "branch": { "type": "string", "minLength": 1 },
+    "date": { "type": "string", "minLength": 1 },
+    "title": { "type": "string", "minLength": 1 },
     "subtitle": { "type": "string", "minLength": 1 },
     "priority_groups": {
       "type": "array",
@@ -16,7 +16,7 @@
         "required": ["priority", "label", "cards"],
         "properties": {
           "priority": { "type": "string", "enum": ["p0", "p1", "p2"] },
-          "label":    { "type": "string", "minLength": 3 },
+          "label": { "type": "string", "minLength": 3 },
           "cards": {
             "type": "array",
             "minItems": 1,
@@ -24,8 +24,8 @@
               "type": "object",
               "required": ["card_id", "num", "title", "background", "judgment_question", "options"],
               "properties": {
-                "card_id":    { "type": "string", "pattern": "^c[0-9]+$" },
-                "num":        { "type": "number" },
+                "card_id": { "type": "string", "pattern": "^c[0-9]+$" },
+                "num": { "type": "number" },
                 "open_class": { "type": "string", "enum": ["", " open"] },
                 "title": {
                   "type": "string",
@@ -55,7 +55,7 @@
                     "pain": {
                       "type": "string",
                       "minLength": 15,
-                      "mustMatch": ["[0-9]|놓치|못함|못한|실패|지연"],
+                      "mustMatch": ["(?i)([0-9]|miss|fail|delay|blocked|lost|late|cost|risk|refund|wait)"],
                       "forbid": [
                         "#[0-9]+",
                         "[A-Z][a-zA-Z]*Entity",
@@ -91,7 +91,7 @@
                     "type": "object",
                     "required": ["key", "label"],
                     "properties": {
-                      "key":   { "type": "string", "enum": ["A", "B", "C"] },
+                      "key": { "type": "string", "enum": ["A", "B", "C"] },
                       "label": {
                         "type": "string",
                         "minLength": 5,

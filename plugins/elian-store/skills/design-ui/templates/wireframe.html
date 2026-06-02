@@ -1,385 +1,192 @@
 <!doctype html>
-<html lang="ko">
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Wireframe — {{FEATURE_NAME}}</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wireframe</title>
   <style>
-    /* Wireframe stage: grayscale only. NO color, NO custom typography.
-       Every box ships a 4-slot annotation: Order · Label · Intent · Why here.
-       If Intent or Order is empty, do not draw the box. */
     :root {
-      --wf-bg: #fafafa;
-      --wf-box: #e8e8e8;
-      --wf-box-strong: #d0d0d0;
-      --wf-ink: #555;
-      --wf-ink-soft: #888;
-      --wf-line: #c4c4c4;
-      --wf-radius: 4px;
-      --wf-gap: 16px;
-      --wf-pad: 16px;
-      --wf-font: ui-sans-serif, -apple-system, "Helvetica Neue", sans-serif;
+      --bg: #f5f6f8;
+      --ink: #1f2933;
+      --muted: #667085;
+      --line: #c8ced8;
+      --box: #ffffff;
+      --shade: #eef1f5;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      padding: 24px;
-      background: var(--wf-bg);
-      color: var(--wf-ink);
-      font: 14px/1.5 var(--wf-font);
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.5;
     }
-    h1.wf-title {
-      font-size: 12px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--wf-ink-soft);
-      margin: 0 0 16px;
-      font-weight: 600;
-    }
-    .wf-frame {
-      max-width: 1280px;
+    main {
+      max-width: 1120px;
       margin: 0 auto;
-      background: white;
-      border: 1px dashed var(--wf-line);
-      padding: var(--wf-pad);
+      padding: 28px 18px 64px;
     }
-
-    /* === Section = box + 4-slot annotation ===
-       Layout:
-         ┌──────────────────────────────────────────────┐
-         │ (1) [Label]                                   │  ← order badge + label
-         │ ······· box body ·······                      │
-         └──────────────────────────────────────────────┘
-            Intent  →  felt experience here
-            Why     →  reason for this position
-    */
-    .wf-section { display: flex; flex-direction: column; gap: 6px; }
-    .wf-box {
-      position: relative;
-      background: var(--wf-box);
-      border-radius: var(--wf-radius);
-      padding: 28px var(--wf-pad) var(--wf-pad);
-      min-height: 72px;
-      color: var(--wf-ink);
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .wf-box.tall   { min-height: 220px; }
-    .wf-box.short  { min-height: 48px; }
-    .wf-box.strong { background: var(--wf-box-strong); }
-
-    .wf-order {
-      position: absolute;
-      top: 6px;
-      left: 8px;
-      font-size: 11px;
-      font-weight: 700;
-      color: white;
-      background: var(--wf-ink);
-      width: 20px; height: 20px;
-      border-radius: 999px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      letter-spacing: 0;
-    }
-
-    .wf-meta { font-size: 11px; line-height: 1.45; color: var(--wf-ink); }
-    .wf-meta b { color: #333; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-right: 4px; }
-    .wf-meta .intent { display: block; padding: 2px 0 0 8px; border-left: 2px solid #888; }
-    .wf-meta .why    { display: block; padding: 2px 0 0 8px; border-left: 2px solid var(--wf-line); color: var(--wf-ink-soft); }
-
-    /* === Multi-page stack === */
+    h1 { margin: 0 0 8px; font-size: 28px; }
+    .intro { margin: 0 0 28px; color: var(--muted); }
     .wf-page {
-      max-width: 1280px; margin: 0 auto 0; background: white;
-      border: 1px dashed var(--wf-line); padding: var(--wf-pad);
+      margin: 28px 0;
+      border: 2px solid var(--line);
+      border-radius: 8px;
+      background: var(--box);
+      overflow: hidden;
     }
-    .wf-page-header {
-      display: flex; align-items: baseline; gap: 12px;
-      margin: -4px -4px 16px; padding: 6px 12px;
-      background: var(--wf-ink); color: white; border-radius: 4px;
+    .wf-page header {
+      padding: 16px 18px;
+      background: var(--shade);
+      border-bottom: 1px solid var(--line);
     }
-    .wf-page-header .slug { font-size: 11px; letter-spacing: 0.08em; opacity: .8; }
-    .wf-page-header .name { font-size: 14px; font-weight: 600; }
-    .wf-page-header .purpose { font-size: 12px; opacity: .8; margin-left: auto; }
-
-    .wf-transition {
-      max-width: 1280px; margin: 0 auto; padding: 16px 0;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      font-size: 11px; color: var(--wf-ink-soft); letter-spacing: 0.08em; text-transform: uppercase;
+    .wf-page h2 { margin: 0; font-size: 20px; }
+    .wf-meta { margin-top: 6px; color: var(--muted); font-size: 14px; }
+    .wf-grid {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+      gap: 14px;
+      padding: 16px;
     }
-    .wf-transition::before, .wf-transition::after { content: ""; flex: 1; height: 1px; background: var(--wf-line); }
-    .wf-transition .trigger { padding: 2px 10px; border: 1px dashed var(--wf-line); border-radius: 12px; background: white; }
-    .wf-transition .arrow-down::after { content: " ▼"; }
-
-    .wf-grid { display: grid; gap: var(--wf-gap); }
-    .wf-grid.cols-12 { grid-template-columns: repeat(12, 1fr); }
-    .wf-grid.cols-8  { grid-template-columns: repeat(8, 1fr); }
-    .wf-grid.cols-3  { grid-template-columns: repeat(3, 1fr); }
-    .wf-grid.cols-2  { grid-template-columns: repeat(2, 1fr); }
-    .span-12 { grid-column: span 12; }
-    .span-8  { grid-column: span 8; }
-    .span-6  { grid-column: span 6; }
-    .span-4  { grid-column: span 4; }
-    .span-3  { grid-column: span 3; }
-
-    .wf-stack { display: flex; flex-direction: column; gap: 24px; }
-    .wf-row   { display: flex; gap: var(--wf-gap); align-items: stretch; }
-
-    /* Above-the-fold marker */
-    .wf-fold {
-      position: relative;
-      height: 0;
-      border-top: 1px dashed #b00;
-      margin: 24px 0;
+    .wf-section {
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      min-height: 120px;
+      padding: 14px;
+      background: #fafbfc;
     }
-    .wf-fold::after {
-      content: "↑ above the fold (≈ 700px on desktop, 600px on mobile)";
-      position: absolute;
-      top: -8px; right: 0;
-      background: white;
-      padding: 0 6px;
-      font-size: 10px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: #b00;
+    .wf-section.wide { grid-column: 1 / -1; }
+    .order {
+      display: inline-grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      background: #fff;
+      font-weight: 700;
+      margin-right: 8px;
     }
-
-    /* Reading-flow indicator (drawn between sections by author) */
-    .wf-flow {
-      font-size: 11px;
-      color: var(--wf-ink-soft);
-      text-align: center;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      padding: 4px 0;
+    .label { font-weight: 700; }
+    .slot { margin: 8px 0 0; color: var(--muted); font-size: 14px; }
+    .states {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 12px;
     }
-
-    /* State variants pill row */
-    .wf-state-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
-    .wf-state {
-      font-size: 10px;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      padding: 2px 8px;
-      border-radius: 999px;
-      background: white;
-      border: 1px solid var(--wf-line);
-      color: var(--wf-ink-soft);
+    .state {
+      min-height: 44px;
+      border: 1px solid var(--line);
+      background: #fff;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      color: var(--muted);
     }
-
-    /* Responsive: collapse + remap reading order on mobile */
-    @media (max-width: 768px) {
-      .wf-grid.cols-12 > * { grid-column: span 12; }
-      .wf-grid.cols-8  > * { grid-column: span 8; }
-      .wf-grid.cols-3  > * { grid-column: span 3; }
-      .wf-grid.cols-2  > * { grid-column: span 2; }
+    .transition {
+      margin: 12px 0;
+      padding: 12px 16px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      color: var(--muted);
+      background: #fff;
+    }
+    @media (max-width: 760px) {
+      .wf-grid { grid-template-columns: 1fr; }
+      .wf-section.wide { grid-column: auto; }
+      .states { grid-template-columns: 1fr 1fr; }
     }
   </style>
 </head>
 <body>
-  <h1 class="wf-title">Wireframe · {{FEATURE_NAME}} · {{TODAY}}</h1>
+  <main>
+    <h1>Wireframe</h1>
+    <p class="intro">Gray layout only. Replace labels, intent, and rationale. Preserve Order, Label, Intent, and Why here for every section.</p>
 
-  <!--
-    Multi-page stack. Each <section class="wf-page" id="page-N"> is one page.
-    Between pages, drop a <div class="wf-transition"> describing the trigger.
-    Page slugs (page-1, page-2…) must match flow.html and visual.html.
-    Required for every .wf-section inside a page:
-      - .wf-order badge (1, 2, 3 … reading order — restarts per page)
-      - .wf-box with [Label]
-      - .wf-meta with Intent + Why here
-    Drop one .wf-fold marker per page after the section that must complete without scrolling.
-  -->
-
-  <!-- ══════════ PAGE 1 ══════════ -->
-  <section class="wf-page" id="page-1">
-    <div class="wf-page-header">
-      <span class="slug">page-1</span>
-      <span class="name">[Page 1 name]</span>
-      <span class="purpose">[Purpose — 한 줄]</span>
-    </div>
-
-    <div class="wf-stack">
-
-      <!-- ────────── HEADER ────────── -->
-      <section class="wf-section">
-        <div class="wf-box short">
-          <span class="wf-order">1</span>
-          [Logo / App name + Primary nav + User menu]
+    <section class="wf-page" id="page-1">
+      <header>
+        <h2>page-1: Overview</h2>
+        <div class="wf-meta">Entry: initial route. Exit: row click to page-2 or primary action to page-3.</div>
+      </header>
+      <div class="wf-grid">
+        <div class="wf-section wide">
+          <span class="order">1</span><span class="label">[Header and Status]</span>
+          <p class="slot">Intent: user understands where they are and whether action is needed.</p>
+          <p class="slot">Why here: orient before showing work items.</p>
         </div>
-        <div class="wf-meta">
-          <span class="intent"><b>Intent:</b> 방향 잡기 — 어디에 있고 어디로 갈 수 있는지 즉시 인식</span>
-          <span class="why"><b>Why here:</b> 항상 최상단 — 도메인 컨벤션 (ref-1 Steal)</span>
+        <div class="wf-section">
+          <span class="order">2</span><span class="label">[Summary]</span>
+          <p class="slot">Intent: user sees count, urgency, and current state.</p>
+          <p class="slot">Why here: above-fold decision support.</p>
         </div>
-      </section>
+        <div class="wf-section">
+          <span class="order">3</span><span class="label">[Primary Action]</span>
+          <p class="slot">Intent: user knows the next main action.</p>
+          <p class="slot">Why here: isolated from secondary actions.</p>
+        </div>
+        <div class="wf-section wide">
+          <span class="order">4</span><span class="label">[Work Area]</span>
+          <p class="slot">Intent: user can scan, select, and inspect items.</p>
+          <p class="slot">Why here: follows summary and action.</p>
+          <div class="states"><div class="state">default</div><div class="state">empty</div><div class="state">loading</div><div class="state">error</div></div>
+        </div>
+      </div>
+    </section>
 
-      <!-- ────────── HERO / PRIMARY TASK ────────── -->
-      <section class="wf-section">
-        <div class="wf-box">
-          <span class="wf-order">2</span>
-          [Page title + 1-line context + Primary CTA]
-        </div>
-        <div class="wf-meta">
-          <span class="intent"><b>Intent:</b> "내가 여기서 무엇을 끝낼 수 있는가"가 한 번에 보임 — 안심</span>
-          <span class="why"><b>Why here:</b> F-pattern 시작점, primary CTA를 단독 배치해 선택 마비 차단 (ref-2 Steal)</span>
-        </div>
-      </section>
+    <div class="transition">Transition: page-1 row click -> page-2. page-1 primary action -> page-3.</div>
 
-      <!-- ────────── ABOVE THE FOLD MARKER ────────── -->
-      <div class="wf-fold"></div>
-      <div class="wf-flow">↓ scroll</div>
+    <section class="wf-page" id="page-2">
+      <header>
+        <h2>page-2: Detail</h2>
+        <div class="wf-meta">Entry: selected item from page-1. Exit: back to page-1 or continue to page-3.</div>
+      </header>
+      <div class="wf-grid">
+        <div class="wf-section wide">
+          <span class="order">1</span><span class="label">[Context Bar]</span>
+          <p class="slot">Intent: user knows which item is selected.</p>
+          <p class="slot">Why here: prevents detail-page disorientation.</p>
+        </div>
+        <div class="wf-section">
+          <span class="order">2</span><span class="label">[Detail Content]</span>
+          <p class="slot">Intent: user can inspect or edit the important fields.</p>
+          <p class="slot">Why here: primary detail is central.</p>
+          <div class="states"><div class="state">default</div><div class="state">empty</div><div class="state">loading</div><div class="state">error</div></div>
+        </div>
+        <div class="wf-section">
+          <span class="order">3</span><span class="label">[Secondary Actions]</span>
+          <p class="slot">Intent: user can cancel, go back, or continue.</p>
+          <p class="slot">Why here: secondary controls are visible but subordinate.</p>
+        </div>
+      </div>
+    </section>
 
-      <!-- ────────── PRIMARY CONTENT GRID ────────── -->
-      <section class="wf-section">
-        <div class="wf-grid cols-12">
-          <div class="wf-box tall span-8">
-            <span class="wf-order">3</span>
-            [Primary content area / ResultList]
-          </div>
-          <div class="wf-box tall span-4">
-            <span class="wf-order">4</span>
-            [Sidebar / supporting actions]
-          </div>
-        </div>
-        <div class="wf-meta">
-          <span class="intent"><b>Intent:</b> 탐색 중 안심 — 결과가 얼마나 있는지 / 다음에 무엇을 할 수 있는지 동시에 보임</span>
-          <span class="why"><b>Why here:</b> 8:4 배치로 시선 무게 결과 쪽. 모바일에서는 사이드바가 결과 아래로 (순서 3 → 4 유지)</span>
-          <div class="wf-state-row" aria-hidden="true">
-            <span class="wf-state">default</span>
-            <span class="wf-state">empty</span>
-            <span class="wf-state">loading</span>
-            <span class="wf-state">error</span>
-          </div>
-        </div>
-      </section>
+    <div class="transition">Transition: page-2 continue -> page-3. page-2 back -> page-1.</div>
 
-      <!-- ────────── SECONDARY SECTION ────────── -->
-      <section class="wf-section">
-        <div class="wf-grid cols-3">
-          <div class="wf-box"><span class="wf-order">5</span>[Card A]</div>
-          <div class="wf-box"><span class="wf-order">6</span>[Card B]</div>
-          <div class="wf-box"><span class="wf-order">7</span>[Card C]</div>
+    <section class="wf-page" id="page-3">
+      <header>
+        <h2>page-3: Confirm</h2>
+        <div class="wf-meta">Entry: selected items or edited detail. Exit: confirm result or return to page-1.</div>
+      </header>
+      <div class="wf-grid">
+        <div class="wf-section wide">
+          <span class="order">1</span><span class="label">[Review Summary]</span>
+          <p class="slot">Intent: user verifies the consequence before committing.</p>
+          <p class="slot">Why here: confirmation needs consequence clarity first.</p>
         </div>
-        <div class="wf-meta">
-          <span class="intent"><b>Intent:</b> 다음으로 갈 곳 제시 — 막다른 길 방지</span>
-          <span class="why"><b>Why here:</b> 결과를 다 본 사용자에게만 노출 (스크롤 후), 3개 미만 균등 (선택 부담 완화)</span>
+        <div class="wf-section">
+          <span class="order">2</span><span class="label">[Result State]</span>
+          <p class="slot">Intent: user sees default, empty, loading, or error result.</p>
+          <p class="slot">Why here: confirmation outcomes must be explicit.</p>
+          <div class="states"><div class="state">default</div><div class="state">empty</div><div class="state">loading</div><div class="state">error</div></div>
         </div>
-      </section>
-
-      <!-- ────────── FOOTER ────────── -->
-      <section class="wf-section">
-        <div class="wf-box short strong">
-          <span class="wf-order">8</span>
-          [Footer / meta]
+        <div class="wf-section">
+          <span class="order">3</span><span class="label">[Return Action]</span>
+          <p class="slot">Intent: user can return to page-1 after confirming.</p>
+          <p class="slot">Why here: no dead-end page.</p>
         </div>
-        <div class="wf-meta">
-          <span class="intent"><b>Intent:</b> 보조 정보 — 시선 우선순위 최하</span>
-          <span class="why"><b>Why here:</b> 항상 최하단, 정책·연락처 (ref-3 Reject: footer에 카드 그리드 — 우리 사용자는 거기까지 스크롤 안 함)</span>
-        </div>
-      </section>
-
-    </div>
-  </section>
-
-  <!-- ══════════ Transition: page-1 → page-2 ══════════ -->
-  <div class="wf-transition">
-    <span class="trigger arrow-down">[Primary CTA 클릭]</span>
-  </div>
-
-  <!-- ══════════ PAGE 2 ══════════ -->
-  <section class="wf-page" id="page-2">
-    <div class="wf-page-header">
-      <span class="slug">page-2</span>
-      <span class="name">[Page 2 name]</span>
-      <span class="purpose">[Purpose — 한 줄]</span>
-    </div>
-
-    <div class="wf-stack">
-      <section class="wf-section">
-        <div class="wf-box short">
-          <span class="wf-order">1</span>
-          [Top bar with back to page-1]
-        </div>
-        <div class="wf-meta">
-          <span class="intent"><b>Intent:</b> page-1로 돌아가는 길이 즉시 보임 — 갇힘 방지</span>
-          <span class="why"><b>Why here:</b> 모든 페이지의 1번은 entry로 복귀하는 경로를 포함</span>
-        </div>
-      </section>
-
-      <section class="wf-section">
-        <div class="wf-box tall">
-          <span class="wf-order">2</span>
-          [Confirm content / page-1에서 받아온 데이터 표시]
-        </div>
-        <div class="wf-meta">
-          <span class="intent"><b>Intent:</b> page-1의 선택을 그대로 확인 — 의외성 없음</span>
-          <span class="why"><b>Why here:</b> 페이지 간 state 전달의 가시화 — 사용자가 "이게 내가 선택한 게 맞나" 즉시 확인</span>
-        </div>
-      </section>
-
-      <section class="wf-section">
-        <div class="wf-box short">
-          <span class="wf-order">3</span>
-          [Primary CTA: 실행] · [Secondary: 취소 → page-1]
-        </div>
-        <div class="wf-meta">
-          <span class="intent"><b>Intent:</b> 마지막 결정 — 돌이킬 수 없는 액션 직전 명확한 단독 CTA</span>
-          <span class="why"><b>Why here:</b> 페이지 하단, 정독 후 결정. 취소는 secondary로 약하게 표시.</span>
-        </div>
-      </section>
-    </div>
-  </section>
-
-  <!-- ══════════ Transition: page-2 → page-3 ══════════ -->
-  <div class="wf-transition">
-    <span class="trigger arrow-down">[실행 후 결과/상세 페이지로 이동]</span>
-  </div>
-
-  <!-- ══════════ PAGE 3 ══════════
-       Default scaffold matches flow.html and visual.html, which both reserve
-       a 3rd page. Delete this whole <section> + the surrounding transitions
-       if the flow only has two pages — keep page slugs consistent across
-       flow.html, wireframe.html, visual.html. -->
-  <section class="wf-page" id="page-3">
-    <div class="wf-page-header">
-      <span class="slug">page-3</span>
-      <span class="name">[Page 3 name]</span>
-      <span class="purpose">[Purpose — 한 줄]</span>
-    </div>
-
-    <div class="wf-stack">
-      <section class="wf-section">
-        <div class="wf-box short">
-          <span class="wf-order">1</span>
-          [Top bar with back to page-1]
-        </div>
-        <div class="wf-meta">
-          <span class="intent"><b>Intent:</b> 어디서든 entry 로 복귀 가능 — 갇힘 방지</span>
-          <span class="why"><b>Why here:</b> 모든 페이지 1번은 entry 복귀 경로 (consistency)</span>
-        </div>
-      </section>
-
-      <section class="wf-section">
-        <div class="wf-box tall">
-          <span class="wf-order">2</span>
-          [Result / detail content for page-3]
-        </div>
-        <div class="wf-meta">
-          <span class="intent"><b>Intent:</b> 페이지 목적의 핵심 영역 — Intent 를 채울 때 비워두지 말 것</span>
-          <span class="why"><b>Why here:</b> 사용자가 page-2 결정을 마친 직후 보는 결과/상세</span>
-        </div>
-      </section>
-    </div>
-  </section>
-
-  <!-- ══════════ Transition: page-3 → page-1 (back) ══════════ -->
-  <div class="wf-transition">
-    <span class="trigger arrow-down">[페이지 종료 → page-1 복귀]</span>
-  </div>
-
+      </div>
+    </section>
+  </main>
 </body>
 </html>

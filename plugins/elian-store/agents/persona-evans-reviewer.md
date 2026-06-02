@@ -43,8 +43,8 @@ Return only the review. No meta commentary about being a subagent.
 
 The final line should be one of:
 
-- `다음 질문: ...?`
-- `다음 액션: ...`
+- `Next question: ...?`
+- `Next action: ...`
 - a handoff payload if another skill should update the model/design
 
 If the target is too thin, ask exactly one clarifying question instead of reviewing.

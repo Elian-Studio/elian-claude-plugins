@@ -1,7 +1,7 @@
 ---
 name: review
 description: "When the user asks for code review, PR review, diff review, or runs /review, perform a read-only engineering review of changed code to find production risks, regressions, broken contracts, missing tests, and verification gaps before merge. Lead with findings, cite file:line evidence, and hand off fixes/QA/ship instead of editing code."
-when_to_use: "Use for current worktree, staged changes, branch diff, PR/MR diff, or specific files when the goal is engineering review before merge. Trigger phrases: '리뷰해줘', '코드 리뷰', 'PR 리뷰', 'diff review', '/review', '현재 변경사항 점검'. Do NOT use for persona lens reviews, running verify-* checks, browser QA, release readiness, or making code changes."
+when_to_use: "Use for current worktree, staged changes, branch diff, PR/MR diff, or specific files when the goal is engineering review before merge. Trigger phrases: 'review this', 'code review', 'PR review', 'diff review', 'check current changes', '/review'. Do NOT use for persona lens reviews, running verify-* checks, browser QA, release readiness, or making code changes."
 argument-hint: "[target: worktree|staged|branch:<base>|pr:<id>|<path>] [--depth quick|deep] [--lenses security,performance,quality,design,adversarial]"
 disable-model-invocation: true
 allowed-tools: Read, Glob, Grep, Bash(git status*), Bash(git diff*), Bash(git log*), Bash(git show*), Agent, AskUserQuestion

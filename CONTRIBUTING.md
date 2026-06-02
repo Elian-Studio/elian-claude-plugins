@@ -19,7 +19,7 @@ Do not push directly to `main`. All changes should go through a pull request.
 
 This repository does not use a repository-wide numeric score gate. The previous self-scoring approach only checked structural signals, which was not enough to prove document quality or operational fit.
 
-Documentation language: write repository documents, skill bodies, references, templates, and Codex companion files in English. User-facing command examples may include non-English trigger phrases only when they are intentionally part of command discovery or compatibility.
+Documentation language: write repository documents, skill bodies, references, templates, and Codex companion files in English. Current compatibility decision: do not keep Korean trigger phrases in `SKILL.md`, `when_to_use`, references, templates, or examples. Use slash commands and English trigger phrases for discovery.
 
 Use these checks instead:
 
@@ -58,6 +58,7 @@ Claude Code official docs are the compatibility baseline. External repositories 
 
 - `SKILL.md` frontmatter: `description` is the official recommended field. This repository also prefers explicit `name`, `argument-hint`, and `allowed-tools` fields for discoverability and maintainability.
 - Quote `description`, `when_to_use`, and `argument-hint` values when they contain YAML-sensitive syntax such as `: `, brackets, quotes, or long trigger lists.
+- Keep trigger phrases in English. Korean user phrasing is supported by conversation context and slash commands, not by embedding Korean compatibility exceptions in repository documents.
 - Keep `description + when_to_use` under the official skill listing cap of 1,536 characters. Put the key use case first and move procedure detail into the body or `references/`.
 - Workflows with side effects should default to `disable-model-invocation: true`. Auto-invocable skills should be limited to low-impact read or document-generation behavior.
 - Keep `SKILL.md` under the official 500-line limit and target roughly 10 KB where practical. Move long examples and domain details into `references/`, repeated output forms into `templates/`, and deterministic checks into `scripts/`.

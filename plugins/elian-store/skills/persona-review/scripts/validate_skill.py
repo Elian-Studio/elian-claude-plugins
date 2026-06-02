@@ -50,25 +50,24 @@ REQUIRED_SECTIONS = [
 ]
 
 FREE_FORM_MARKERS = [
-    "페르소나별 자유 형식",
+    "Persona-native free-form review",
     "No scorecard",
-    "전부 행으로 펼치거나 점수화하지 않는다",
-    "점수표·등급표·전수 체크리스트 출력",
+    "Do not expand all `Pressure Questions` into rows, grades, or scores",
+    "Forcing a common five-block output",
 ]
 
 FORBIDDEN_LOCKED_CONTRACT_PATTERNS = [
     r"^##\s+OUTPUT FORMAT",
-    r"잠긴 OUTPUT FORMAT",
     r"locked 5-block",
     r"LOCKED OUTPUT FORMAT",
-    r"^##\s+페르소나 압박 질문",
-    r"\|\s*#\s*\|\s*질문\s*\|\s*점수\s*\|",
+    r"^##\s+Persona Pressure Questions",
+    r"\|\s*#\s*\|\s*Question\s*\|\s*Score\s*\|",
 ]
 
 PERSONA_FORBIDDEN_PATTERNS = [
-    r"점수 표기",
-    r"리뷰 시 모두 평가",
-    r"\|\s*#\s*\|\s*질문\s*\|\s*점수\s*\|",
+    r"score notation",
+    r"evaluate every question",
+    r"\|\s*#\s*\|\s*Question\s*\|\s*Score\s*\|",
     r"✓",
     r"△",
     r"✗",
