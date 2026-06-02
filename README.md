@@ -69,7 +69,7 @@ cp codex/AGENTS.md ~/.codex/AGENTS.md
 cp codex/config.toml.example ~/.codex/config.toml
 ```
 
-Codex currently ships reference `/review`, `/brainstorm`, `/ai-assisted-feature-development`, `/design-ui`, `/decision-dashboard`, `/create-document`, and `/persona-review` prompts. See [codex/README.md](codex/README.md).
+Codex currently ships reference `/review`, `/brainstorm`, `/ai-assisted-feature-development`, `/design-ui`, `/decision-dashboard`, `/create-document`, `/implement`, `/fix`, `/improve`, and `/persona-review` prompts. See [codex/README.md](codex/README.md).
 
 ---
 
@@ -106,6 +106,9 @@ Path: [codex/](codex/)
 | [codex/prompts/ai-assisted-feature-development.md](codex/prompts/ai-assisted-feature-development.md) | Reference Codex prompt for `/ai-assisted-feature-development`. |
 | [codex/prompts/create-document.md](codex/prompts/create-document.md) | Reference Codex prompt for `/create-document`. |
 | [codex/prompts/brainstorm.md](codex/prompts/brainstorm.md) | Reference Codex prompt for `/brainstorm`. |
+| [codex/prompts/implement.md](codex/prompts/implement.md) | Reference Codex prompt for `/implement`. |
+| [codex/prompts/fix.md](codex/prompts/fix.md) | Reference Codex prompt for `/fix`. |
+| [codex/prompts/improve.md](codex/prompts/improve.md) | Reference Codex prompt for `/improve`. |
 | [codex/prompts/decision-dashboard.md](codex/prompts/decision-dashboard.md) | Reference Codex prompt for `/decision-dashboard`. |
 | [codex/prompts/design-ui.md](codex/prompts/design-ui.md) | Reference Codex prompt for `/design-ui`. |
 | [codex/prompts/review.md](codex/prompts/review.md) | Reference Codex prompt for `/review`. |

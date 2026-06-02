@@ -12,7 +12,7 @@ This tree is an independent Codex CLI distribution bundle. It is separate from t
 
 ## Drift Warning
 
-This repository intentionally uses an independent two-tree model. There is no single source of truth. `codex/prompts/ai-assisted-feature-development.md`, `codex/prompts/brainstorm.md`, `codex/prompts/create-document.md`, `codex/prompts/decision-dashboard.md`, `codex/prompts/design-ui.md`, `codex/prompts/review.md`, `codex/prompts/persona-review.md`, and their Claude counterparts are separate files. When one side changes, the author must check the other side manually.
+This repository intentionally uses an independent two-tree model. There is no single source of truth. `codex/prompts/ai-assisted-feature-development.md`, `codex/prompts/brainstorm.md`, `codex/prompts/create-document.md`, `codex/prompts/decision-dashboard.md`, `codex/prompts/design-ui.md`, `codex/prompts/fix.md`, `codex/prompts/improve.md`, `codex/prompts/implement.md`, `codex/prompts/review.md`, `codex/prompts/persona-review.md`, and their Claude counterparts are separate files. When one side changes, the author must check the other side manually.
 
 Forgetting one side can make Claude and Codex behave differently. Pull requests should inspect both diffs when a command exists in both trees.
 
@@ -39,6 +39,9 @@ After installation, use this command in Codex TUI:
 /create-document --template <name> --data <json-path> --out <out-path> [--schema <name>] [--json]
 /decision-dashboard [issue-id] [--mode generate|finalize]
 /design-ui <feature-name> [--out <dir>] [--skip-gate] [--from-brief <path>] [--refs <url,url,...>]
+/implement <issue-id> [--side back|front|both] [--step N] [--skip-docs]
+/fix <issue-id> [--side back|front|both] [--step N] [--skip-docs]
+/improve <issue-id> [--side back|front|both] [--step N] [--skip-docs]
 /review <target> [--depth quick|deep] [--lenses security,performance,quality,design,adversarial]
 /persona-review <target> [--persona daniel|evans|dean|martin|all|comma-list|<path>] [--depth quick|deep|interview]
 ```
@@ -55,11 +58,14 @@ codex/
     create-document.md
     decision-dashboard.md
     design-ui.md
+    fix.md
+    improve.md
+    implement.md
     review.md
     persona-review.md
   config.toml.example
 ```
 
-Current porting scope: `ai-assisted-feature-development`, `brainstorm`, `create-document`, `decision-dashboard`, `design-ui`, `review`, and `persona-review`. Other `elian-store` skills should be added gradually after the pattern is proven.
+Current porting scope: `ai-assisted-feature-development`, `brainstorm`, `create-document`, `decision-dashboard`, `design-ui`, `fix`, `improve`, `implement`, `review`, and `persona-review`. Other `elian-store` skills should be added gradually after the pattern is proven.
 
 Claude/Codex catalog parity status and porting order are tracked in [`../docs/claude-codex-skill-parity.md`](../docs/claude-codex-skill-parity.md).
