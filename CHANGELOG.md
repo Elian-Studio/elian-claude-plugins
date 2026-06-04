@@ -10,6 +10,22 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## Marketplace (`elian`)
 
+### Unreleased
+
+#### Added
+- Ported all 13 bundled Claude skills to Codex prompts under `codex/prompts/`, covering `brainstorm`, `review`, `persona-review`, `ai-assisted-feature-development`, `design-ui`, `decision-dashboard`, `create-document`, `implement`, `fix`, `improve`, `manage-skills`, `verify-implementation`, and `generate-teammate`.
+- Added and refreshed the Codex docs entry points so `README.md` and `codex/README.md` describe the prompt catalog, install flow, and current scope.
+- Added `plugins/elian-store/README.md` as a plugin-local guide for real usage, edit locations, and validation boundaries.
+
+#### Changed
+- Refreshed `docs/claude-codex-skill-parity.md` to reflect the 13-prompt Codex catalog and the remaining platform-limited gaps.
+- Kept Codex prompts as plain Markdown on purpose; no YAML frontmatter was added to the prompt files.
+- Added an explicit output contract to `codex/prompts/persona-review.md` so all Codex prompts now share the same invocation / forbidden / output-contract shape.
+
+#### Notes
+- `generate-teammate` remains handoff-only on Codex because the runtime cannot reproduce the plugin-side teammate-spawn flow exactly.
+- `manage-skills` and `verify-implementation` remain prompt-level orchestration equivalents rather than byte-for-byte skill/runtime matches.
+
 ### 2.8.2 — 2026-06-02
 
 #### Changed
