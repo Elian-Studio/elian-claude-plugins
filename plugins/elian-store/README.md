@@ -25,6 +25,7 @@
 | `manage-skills` | You need to detect or repair verify-skill drift after changes. | `/elian-store:manage-skills` |
 | `generate-teammate` | You need to decide direct, subagent, or team execution. | `/elian-store:generate-teammate` |
 | `create-document` | You need schema-validated HTML or Markdown artifacts. | `/elian-store:create-document` |
+| `document-writer` | You need to turn arbitrary content into a polished, house-styled HTML (or Markdown) document. | `/elian-store:document-writer` |
 | `persona-review` | You want a persona-specific critique instead of a generic review. | `/elian-store:persona-review` |
 
 ## Package Layout

@@ -95,6 +95,7 @@ Path: [plugins/elian-store/](plugins/elian-store/)
 | [manage-skills](plugins/elian-store/skills/manage-skills/) | Detect and repair verify-skill drift after code changes. | `/elian-store:manage-skills` |
 | [generate-teammate](plugins/elian-store/skills/generate-teammate/) | Decide direct/subagent/team execution and render teammate prompts. | `/elian-store:generate-teammate` |
 | [create-document](plugins/elian-store/skills/create-document/) | Render schema-validated JSON into HTML/Markdown templates. | `/elian-store:create-document` |
+| [document-writer](plugins/elian-store/skills/document-writer/) | Turn arbitrary content into a self-contained, house-styled HTML (or Markdown) document. | `/elian-store:document-writer` |
 | [persona-review](plugins/elian-store/skills/persona-review/) | Review plans/docs/ideas through selected persona lenses in each persona's native style. | `/elian-store:persona-review` |
 
 ### Codex Companion Tree
