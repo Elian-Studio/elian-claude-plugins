@@ -26,6 +26,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - `generate-teammate` remains handoff-only on Codex because the runtime cannot reproduce the plugin-side teammate-spawn flow exactly.
 - `manage-skills` and `verify-implementation` remain prompt-level orchestration equivalents rather than byte-for-byte skill/runtime matches.
 
+### 2.9.0 — 2026-06-08
+
+#### Added
+- **`/document-writer`** — new skill at `plugins/elian-store/skills/document-writer/`. Turns arbitrary content (analysis, reports, technical/design docs, guides) into a self-contained, house-styled HTML document (Markdown when asked). Content is authored as Markdown and rendered by a stdlib-only converter (`scripts/build_doc.py` — zero dependencies, raw block-level HTML passthrough, GitHub-style callouts, auto TOC, `--selftest`) with a fixed house stylesheet (`assets/house-style.css`) so every document shares one consistent look: warm off-white background, ink body text, a single `#185FA5` accent, Pretendard. References: `components.md` (callout / card / KPI / steps / badge / table catalog) and `doc-types.md` (report / technical / guide blueprints). Defaults output to `claudedocs/`.
+
+#### Notes
+- Bumped the `elian-store` plugin version (`2.8.2` → `2.9.0`). The marketplace metadata version is intentionally left at `2.8.2` because the catalog structure (the set of plugins) did not change — only the plugin's contents did.
+
 ### 2.8.2 — 2026-06-02
 
 #### Changed
