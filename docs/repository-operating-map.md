@@ -34,6 +34,7 @@ The useful pattern from small plugin repos such as [`explorium-ai/vibeprospectin
 | Claude agents | `plugins/elian-store/agents/` | Plugin-bundled subagent definitions. |
 | Claude hooks | `plugins/elian-store/hooks/` | Plugin-bundled hook commands. |
 | Codex companion | `codex/` | Codex prompts, AGENTS template, config sample, Codex-specific setup docs. |
+| Claude workflows | `.claude/workflows/` | Workflow-tool `.js` scripts distributed by copying into `~/.claude/workflows/` (sibling tree, not part of the plugin). See "Workflow Distribution Tree" below. |
 | Contributor workflow | `CONTRIBUTING.md` and `.github/pull_request_template.md` | Review checklist, validation expectations, PR metadata. |
 | Portfolio docs | `docs/` | Architecture decisions, parity status, roadmap, audits. |
 
@@ -71,6 +72,24 @@ Rules:
   tree (a former `.agents/skills/` byte-for-byte copy was removed for this reason — two
   hand-maintained copies guarantee drift).
 
+### Workflow Distribution Tree (`.claude/workflows/`)
+
+`.claude/workflows/` is a **distribution surface**, not local state — distinct in role from the
+two other `.claude/` entries above:
+
+| `.claude/` entry | Role | Git | Distributed? |
+|---|---|---|---|
+| `.claude/settings.local.json` | Per-developer local state | Ignored | No |
+| `.claude/skills/` | Maintainer dev tooling (toolbox) | Tracked | No |
+| `.claude/workflows/` | Workflow-tool `.js` source (product) | Tracked | Yes — copy into `~/.claude/workflows/` |
+
+Claude Code plugins cannot register Workflow-tool workflows (a plugin ships skills / agents /
+hooks / MCP / LSP / monitors / themes / bin / settings only), so — like `codex/` — these `.js`
+files are distributed by **copying them into the user config**, not through the marketplace. The
+directory name mirrors the install destination (`~/.claude/workflows/`) so the copy command is
+obvious, and the `.claude/` prefix keeps it from being confused with `.github/workflows/` (GitHub
+Actions CI, run by GitHub — a different thing entirely). See `.claude/workflows/README.md`.
+
 ## Current Physical Shape
 
 ```text
@@ -93,6 +112,9 @@ elian-claude-plugins/
     AGENTS.md
     config.toml.example
     prompts/
+  .claude/
+    workflows/                     # Workflow-tool .js, copied into ~/.claude/workflows/
+    skills/                        # maintainer-only dev skills (not distributed)
   docs/
   .github/
 ```

@@ -13,6 +13,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ### Unreleased
 
 #### Added
+- Added a **Claude workflows distribution tree** at `.claude/workflows/` — a third copy-distributed surface (alongside `codex/`), since Claude Code plugins cannot register Workflow-tool workflows. Ships `harness-legacy-scan.js`, a portable, read-only AI-coding-harness audit (`/harness-legacy-scan [project-path]`) that discovers the environment at runtime and classifies findings KEEP/SHRINK/MOVE/SPLIT/CONVERT/DELETE. Documented in `.claude/workflows/README.md`, the root README, and `docs/repository-operating-map.md`. (`harness-diet` is intentionally not included — its existing form is a machine-specific one-time replay, not a reusable tool.)
+- Removed the duplicate `.agents/skills/` tree (a byte-for-byte copy of `.claude/skills/`) and documented `.claude/skills/` ownership (maintainer dev tooling, not product) in `docs/repository-operating-map.md`.
 - Ported all 13 bundled Claude skills to Codex prompts under `codex/prompts/`, covering `brainstorm`, `review`, `persona-review`, `ai-assisted-feature-development`, `design-ui`, `decision-dashboard`, `create-document`, `implement`, `fix`, `improve`, `manage-skills`, `verify-implementation`, and `generate-teammate`.
 - Added and refreshed the Codex docs entry points so `README.md` and `codex/README.md` describe the prompt catalog, install flow, and current scope.
 - Added `plugins/elian-store/README.md` as a plugin-local guide for real usage, edit locations, and validation boundaries.
