@@ -4,19 +4,21 @@
 [![Latest Release](https://img.shields.io/github/v/release/Elian-Studio/elian-claude-plugins?label=release)](https://github.com/Elian-Studio/elian-claude-plugins/releases)
 [![Plugin: elian-store](https://img.shields.io/badge/plugin-elian--store-blue)](plugins/elian-store/)
 
-This repository ships `elian-store`, a Claude Code plugin marketplace bundle, plus a separate Codex CLI prompt/config tree.
+This repository ships `elian-store`, a Claude Code plugin marketplace bundle, plus a separate Codex CLI prompt/config tree and a small Claude workflows distribution tree.
 
 Start here:
 
 - Install the Claude plugin if you want the bundled skills, agents, and hooks.
 - Open [plugins/elian-store/README.md](plugins/elian-store/README.md) for the plugin-local operating guide.
 - Open [codex/README.md](codex/README.md) for the Codex companion tree.
+- Open [.claude/workflows/README.md](.claude/workflows/README.md) for the Claude Workflow-tool scripts.
 - Open [docs/claude-codex-skill-parity.md](docs/claude-codex-skill-parity.md) when you need the current parity state.
 
-This repo intentionally has two distribution surfaces:
+This repo intentionally has three distribution surfaces:
 
 - **Claude Code plugin**: install `elian-store` from this marketplace. This is the primary product.
 - **Codex CLI config**: copy selected prompts/config from `codex/`. This is an independent companion tree, not a generated mirror.
+- **Claude workflows**: copy Workflow-tool `.js` scripts from `.claude/workflows/` into `~/.claude/workflows/`. Plugins cannot register workflows, so these are distributed by copy (like `codex/`).
 
 For the full structure and edit map, see [docs/repository-operating-map.md](docs/repository-operating-map.md).
 
@@ -71,6 +73,17 @@ cp codex/config.toml.example ~/.codex/config.toml
 
 Codex currently ships reference `/review`, `/brainstorm`, `/ai-assisted-feature-development`, `/design-ui`, `/decision-dashboard`, `/create-document`, `/implement`, `/fix`, `/improve`, `/manage-skills`, `/verify-implementation`, `/generate-teammate`, and `/persona-review` prompts. See [codex/README.md](codex/README.md).
 
+### Claude Workflows
+
+Copy the Workflow-tool scripts into your user config:
+
+```shell
+mkdir -p ~/.claude/workflows
+cp .claude/workflows/*.js ~/.claude/workflows/
+```
+
+Then invoke from Claude Code, e.g. `/harness-legacy-scan`. See [.claude/workflows/README.md](.claude/workflows/README.md).
+
 ---
 
 ## What Ships
@@ -97,6 +110,7 @@ Path: [plugins/elian-store/](plugins/elian-store/)
 | [create-document](plugins/elian-store/skills/create-document/) | Render schema-validated JSON into HTML/Markdown templates. | `/elian-store:create-document` |
 | [document-writer](plugins/elian-store/skills/document-writer/) | Turn arbitrary content into a self-contained, house-styled HTML (or Markdown) document. | `/elian-store:document-writer` |
 | [persona-review](plugins/elian-store/skills/persona-review/) | Review plans/docs/ideas through selected persona lenses in each persona's native style. | `/elian-store:persona-review` |
+| [harness-manager](plugins/elian-store/skills/harness-manager/) | Detect and reconcile drift between the Codex and Claude Code global harnesses (rules, MCP, commands, skills). | `/elian-store:harness-manager` |
 
 ### Codex Companion Tree
 
@@ -122,6 +136,16 @@ Path: [codex/](codex/)
 
 The Claude and Codex trees are intentionally independent. When behavior changes in both, update both explicitly and record parity status in [docs/claude-codex-skill-parity.md](docs/claude-codex-skill-parity.md).
 
+### Claude Workflows
+
+Path: [.claude/workflows/](.claude/workflows/)
+
+| Workflow | Command | Role |
+|---|---|---|
+| [harness-legacy-scan.js](.claude/workflows/harness-legacy-scan.js) | `/harness-legacy-scan [project-path]` | Read-only audit of your AI coding harness (global `~/.claude` + `~/.codex`, optionally a project); classifies findings KEEP/SHRINK/MOVE/SPLIT/CONVERT/DELETE. |
+
+Workflow-tool scripts are not plugin components, so they are distributed by copying into `~/.claude/workflows/`. See [.claude/workflows/README.md](.claude/workflows/README.md).
+
 ---
 
 ## Repository Map
@@ -143,6 +167,9 @@ codex/                              # Independent Codex CLI companion tree
   prompts/
   AGENTS.md
   config.toml.example
+.claude/
+  workflows/                         # Workflow-tool .js, copied into ~/.claude/workflows/
+  skills/                            # Maintainer-only dev skills (not distributed)
 docs/                               # Architecture, parity, and roadmap docs
 ```
 
@@ -151,7 +178,7 @@ Important distinction:
 - `.claude-plugin/marketplace.json` is the marketplace entrypoint.
 - `plugins/elian-store/.claude-plugin/plugin.json` is the installed plugin manifest.
 - `codex/` is not part of the Claude plugin install.
-- `.claude/` is local Claude settings/state and is not the plugin source of truth.
+- `.claude/workflows/` is a copy-distributed Workflow-tool tree (not a plugin component); `.claude/skills/` is maintainer-only dev tooling; `.claude/settings.local.json` is local state. None are the plugin source of truth.
 
 ---
 
@@ -166,6 +193,8 @@ Important distinction:
 | Change marketplace catalog metadata | `.claude-plugin/marketplace.json` |
 | Change Codex prompt behavior | `codex/prompts/<command>.md` |
 | Change Codex setup guidance | `codex/README.md`, `codex/AGENTS.md`, or `codex/config.toml.example` |
+| Change a Claude workflow | `.claude/workflows/<name>.js` (keep it portable — no machine-specific paths/inventory) |
+| Add a Claude workflow | new `.claude/workflows/<name>.js` + row in `.claude/workflows/README.md`, root README, and CHANGELOG |
 | Change portfolio roadmap | `docs/plugin-portfolio-hybrid-model.md` and `docs/gstack-skill-review.md` |
 | Change Claude/Codex parity | `docs/claude-codex-skill-parity.md` |
 

@@ -34,6 +34,7 @@ The useful pattern from small plugin repos such as [`explorium-ai/vibeprospectin
 | Claude agents | `plugins/elian-store/agents/` | Plugin-bundled subagent definitions. |
 | Claude hooks | `plugins/elian-store/hooks/` | Plugin-bundled hook commands. |
 | Codex companion | `codex/` | Codex prompts, AGENTS template, config sample, Codex-specific setup docs. |
+| Claude workflows | `.claude/workflows/` | Workflow-tool `.js` scripts distributed by copying into `~/.claude/workflows/` (sibling tree, not part of the plugin). See "Workflow Distribution Tree" below. |
 | Contributor workflow | `CONTRIBUTING.md` and `.github/pull_request_template.md` | Review checklist, validation expectations, PR metadata. |
 | Portfolio docs | `docs/` | Architecture decisions, parity status, roadmap, audits. |
 
@@ -41,9 +42,53 @@ The useful pattern from small plugin repos such as [`explorium-ai/vibeprospectin
 
 | Path | Meaning | Rule |
 |---|---|---|
-| `.claude/` | Local Claude settings/state for this checkout | Do not treat as plugin source. Keep user/local state out of release notes unless intentionally versioned. |
+| `.claude/settings.local.json` | Per-developer Claude state for this checkout | Git-ignored. Do not treat as plugin source. Keep local state out of release notes unless intentionally versioned. |
+| `.claude/skills/` | Maintainer-only dev skills for working *in this repo* | Git-tracked but **not the product**. See "Maintainer Dev Skills" below. |
 | `~/.codex/` | User-global Codex install/config destination | Not stored in this repo; `codex/` only provides source files to copy from. |
 | `.codex/` | If present locally, Codex state/config | Do not confuse with this repo's `codex/` distribution tree. |
+
+### Maintainer Dev Skills (`.claude/skills/`)
+
+`.claude/skills/` holds Claude Code skills the *maintainer* uses while working on this
+repository. They are deliberately **not** part of the shipped `elian-store` plugin and exist
+on a different axis from it: `plugins/elian-store/skills/` is the **product** (what users
+install); `.claude/skills/` is the **toolbox** (what builds the product).
+
+| Skill | Purpose | Shipped to plugin users? |
+|---|---|---|
+| `pr-writer` | Draft PR descriptions for this repo's changes | No |
+| `vue-nuxt-best-practices` | Vue/Nuxt reference rules for the maintainer's day work | No |
+
+Rules:
+
+- These skills are **dev tooling, not product.** They are never installed by
+  `/plugin install elian-store@elian`; only `plugins/elian-store/skills/` ships.
+- Do not list them in the root README skill table, `marketplace.json`, `plugin.json`,
+  or `CHANGELOG.md` — those describe the distributed plugin only.
+- Keep a skill here only while it is specific to working in *this* repo. A skill that is
+  useful across all of the maintainer's projects (e.g. general Vue/Nuxt guidance) belongs
+  in the global `~/.claude/skills/`, not committed here.
+- Maintain **exactly one copy** under `.claude/skills/`. Do not mirror these into a second
+  tree (a former `.agents/skills/` byte-for-byte copy was removed for this reason — two
+  hand-maintained copies guarantee drift).
+
+### Workflow Distribution Tree (`.claude/workflows/`)
+
+`.claude/workflows/` is a **distribution surface**, not local state — distinct in role from the
+two other `.claude/` entries above:
+
+| `.claude/` entry | Role | Git | Distributed? |
+|---|---|---|---|
+| `.claude/settings.local.json` | Per-developer local state | Ignored | No |
+| `.claude/skills/` | Maintainer dev tooling (toolbox) | Tracked | No |
+| `.claude/workflows/` | Workflow-tool `.js` source (product) | Tracked | Yes — copy into `~/.claude/workflows/` |
+
+Claude Code plugins cannot register Workflow-tool workflows (a plugin ships skills / agents /
+hooks / MCP / LSP / monitors / themes / bin / settings only), so — like `codex/` — these `.js`
+files are distributed by **copying them into the user config**, not through the marketplace. The
+directory name mirrors the install destination (`~/.claude/workflows/`) so the copy command is
+obvious, and the `.claude/` prefix keeps it from being confused with `.github/workflows/` (GitHub
+Actions CI, run by GitHub — a different thing entirely). See `.claude/workflows/README.md`.
 
 ## Current Physical Shape
 
@@ -67,6 +112,9 @@ elian-claude-plugins/
     AGENTS.md
     config.toml.example
     prompts/
+  .claude/
+    workflows/                     # Workflow-tool .js, copied into ~/.claude/workflows/
+    skills/                        # maintainer-only dev skills (not distributed)
   docs/
   .github/
 ```

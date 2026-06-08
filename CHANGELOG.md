@@ -13,6 +13,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ### Unreleased
 
 #### Added
+- Added a **Claude workflows distribution tree** at `.claude/workflows/` — a third copy-distributed surface (alongside `codex/`), since Claude Code plugins cannot register Workflow-tool workflows. Ships `harness-legacy-scan.js`, a portable, read-only AI-coding-harness audit (`/harness-legacy-scan [project-path]`) that discovers the environment at runtime and classifies findings KEEP/SHRINK/MOVE/SPLIT/CONVERT/DELETE. Documented in `.claude/workflows/README.md`, the root README, and `docs/repository-operating-map.md`. (`harness-diet` is intentionally not included — its existing form is a machine-specific one-time replay, not a reusable tool.)
+- Removed the duplicate `.agents/skills/` tree (a byte-for-byte copy of `.claude/skills/`) and documented `.claude/skills/` ownership (maintainer dev tooling, not product) in `docs/repository-operating-map.md`.
 - Ported all 13 bundled Claude skills to Codex prompts under `codex/prompts/`, covering `brainstorm`, `review`, `persona-review`, `ai-assisted-feature-development`, `design-ui`, `decision-dashboard`, `create-document`, `implement`, `fix`, `improve`, `manage-skills`, `verify-implementation`, and `generate-teammate`.
 - Added and refreshed the Codex docs entry points so `README.md` and `codex/README.md` describe the prompt catalog, install flow, and current scope.
 - Added `plugins/elian-store/README.md` as a plugin-local guide for real usage, edit locations, and validation boundaries.
@@ -25,6 +27,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 #### Notes
 - `generate-teammate` remains handoff-only on Codex because the runtime cannot reproduce the plugin-side teammate-spawn flow exactly.
 - `manage-skills` and `verify-implementation` remain prompt-level orchestration equivalents rather than byte-for-byte skill/runtime matches.
+
+### 2.10.0 — 2026-06-08
+
+#### Added
+- **`/harness-manager`** — new skill at `plugins/elian-store/skills/harness-manager/`. Detects and reconciles drift between the **Codex** and **Claude Code** *global* harnesses — behavioral rules (`~/.claude/CLAUDE.md` ↔ `~/.codex/AGENTS.md`), MCP servers (`~/.claude.json` ↔ `~/.codex/config.toml`), commands ↔ prompts, and skills. Runs scan → drift report (HTML) → user approval → backed-up edits, with a six-bucket drift classification (in-sync / delegated / diverged / missing / broken-port / tool-specific). Phases 1–3 are read-only; Phase 4 mutates real files only after the user approves specific items and after backing every target up to `~/.claude/backups/`. References: `harness-map.md` (exact paths and per-tool gotchas) and `sync-recipes.md` (JSON↔TOML MCP translation, pointer-pattern rule propagation).
+
+#### Notes
+- Bumped the `elian-store` plugin version (`2.9.0` → `2.10.0`). The marketplace metadata version is intentionally left at `2.8.2` because the catalog structure (the set of plugins) did not change — only the plugin's contents did.
+- `harness-manager` ships Claude-only for now; its Codex prompt counterpart is a documented parity exception in `docs/claude-codex-skill-parity.md` (it is a meta-tool operating on both harnesses' global files, so a Codex port is a reasonable future addition rather than a behavioral mirror).
 
 ### 2.9.0 — 2026-06-08
 
