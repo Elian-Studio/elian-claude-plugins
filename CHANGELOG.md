@@ -26,6 +26,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - `generate-teammate` remains handoff-only on Codex because the runtime cannot reproduce the plugin-side teammate-spawn flow exactly.
 - `manage-skills` and `verify-implementation` remain prompt-level orchestration equivalents rather than byte-for-byte skill/runtime matches.
 
+### 2.10.0 — 2026-06-08
+
+#### Added
+- **`/harness-manager`** — new skill at `plugins/elian-store/skills/harness-manager/`. Detects and reconciles drift between the **Codex** and **Claude Code** *global* harnesses — behavioral rules (`~/.claude/CLAUDE.md` ↔ `~/.codex/AGENTS.md`), MCP servers (`~/.claude.json` ↔ `~/.codex/config.toml`), commands ↔ prompts, and skills. Runs scan → drift report (HTML) → user approval → backed-up edits, with a six-bucket drift classification (in-sync / delegated / diverged / missing / broken-port / tool-specific). Phases 1–3 are read-only; Phase 4 mutates real files only after the user approves specific items and after backing every target up to `~/.claude/backups/`. References: `harness-map.md` (exact paths and per-tool gotchas) and `sync-recipes.md` (JSON↔TOML MCP translation, pointer-pattern rule propagation).
+
+#### Notes
+- Bumped the `elian-store` plugin version (`2.9.0` → `2.10.0`). The marketplace metadata version is intentionally left at `2.8.2` because the catalog structure (the set of plugins) did not change — only the plugin's contents did.
+- `harness-manager` ships Claude-only for now; its Codex prompt counterpart is a documented parity exception in `docs/claude-codex-skill-parity.md` (it is a meta-tool operating on both harnesses' global files, so a Codex port is a reasonable future addition rather than a behavioral mirror).
+
 ### 2.9.0 — 2026-06-08
 
 #### Added

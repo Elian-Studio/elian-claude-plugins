@@ -117,6 +117,14 @@ Completed:
 - `verify-implementation` now closes the verification orchestration lane at the prompt level.
 - `persona-review` now matches the Claude command name and the native free-form review contract.
 
+## Documented Exceptions (Claude-only, no Codex prompt)
+
+These skills ship in the Claude plugin without a `codex/prompts/<skill>.md` counterpart. The operating rule below requires the exception to be recorded here.
+
+| Skill | Why no Codex prompt (yet) |
+|---|---|
+| `harness-manager` | Meta-tool that operates on **both** harnesses' global files at once (`~/.claude/CLAUDE.md` ↔ `~/.codex/AGENTS.md`, `~/.claude.json` ↔ `~/.codex/config.toml`, commands ↔ prompts, skills). It is not a per-tool workflow to mirror; a Codex prompt that drives the same scan/report/reconcile flow from the Codex side is a reasonable future addition, not a behavioral mirror. Until authored, the Claude skill is the single entry point. |
+
 ## Operating Rule Going Forward
 
 Every new Claude skill requires one of these in the same PR:

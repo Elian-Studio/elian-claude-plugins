@@ -97,6 +97,7 @@ Path: [plugins/elian-store/](plugins/elian-store/)
 | [create-document](plugins/elian-store/skills/create-document/) | Render schema-validated JSON into HTML/Markdown templates. | `/elian-store:create-document` |
 | [document-writer](plugins/elian-store/skills/document-writer/) | Turn arbitrary content into a self-contained, house-styled HTML (or Markdown) document. | `/elian-store:document-writer` |
 | [persona-review](plugins/elian-store/skills/persona-review/) | Review plans/docs/ideas through selected persona lenses in each persona's native style. | `/elian-store:persona-review` |
+| [harness-manager](plugins/elian-store/skills/harness-manager/) | Detect and reconcile drift between the Codex and Claude Code global harnesses (rules, MCP, commands, skills). | `/elian-store:harness-manager` |
 
 ### Codex Companion Tree
 
