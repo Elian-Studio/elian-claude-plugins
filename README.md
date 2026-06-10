@@ -71,7 +71,7 @@ cp codex/AGENTS.md ~/.codex/AGENTS.md
 cp codex/config.toml.example ~/.codex/config.toml
 ```
 
-Codex currently ships reference `/review`, `/brainstorm`, `/ai-assisted-feature-development`, `/design-ui`, `/decision-dashboard`, `/create-document`, `/implement`, `/fix`, `/improve`, `/manage-skills`, `/verify-implementation`, `/generate-teammate`, and `/persona-review` prompts. See [codex/README.md](codex/README.md).
+Codex currently ships reference `/review`, `/brainstorm`, `/ai-assisted-feature-development`, `/design-ui`, `/decision-dashboard`, `/create-document`, `/implement`, `/fix`, `/improve`, `/manage-skills`, `/verify-implementation`, `/generate-teammate`, `/persona-review`, and `/pr-writer` prompts. See [codex/README.md](codex/README.md).
 
 ### Claude Workflows
 
@@ -111,6 +111,7 @@ Path: [plugins/elian-store/](plugins/elian-store/)
 | [document-writer](plugins/elian-store/skills/document-writer/) | Turn arbitrary content into a self-contained, house-styled HTML (or Markdown) document. | `/elian-store:document-writer` |
 | [persona-review](plugins/elian-store/skills/persona-review/) | Review plans/docs/ideas through selected persona lenses in each persona's native style. | `/elian-store:persona-review` |
 | [harness-manager](plugins/elian-store/skills/harness-manager/) | Detect and reconcile drift between the Codex and Claude Code global harnesses (rules, MCP, commands, skills). | `/elian-store:harness-manager` |
+| [pr-writer](plugins/elian-store/skills/pr-writer/) | Draft a review-friendly PR/MR title and body from the diff, commits, and stated intent (GitHub `gh` / GitLab `glab` aware). | `/elian-store:pr-writer` |
 
 ### Codex Companion Tree
 
@@ -131,6 +132,7 @@ Path: [codex/](codex/)
 | [codex/prompts/design-ui.md](codex/prompts/design-ui.md) | Reference Codex prompt for `/design-ui`. |
 | [codex/prompts/review.md](codex/prompts/review.md) | Reference Codex prompt for `/review`. |
 | [codex/prompts/persona-review.md](codex/prompts/persona-review.md) | Reference Codex prompt for `/persona-review`. |
+| [codex/prompts/pr-writer.md](codex/prompts/pr-writer.md) | Reference Codex prompt for `/pr-writer`. |
 | [codex/AGENTS.md](codex/AGENTS.md) | Codex project/global instruction template. |
 | [codex/config.toml.example](codex/config.toml.example) | Safe read-only-oriented Codex config sample. |
 

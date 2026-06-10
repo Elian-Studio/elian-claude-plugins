@@ -28,6 +28,7 @@
 | `document-writer` | You need to turn arbitrary content into a polished, house-styled HTML (or Markdown) document. | `/elian-store:document-writer` |
 | `persona-review` | You want a persona-specific critique instead of a generic review. | `/elian-store:persona-review` |
 | `harness-manager` | The Codex and Claude Code global harnesses have drifted and you want them reconciled. | `/elian-store:harness-manager` |
+| `pr-writer` | You need a review-friendly PR/MR title and body drafted from the diff, commits, and stated intent. | `/elian-store:pr-writer` |
 
 ## Package Layout
 
