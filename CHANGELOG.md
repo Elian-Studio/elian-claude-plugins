@@ -28,6 +28,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - `generate-teammate` remains handoff-only on Codex because the runtime cannot reproduce the plugin-side teammate-spawn flow exactly.
 - `manage-skills` and `verify-implementation` remain prompt-level orchestration equivalents rather than byte-for-byte skill/runtime matches.
 
+### 2.11.0 — 2026-06-10
+
+#### Added
+- **`/pr-writer`** — new skill at `plugins/elian-store/skills/pr-writer/`. Drafts review-friendly pull request (GitHub PR) and merge request (GitLab MR) titles and descriptions from the git diff, commits, branch name, issue/ticket references, test evidence, and any repository PR/MR template. Goes beyond diff-summary by contrasting **intent vs implementation** (which requirement each change satisfies, what is missing, what went beyond scope). Detects GitHub (`gh`) vs GitLab (`glab`) from the remote and auto-detects the base branch (upstream → `origin/main` → `origin/master` → `main` → `master`). Draft-only posture: never pushes, creates, or merges unless explicitly asked. References: `pr-style.md` (title/body conventions, sizing, anti-patterns, tone) and `examples.md` (good vs bad PRs, intent-contrast block); `scripts/collect-pr-context.sh` is a read-only one-shot git context collector.
+- Added the matching Codex prompt `codex/prompts/pr-writer.md` so `/pr-writer` ships in both trees, and recorded the parity in `docs/claude-codex-skill-parity.md`.
+
+#### Notes
+- Bumped the `elian-store` plugin version (`2.10.0` → `2.11.0`). The marketplace metadata version is intentionally left at `2.8.2` because the catalog structure (the set of plugins) did not change — only the plugin's contents did.
+
 ### 2.10.0 — 2026-06-08
 
 #### Added
