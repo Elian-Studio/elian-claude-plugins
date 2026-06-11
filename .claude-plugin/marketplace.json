@@ -14,7 +14,7 @@
       "name": "elian-store",
       "source": "./plugins/elian-store",
       "description": "Workflow bundle with decision artifacts, UI design, AI-assisted feature planning, TDD implementation flows, engineering review, verification orchestration, persona review, harness sync, and bundled domain agents.",
-      "version": "2.11.0",
+      "version": "2.11.1",
       "author": {
         "name": "Daniel (Elian-Studio)"
       },

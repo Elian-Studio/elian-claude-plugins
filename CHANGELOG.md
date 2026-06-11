@@ -28,6 +28,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - `generate-teammate` remains handoff-only on Codex because the runtime cannot reproduce the plugin-side teammate-spawn flow exactly.
 - `manage-skills` and `verify-implementation` remain prompt-level orchestration equivalents rather than byte-for-byte skill/runtime matches.
 
+### 2.11.1 — 2026-06-11
+
+#### Fixed
+- Corrected the Codex skills surface in `plugins/elian-store/skills/harness-manager/references/harness-map.md`. Codex loads skills from both `~/.codex/skills/` (legacy, still active) and the Agent Skills open-standard locations (`.agents/skills/`, `$HOME/.agents/skills`, `/etc/codex/skills`); the previous map listed only `~/.codex/skills/`. Added a note that Claude Code and Codex have converged on the same `SKILL.md` Agent Skills standard — empirically verified on Codex CLI 0.139 that Codex loads a `SKILL.md` carrying Claude-only frontmatter keys (`disable-model-invocation`, `user-invocable`, `allowed-tools`) without error — which makes the `Commands ↔ Prompts` mapping partly legacy.
+
+#### Notes
+- Bumped the `elian-store` plugin version (`2.11.0` → `2.11.1`). The marketplace metadata version is intentionally left at `2.8.2` because the catalog structure (the set of plugins) did not change — only the plugin's contents did.
+
 ### 2.11.0 — 2026-06-10
 
 #### Added

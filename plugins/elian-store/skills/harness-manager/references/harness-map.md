@@ -70,10 +70,23 @@ still exists** before reading — report a moved path, not a false "missing".
 
 | | Location |
 |---|---|
-| Claude Code | `~/.claude/skills/` |
-| Codex | `~/.codex/skills/` |
+| Claude Code | `~/.claude/skills/` (+ installed plugins) |
+| Codex | `~/.codex/skills/` (legacy, still loaded) **and** `.agents/skills/` (repo) / `$HOME/.agents/skills` (user) / `/etc/codex/skills` (admin) — the Agent Skills open standard |
 
 **Gotchas:**
+- **Format has converged — both tools implement the same `SKILL.md` Agent Skills standard**
+  (originally authored by Anthropic, now an open standard at agentskills.io). Required frontmatter
+  is `name` + `description` on both sides. Each tool only *extends* it: Claude via extra top-level
+  frontmatter keys (`disable-model-invocation`, `user-invocable`, `allowed-tools`), Codex via a
+  separate `agents/openai.yaml`. Empirically verified (Codex CLI 0.139): Codex **loads a SKILL.md
+  carrying Claude-only frontmatter keys without error** — it ignores their semantics but does not
+  choke. So one canonical `SKILL.md` can feed both tools; the only blocker is that neither tool
+  reads the other's directory, so bridge it with a copy/symlink. This makes the
+  `Commands ↔ Prompts` surface above partly legacy: the modern Codex counterpart of a Claude skill
+  is a Codex *skill* (`.agents/skills/<name>/SKILL.md` or `~/.codex/skills/<name>/SKILL.md`), not a
+  `prompts/*.md` file.
+- Codex reads `~/.codex/skills/` **and** `.agents/skills/`; do not assume only one. Verify which a
+  given machine actually populates before reporting a Codex-only gap.
 - Counts are lopsided (Claude ≫ Codex) and many names overlap (`commit`, `fix`, `implement`,
   `review`, `brainstorm`, `decision-dashboard`, `design-ui`, `deep-interview`,
   `para-memory-files`, …). Plus Claude loads skills from installed *plugins*, so a skill can be
