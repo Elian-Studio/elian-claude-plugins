@@ -1,6 +1,7 @@
 # Claude / Codex Skill Parity Review
 
 Date: 2026-06-02
+Last updated: 2026-06-11 (recount to 16/14; `document-writer` recorded as a Claude-only exception)
 
 ## Goal
 
@@ -30,13 +31,13 @@ A Claude skill and Codex prompt are considered aligned only when all of these ma
 
 | Area | Claude | Codex | Status |
 |---|---:|---:|---|
-| Catalog entries | 13 skills | 13 prompts | Not equal |
+| Catalog entries | 16 skills | 14 prompts | 14 matched + 2 documented Claude-only |
 | Command naming | `/elian-store:<skill>` | `/<prompt-file>` | Mostly alignable |
 | Current matched commands | `ai-assisted-feature-development`, `brainstorm`, `create-document`, `decision-dashboard`, `design-ui`, `fix`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `review`, `verify-implementation`, `persona-review`, `pr-writer` | `ai-assisted-feature-development`, `brainstorm`, `create-document`, `decision-dashboard`, `design-ui`, `fix`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `review`, `verify-implementation`, `persona-review`, `pr-writer` | Aligned |
 | Legacy `on-call-elian` | Removed from current Claude skill catalog | Removed from current Codex prompt catalog | Aligned |
 | Validation | YAML + skill-owned validators where present | Prompt/config review | Asymmetric, manual |
 
-Current conclusion: **the two trees now cover the same command catalog, but they are not byte-for-byte or runtime-identical yet**. The name drift around `on-call-elian` is fixed, all 13 Claude commands now have Codex prompt counterparts, and the remaining divergence is platform/runtime behavior rather than missing prompt coverage.
+Current conclusion: **the two trees now cover the same ported command catalog, but they are not byte-for-byte or runtime-identical yet**. The name drift around `on-call-elian` is fixed, the 14 ported commands all have Codex prompt counterparts, the 2 Claude-only skills (`harness-manager`, `document-writer`) are documented exceptions below, and the remaining divergence is platform/runtime behavior rather than missing prompt coverage.
 
 ## gstack Portfolio Lens
 
@@ -126,6 +127,7 @@ These skills ship in the Claude plugin without a `codex/prompts/<skill>.md` coun
 | Skill | Why no Codex prompt (yet) |
 |---|---|
 | `harness-manager` | Meta-tool that operates on **both** harnesses' global files at once (`~/.claude/CLAUDE.md` ↔ `~/.codex/AGENTS.md`, `~/.claude.json` ↔ `~/.codex/config.toml`, commands ↔ prompts, skills). It is not a per-tool workflow to mirror; a Codex prompt that drives the same scan/report/reconcile flow from the Codex side is a reasonable future addition, not a behavioral mirror. Until authored, the Claude skill is the single entry point. |
+| `document-writer` | House-style self-contained HTML/MD document generator shipped to the Claude plugin (PR #19). A Codex prompt port is feasible and a reasonable future addition, but not yet authored — Claude-only by deferral, not platform limitation. Tracked as a port candidate. |
 
 ## Operating Rule Going Forward
 
