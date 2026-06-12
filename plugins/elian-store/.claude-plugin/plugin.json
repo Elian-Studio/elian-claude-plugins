@@ -1,8 +1,8 @@
 {
   "name": "elian-store",
   "displayName": "Elian Store",
-  "description": "Claude Code workflow bundle for Elian-Studio: decision artifacts, UI design, AI-assisted feature planning, TDD implementation flows, engineering review, verification orchestration, persona review, harness sync, and bundled domain agents.",
-  "version": "2.11.0",
+  "description": "Claude Code workflow bundle for Elian-Studio: opt-in skill routing, decision artifacts, UI design, AI-assisted feature planning, TDD implementation flows, engineering review, verification orchestration, persona review, harness sync, and bundled domain agents.",
+  "version": "2.13.0",
   "author": {
     "name": "Daniel (Elian-Studio)",
     "email": "danielmrbang@gmail.com"
@@ -24,6 +24,8 @@
     "verification",
     "harness",
     "workflow",
+    "routing",
+    "discovery",
     "toolkit"
   ],
   "hooks": {

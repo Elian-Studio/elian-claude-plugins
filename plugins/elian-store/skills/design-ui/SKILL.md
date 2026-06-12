@@ -48,8 +48,8 @@ Environment overrides:
 | Env var | Meaning | Default |
 |---|---|---|
 | `${DESIGN_UI_OUT}` | Output directory when `--out` is omitted | `claudedocs/design/<feature>/` |
-| `${CLAUDE_PLUGIN_ROOT}` | Plugin installation root | provided by runtime when available |
-| `${CLAUDE_SKILL_DIR}` | This skill directory | provided by runtime when available |
+| `${CLAUDE_PLUGIN_ROOT}` | Plugin root (Claude Code only) | set by Claude Code; unset on Codex |
+| `${CLAUDE_SKILL_DIR}` | This skill's directory (Claude Code only) | set by Claude Code; on Codex use `${CODEX_HOME:-$HOME/.codex}/skills/design-ui` |
 
 ## Workflow
 

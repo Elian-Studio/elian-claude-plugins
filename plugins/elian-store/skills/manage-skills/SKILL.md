@@ -128,7 +128,9 @@ Apply each approved item:
 After each create/update, run:
 
 ```bash
-python3 "${CLAUDE_SKILL_DIR}/scripts/check-skill-frontmatter.py" .claude/skills/verify-{name}/SKILL.md
+SKILL_DIR="${CLAUDE_SKILL_DIR:-${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/skills/manage-skills}}"
+SKILL_DIR="${SKILL_DIR:-${CODEX_HOME:-$HOME/.codex}/skills/manage-skills}"
+python3 "${SKILL_DIR}/scripts/check-skill-frontmatter.py" .claude/skills/verify-{name}/SKILL.md
 ```
 
 Use [references/example-verify-skill-template.md](references/example-verify-skill-template.md) for new skills.
@@ -158,8 +160,10 @@ Read the project-local orchestrator. If it lists `verify-*` skills explicitly, r
 ## Validation
 
 ```bash
-python3 "${CLAUDE_SKILL_DIR}/scripts/check-skill-frontmatter.py" .claude/skills/verify-{name}/SKILL.md
-python3 "${CLAUDE_SKILL_DIR}/scripts/check-skill-frontmatter.py" .claude/skills/verify-*/SKILL.md --json
+SKILL_DIR="${CLAUDE_SKILL_DIR:-${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/skills/manage-skills}}"
+SKILL_DIR="${SKILL_DIR:-${CODEX_HOME:-$HOME/.codex}/skills/manage-skills}"
+python3 "${SKILL_DIR}/scripts/check-skill-frontmatter.py" .claude/skills/verify-{name}/SKILL.md
+python3 "${SKILL_DIR}/scripts/check-skill-frontmatter.py" .claude/skills/verify-*/SKILL.md --json
 ```
 
 Checks:

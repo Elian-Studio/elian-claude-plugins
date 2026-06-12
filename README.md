@@ -40,6 +40,12 @@ Update later:
 /plugin update elian-store@elian
 ```
 
+If you prefer Claude Code's native marketplace auto-update behavior, enable marketplace/plugin
+auto-update in your Claude Code settings. `elian-store` already uses `plugin.json.version` as the
+installed update cache key, so installed users receive plugin-content releases when Claude Code
+performs marketplace auto-update. Keep the manual commands above for explicit refreshes or when
+auto-update is disabled.
+
 Claude invocation format:
 
 ```text
@@ -56,9 +62,13 @@ For the bundled plugin guide, use [plugins/elian-store/README.md](plugins/elian-
 
 ### Codex CLI
 
-Install or update the independent Codex prompt/config files:
+Install or update the independent Codex skill/prompt/config files:
 
 ```shell
+# Skills (shared with the Claude plugin via symlink, updated by `git pull`)
+./codex/setup.sh
+
+# Legacy prompts
 mkdir -p ~/.codex/prompts
 rm -f ~/.codex/prompts/on-call-elian.md
 cp codex/prompts/*.md ~/.codex/prompts/
@@ -71,7 +81,7 @@ cp codex/AGENTS.md ~/.codex/AGENTS.md
 cp codex/config.toml.example ~/.codex/config.toml
 ```
 
-Codex currently ships reference `/review`, `/brainstorm`, `/ai-assisted-feature-development`, `/design-ui`, `/decision-dashboard`, `/create-document`, `/implement`, `/fix`, `/improve`, `/manage-skills`, `/verify-implementation`, `/generate-teammate`, `/persona-review`, and `/pr-writer` prompts. See [codex/README.md](codex/README.md).
+Codex ships **13 shared skills** (`codex/skills/`, symlinked into the plugin tree so they never drift) plus **2 reference prompts** — `/generate-teammate` and `/persona-review`, which stay prompts because their core is Claude subagent dispatch that Codex cannot reproduce. (`document-writer` and `harness-manager` are Claude-only.) See [codex/README.md](codex/README.md).
 
 ### Claude Workflows
 
@@ -106,12 +116,13 @@ Path: [plugins/elian-store/](plugins/elian-store/)
 | [review](plugins/elian-store/skills/review/) | Perform read-only engineering review of code, diffs, PRs, or changed files with findings-first output. | `/elian-store:review` |
 | [verify-implementation](plugins/elian-store/skills/verify-implementation/) | Discover and run project verify-* skills before shipping. | `/elian-store:verify-implementation` |
 | [manage-skills](plugins/elian-store/skills/manage-skills/) | Detect and repair verify-skill drift after code changes. | `/elian-store:manage-skills` |
-| [generate-teammate](plugins/elian-store/skills/generate-teammate/) | Decide direct/subagent/team execution and render teammate prompts. | `/elian-store:generate-teammate` |
+| [generate-teammate](plugins/elian-store/skills/generate-teammate/) | Decide direct/subagent/team execution (cheaper-first prior + cost gate + post-parallel integration check) and render teammate prompts. | `/elian-store:generate-teammate` |
 | [create-document](plugins/elian-store/skills/create-document/) | Render schema-validated JSON into HTML/Markdown templates. | `/elian-store:create-document` |
 | [document-writer](plugins/elian-store/skills/document-writer/) | Turn arbitrary content into a self-contained, house-styled HTML (or Markdown) document. | `/elian-store:document-writer` |
 | [persona-review](plugins/elian-store/skills/persona-review/) | Review plans/docs/ideas through selected persona lenses in each persona's native style. | `/elian-store:persona-review` |
 | [harness-manager](plugins/elian-store/skills/harness-manager/) | Detect and reconcile drift between the Codex and Claude Code global harnesses (rules, MCP, commands, skills). | `/elian-store:harness-manager` |
 | [pr-writer](plugins/elian-store/skills/pr-writer/) | Draft a review-friendly PR/MR title and body from the diff, commits, and stated intent (GitHub `gh` / GitLab `glab` aware). | `/elian-store:pr-writer` |
+| [skill-dispatcher](plugins/elian-store/skills/skill-dispatcher/) | Opt-in router that recommends the smallest relevant `elian-store` skill before work starts. | `/elian-store:skill-dispatcher` |
 
 ### Codex Companion Tree
 
@@ -119,24 +130,16 @@ Path: [codex/](codex/)
 
 | File | Role |
 |---|---|
-| [codex/prompts/ai-assisted-feature-development.md](codex/prompts/ai-assisted-feature-development.md) | Reference Codex prompt for `/ai-assisted-feature-development`. |
-| [codex/prompts/create-document.md](codex/prompts/create-document.md) | Reference Codex prompt for `/create-document`. |
-| [codex/prompts/brainstorm.md](codex/prompts/brainstorm.md) | Reference Codex prompt for `/brainstorm`. |
-| [codex/prompts/implement.md](codex/prompts/implement.md) | Reference Codex prompt for `/implement`. |
-| [codex/prompts/fix.md](codex/prompts/fix.md) | Reference Codex prompt for `/fix`. |
-| [codex/prompts/improve.md](codex/prompts/improve.md) | Reference Codex prompt for `/improve`. |
-| [codex/prompts/manage-skills.md](codex/prompts/manage-skills.md) | Reference Codex prompt for `/manage-skills`. |
-| [codex/prompts/verify-implementation.md](codex/prompts/verify-implementation.md) | Reference Codex prompt for `/verify-implementation`. |
-| [codex/prompts/generate-teammate.md](codex/prompts/generate-teammate.md) | Reference Codex prompt for `/generate-teammate`. |
-| [codex/prompts/decision-dashboard.md](codex/prompts/decision-dashboard.md) | Reference Codex prompt for `/decision-dashboard`. |
-| [codex/prompts/design-ui.md](codex/prompts/design-ui.md) | Reference Codex prompt for `/design-ui`. |
-| [codex/prompts/review.md](codex/prompts/review.md) | Reference Codex prompt for `/review`. |
-| [codex/prompts/persona-review.md](codex/prompts/persona-review.md) | Reference Codex prompt for `/persona-review`. |
-| [codex/prompts/pr-writer.md](codex/prompts/pr-writer.md) | Reference Codex prompt for `/pr-writer`. |
+| [codex/setup.sh](codex/setup.sh) | Installs `codex/skills/*` into `~/.codex/skills` as symlinks (idempotent). |
+| [codex/skills/](codex/skills/) | 13 shared skills — symlinks into `plugins/elian-store/skills/<name>/`, generated/lint-checked by `tools/generate.py`. |
+| [codex/prompts/generate-teammate.md](codex/prompts/generate-teammate.md) | Reference prompt for `/generate-teammate` — subagent-core, stays a prompt. |
+| [codex/prompts/persona-review.md](codex/prompts/persona-review.md) | Reference prompt for `/persona-review` — subagent-core, stays a prompt. |
 | [codex/AGENTS.md](codex/AGENTS.md) | Codex project/global instruction template. |
 | [codex/config.toml.example](codex/config.toml.example) | Safe read-only-oriented Codex config sample. |
 
-The Claude and Codex trees are intentionally independent. When behavior changes in both, update both explicitly and record parity status in [docs/claude-codex-skill-parity.md](docs/claude-codex-skill-parity.md).
+Shared skills read one host-agnostic `SKILL.md` and cannot drift between the trees. Only the two
+subagent-core prompts (`generate-teammate`, `persona-review`) are independent files that must be
+kept in sync by hand; parity status is tracked in [docs/claude-codex-skill-parity.md](docs/claude-codex-skill-parity.md).
 
 ### Claude Workflows
 
@@ -200,7 +203,7 @@ Important distinction:
 | Change portfolio roadmap | `docs/plugin-portfolio-hybrid-model.md` and `docs/gstack-skill-review.md` |
 | Change Claude/Codex parity | `docs/claude-codex-skill-parity.md` |
 
-Version rule: plugin-distributed behavior changes require updating `plugin.json`, root marketplace metadata, README, and CHANGELOG together.
+Version rule: plugin-distributed behavior changes require updating `plugin.json`, the marketplace `elian-store` entry version (not the root `metadata.version`), README, and CHANGELOG together.
 
 ---
 

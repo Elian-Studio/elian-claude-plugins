@@ -194,7 +194,9 @@ Card shape:
 3. Render through `create-document`:
 
 ```bash
-CD="${CLAUDE_PLUGIN_ROOT}/skills/create-document"
+# Locate create-document (sibling skill on both Claude Code and Codex):
+CD="${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/skills/create-document}"
+CD="${CD:-${CODEX_HOME:-$HOME/.codex}/skills/create-document}"
 python3 "${CD}/scripts/render.py" \
   --template decision-dashboard \
   --data "${JSON}" \
@@ -204,7 +206,10 @@ python3 "${CD}/scripts/render.py" \
 4. Validate rendered HTML:
 
 ```bash
-python3 "${CLAUDE_SKILL_DIR}/scripts/validate-dashboard.py" "${FILE}"
+# SKILL_DIR = this skill's own directory on either host:
+SKILL_DIR="${CLAUDE_SKILL_DIR:-${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/skills/decision-dashboard}}"
+SKILL_DIR="${SKILL_DIR:-${CODEX_HOME:-$HOME/.codex}/skills/decision-dashboard}"
+python3 "${SKILL_DIR}/scripts/validate-dashboard.py" "${FILE}"
 ```
 
 5. Open the file only with user approval:
@@ -275,7 +280,7 @@ Use three short observations at most, with hedged language.
 
 | Pitfall | Symptom | Prevention |
 |---|---|---|
-| Confusing `${CLAUDE_PLUGIN_ROOT}` and `${CLAUDE_SKILL_DIR}` | Wrong script path | Use skill dir for own scripts, plugin root for create-document |
+| Hard-coding `${CLAUDE_PLUGIN_ROOT}` / `${CLAUDE_SKILL_DIR}` (both unset on Codex) | Wrong script path on non-Claude hosts | Resolve `SKILL_DIR` with the `:+`/`:-` fallback shown above; own scripts use `SKILL_DIR`, create-document uses the sibling `CD` resolver |
 | Internal identifiers leak into JSON | Schema or language gate fails | Rewrite card text from product perspective |
 | Missing `open_class` | All cards render collapsed | First card uses `" open"`, others use empty string |
 | Recommendation badge on every option | Recommendation loses meaning | Add `rec_badge` only to one option |
@@ -288,8 +293,10 @@ Stage 1: input JSON validation through create-document.
 Stage 2: rendered HTML validation:
 
 ```bash
-python3 "${CLAUDE_SKILL_DIR}/scripts/validate-dashboard.py" "${FILE}"
-python3 "${CLAUDE_SKILL_DIR}/scripts/validate-dashboard.py" "${FILE}" --json
+SKILL_DIR="${CLAUDE_SKILL_DIR:-${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/skills/decision-dashboard}}"
+SKILL_DIR="${SKILL_DIR:-${CODEX_HOME:-$HOME/.codex}/skills/decision-dashboard}"
+python3 "${SKILL_DIR}/scripts/validate-dashboard.py" "${FILE}"
+python3 "${SKILL_DIR}/scripts/validate-dashboard.py" "${FILE}" --json
 ```
 
 HTML gates:

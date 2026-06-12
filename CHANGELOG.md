@@ -13,6 +13,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ### Unreleased
 
 #### Added
+- Added a **thematic-cluster generator** at `tools/generate.py` (config: `tools/clusters.json`) for the Phase A dual-tool distribution. Report-only by default; lints every `SKILL.md` for host-agnostic script paths, reports `codex/skills/` symlink status, gates version drift (`plugin.json` vs marketplace entry), and (with `--emit`) renders five composition-respecting plugins (`elian-artifacts`, `elian-tdd`, `elian-review`, `elian-design`, `elian-harness`) plus a marketplace catalog to the gitignored `dist/`. `--bump {patch|minor|major}` automates the release ratchet (bump `plugin.json` + the marketplace entry + a dated CHANGELOG stub). The live `plugins/elian-store/` bundle is untouched; the split is staged, not cut over. Design recorded in `.claude/plans/dual-tool-skill-distribution.md`.
 - Added a **Claude workflows distribution tree** at `.claude/workflows/` — a third copy-distributed surface (alongside `codex/`), since Claude Code plugins cannot register Workflow-tool workflows. Ships `harness-legacy-scan.js`, a portable, read-only AI-coding-harness audit (`/harness-legacy-scan [project-path]`) that discovers the environment at runtime and classifies findings KEEP/SHRINK/MOVE/SPLIT/CONVERT/DELETE. Documented in `.claude/workflows/README.md`, the root README, and `docs/repository-operating-map.md`. (`harness-diet` is intentionally not included — its existing form is a machine-specific one-time replay, not a reusable tool.)
 - Removed the duplicate `.agents/skills/` tree (a byte-for-byte copy of `.claude/skills/`) and documented `.claude/skills/` ownership (maintainer dev tooling, not product) in `docs/repository-operating-map.md`.
 - Ported all 13 bundled Claude skills to Codex prompts under `codex/prompts/`, covering `brainstorm`, `review`, `persona-review`, `ai-assisted-feature-development`, `design-ui`, `decision-dashboard`, `create-document`, `implement`, `fix`, `improve`, `manage-skills`, `verify-implementation`, and `generate-teammate`.
@@ -20,13 +21,63 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Added `plugins/elian-store/README.md` as a plugin-local guide for real usage, edit locations, and validation boundaries.
 
 #### Changed
-- Refreshed `docs/claude-codex-skill-parity.md` to reflect the 13-prompt Codex catalog and the remaining platform-limited gaps.
+- Refreshed `docs/claude-codex-skill-parity.md` to reflect the shared-skill Codex catalog and the remaining platform-limited gaps.
 - Kept Codex prompts as plain Markdown on purpose; no YAML frontmatter was added to the prompt files.
 - Added an explicit output contract to `codex/prompts/persona-review.md` so all Codex prompts now share the same invocation / forbidden / output-contract shape.
 
 #### Notes
+- The thematic 5-plugin split (`tools/generate.py --emit` → gitignored `dist/`) is **intentionally staged-only, not published**. `elian-store` stays the single published plugin per `docs/plugin-portfolio-hybrid-model.md` ("Split decision, 2026-06-12"): the clusters share one audience, permission profile, and release cadence, so the bundle is not harmful, and the marketplace has no graceful-removal path. It will be published cluster-by-cluster only when a real divergence appears.
 - `generate-teammate` remains handoff-only on Codex because the runtime cannot reproduce the plugin-side teammate-spawn flow exactly.
 - `manage-skills` and `verify-implementation` remain prompt-level orchestration equivalents rather than byte-for-byte skill/runtime matches.
+
+### 2.13.0 — 2026-06-12
+
+#### Added
+- **`/skill-dispatcher`** — new opt-in router at `plugins/elian-store/skills/skill-dispatcher/`. It recommends the smallest relevant `elian-store` skill for a request, says when no special skill is needed, and stops instead of chaining into downstream workflows. This adds a discovery layer without making every task pass through a proactive dispatcher.
+- Added the matching Codex shared-skill symlink target via `tools/clusters.json` / `codex/skills/skill-dispatcher`, keeping the Claude and Codex routing behavior on one `SKILL.md`.
+
+#### Changed
+- Documented Claude Code marketplace auto-update guidance in the root README and plugin README while keeping the explicit `/plugin marketplace update` + `/plugin update` commands for manual refreshes.
+- Recorded the current multi-host decision in `docs/claude-codex-skill-parity.md`: keep the current symlink + hand-authored prompt model for Claude + Codex, and defer template/adapter generation until a third host is a real target.
+
+#### Notes
+- Bumped the `elian-store` plugin version (`2.12.0` → `2.13.0`, minor — new user-visible skill). The marketplace metadata version stays at `2.8.2` (no catalog-structure change).
+
+### 2.12.0 — 2026-06-12
+
+#### Changed
+- Reworked `generate-teammate`'s execution-mode decision logic to match the empirical evidence on multi-agent orchestration (deep-research synthesis of Anthropic's multi-agent research system, Cognition's "Don't Build Multi-Agents," the MAST failure taxonomy / NeurIPS 2025, and the CodeCRDT coding benchmark). Seven changes:
+  1. **Cheaper-first prior.** Core Philosophy now states `Direct < Subagent < Agent Team` as a cost-and-risk prior instead of "no fixed priority." Phase-type still does not dictate the approach, but ties go to the cheaper option.
+  2. **Economic viability gate (Phase 3).** A mandatory gate names each non-Direct phase's cost multiplier (Direct 1× / Subagent ~N× / Agent Team ~15× + super-linear coordination) and forces a downgrade to Direct when the parallel benefit does not justify it. The multiplier is surfaced in the Phase 6 confirmation.
+  3. **Integration reconciliation (Phase 7).** A new mandatory single-agent cross-boundary build/typecheck after any parallel write phase — file-ownership separation prevents textual conflicts, not the ~5–10% (up to ~80% on complex tasks) semantic seam conflicts. Tracked as a team-level Definition of Done.
+  4. **Multi-perspective default inverted.** Research / Design / Strategy patterns now default to independent Subagents (one per lens) + a single synthesizer; a *communicating* Agent Team is reserved for genuine real-time reconciliation (e.g. BE↔FE API-contract negotiation).
+  5. **Single-agent synthesis is a hard rule.** Coherence-critical artifacts (one design doc / report / schema) are authored by one agent; co-writing is forbidden.
+  6. **Full-artifact handoffs.** Coherence-critical phase handoffs pass the full artifact, not a lossy summary, to stop downstream agents from silently re-deciding.
+  7. **Delegation triage.** A Phase 2.0 triage can short-circuit to Direct, and over-decomposition is now an explicit anti-pattern in the Forbidden list and standing rules.
+- Added `references/execution-evidence.md` (the cited empirical basis), four new standing rules (9–12), spec criterion I-10, and synced the Codex prompt (`codex/prompts/generate-teammate.md`) to parity.
+
+#### Notes
+- Bumped the `elian-store` plugin version (`2.11.2` → `2.12.0`, minor — decision-logic behavior change). The marketplace metadata version stays at `2.8.2` (no catalog-structure change).
+
+### 2.11.2 — 2026-06-12
+
+#### Added
+- Skills-based Codex distribution. `codex/skills/<name>` are relative symlinks into the shared plugin skill tree, and `codex/setup.sh` installs them into `~/.codex/skills/` (Codex follows symlinks, so `git pull` updates them with no re-copy). Migrated **12 commands** from hand-mirrored Codex prompts to shared skills (symlinks generated by `tools/generate.py`), retiring the corresponding `codex/prompts/*.md`. Only `generate-teammate` and `persona-review` stay prompts — their core is Claude subagent dispatch that Codex cannot reproduce. Codex catalog is now 2 prompts + 12 shared skills.
+
+#### Fixed
+- Made six skills' `SKILL.md` host-agnostic so one file runs on both Claude Code and Codex: `create-document`, `decision-dashboard`, `design-ui`, `generate-teammate`, `manage-skills`, and `verify-implementation` no longer hard-depend on `${CLAUDE_PLUGIN_ROOT}` / `${CLAUDE_SKILL_DIR}`. Script paths resolve via a `${CLAUDE_SKILL_DIR:-${CLAUDE_PLUGIN_ROOT:+...}}` → `${CODEX_HOME:-$HOME/.codex}/skills/...` fallback. On Codex (both vars unset) those scripts were previously unreachable. `manage-skills` and `verify-implementation` were caught by the new `tools/generate.py` lint.
+
+#### Notes
+- Bumped the `elian-store` plugin version (`2.11.1` → `2.11.2`). The marketplace metadata version stays at `2.8.2` (no catalog-structure change).
+- `generate-teammate` is host-agnostic at the `SKILL.md` level but stays a Codex prompt — its teammate-spawn/subagent dispatch flow cannot be reproduced on Codex (handoff-only), so shipping it as a Codex skill would advertise a flow that does not run there.
+
+### 2.11.1 — 2026-06-11
+
+#### Fixed
+- Corrected the Codex skills surface in `plugins/elian-store/skills/harness-manager/references/harness-map.md`. Codex loads skills from both `~/.codex/skills/` (legacy, still active) and the Agent Skills open-standard locations (`.agents/skills/`, `$HOME/.agents/skills`, `/etc/codex/skills`); the previous map listed only `~/.codex/skills/`. Added a note that Claude Code and Codex have converged on the same `SKILL.md` Agent Skills standard — empirically verified on Codex CLI 0.139 that Codex loads a `SKILL.md` carrying Claude-only frontmatter keys (`disable-model-invocation`, `user-invocable`, `allowed-tools`) without error — which makes the `Commands ↔ Prompts` mapping partly legacy.
+
+#### Notes
+- Bumped the `elian-store` plugin version (`2.11.0` → `2.11.1`). The marketplace metadata version is intentionally left at `2.8.2` because the catalog structure (the set of plugins) did not change — only the plugin's contents did.
 
 ### 2.11.0 — 2026-06-10
 
