@@ -1,5 +1,14 @@
 # Team Patterns
 
+> **Read first — these patterns describe Agent Team *shapes*, not a recommendation to use a team.**
+> The default is still the cheapest approach that works (**Direct < Subagent < Agent Team**; see
+> [approach-selection.md](approach-selection.md#economic-viability-gate)). For the "multi-perspective"
+> patterns below (Research / Design / Strategy / Review / Documentation), the empirically safer and
+> cheaper default is **independent Subagents — one per lens — followed by a single synthesizing
+> agent**, which mirrors how production multi-agent research systems are actually built. Reach for a
+> *communicating* Agent Team only when the lenses must reconcile **in real time** to converge on one
+> shared artifact (e.g. BE↔FE API-contract negotiation). Evidence: [references/execution-evidence.md](references/execution-evidence.md).
+
 ## Pattern Catalog
 
 ### 1. Implementation Team
@@ -52,7 +61,11 @@ tester (integration tests)     ← after backend, frontend complete
 | architect | system-architect | Technical architecture, scalability, performance |
 | devil-advocate | general-purpose | Counterarguments, edge cases, risks |
 
-**Key**: the value comes from **debate and rebuttal between teammates**. The lead synthesizes findings into a final proposal.
+**Default to Subagents + single synthesizer**: run one independent Subagent per lens, then have a
+single agent synthesize. This is cheaper, lower-risk, and matches how production research systems
+are built. Use a *communicating* Research Team (the shape above) **only** when the lenses must
+rebut each other in real time to converge — and even then, the synthesis itself stays with one
+lead in a single pass (collaborative writing breeds conflicting decisions).
 
 ---
 
@@ -163,7 +176,10 @@ tester (integration tests)     ← after backend, frontend complete
 | devil-advocate | devil-advocate | Pre-mortem, assumption testing, ethical lens |
 | (optional) ux-researcher | ux-researcher | User evidence backing claims |
 
-**Key**: the value comes from real-time tradeoff debate. Lead synthesizes a decision memo with falsifiable success criteria.
+**Default to Subagents + single synthesizer**: one independent Subagent per lens (marketing /
+business / risk), then a single lead synthesizes the decision memo with falsifiable success
+criteria. Escalate to a *communicating* Strategy Team only when the tradeoffs must be debated in
+real time to converge — the synthesis still stays single-author.
 
 ---
 

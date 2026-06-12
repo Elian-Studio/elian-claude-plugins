@@ -30,6 +30,22 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - `generate-teammate` remains handoff-only on Codex because the runtime cannot reproduce the plugin-side teammate-spawn flow exactly.
 - `manage-skills` and `verify-implementation` remain prompt-level orchestration equivalents rather than byte-for-byte skill/runtime matches.
 
+### 2.12.0 — 2026-06-12
+
+#### Changed
+- Reworked `generate-teammate`'s execution-mode decision logic to match the empirical evidence on multi-agent orchestration (deep-research synthesis of Anthropic's multi-agent research system, Cognition's "Don't Build Multi-Agents," the MAST failure taxonomy / NeurIPS 2025, and the CodeCRDT coding benchmark). Seven changes:
+  1. **Cheaper-first prior.** Core Philosophy now states `Direct < Subagent < Agent Team` as a cost-and-risk prior instead of "no fixed priority." Phase-type still does not dictate the approach, but ties go to the cheaper option.
+  2. **Economic viability gate (Phase 3).** A mandatory gate names each non-Direct phase's cost multiplier (Direct 1× / Subagent ~N× / Agent Team ~15× + super-linear coordination) and forces a downgrade to Direct when the parallel benefit does not justify it. The multiplier is surfaced in the Phase 6 confirmation.
+  3. **Integration reconciliation (Phase 7).** A new mandatory single-agent cross-boundary build/typecheck after any parallel write phase — file-ownership separation prevents textual conflicts, not the ~5–10% (up to ~80% on complex tasks) semantic seam conflicts. Tracked as a team-level Definition of Done.
+  4. **Multi-perspective default inverted.** Research / Design / Strategy patterns now default to independent Subagents (one per lens) + a single synthesizer; a *communicating* Agent Team is reserved for genuine real-time reconciliation (e.g. BE↔FE API-contract negotiation).
+  5. **Single-agent synthesis is a hard rule.** Coherence-critical artifacts (one design doc / report / schema) are authored by one agent; co-writing is forbidden.
+  6. **Full-artifact handoffs.** Coherence-critical phase handoffs pass the full artifact, not a lossy summary, to stop downstream agents from silently re-deciding.
+  7. **Delegation triage.** A Phase 2.0 triage can short-circuit to Direct, and over-decomposition is now an explicit anti-pattern in the Forbidden list and standing rules.
+- Added `references/execution-evidence.md` (the cited empirical basis), four new standing rules (9–12), spec criterion I-10, and synced the Codex prompt (`codex/prompts/generate-teammate.md`) to parity.
+
+#### Notes
+- Bumped the `elian-store` plugin version (`2.11.2` → `2.12.0`, minor — decision-logic behavior change). The marketplace metadata version stays at `2.8.2` (no catalog-structure change).
+
 ### 2.11.2 — 2026-06-12
 
 #### Added

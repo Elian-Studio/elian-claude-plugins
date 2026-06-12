@@ -23,12 +23,14 @@ disable-model-invocation: true
 
 ## Core Philosophy
 
-**Each work phase determines its own execution approach.**
+**Each work phase determines its own execution approach — but cheaper-and-simpler is the default, not a tie.**
 - Do not apply a single approach to the entire task — judge each phase independently
-- Agent Team / Subagent / direct execution have no fixed priority — phase characteristics decide
-- Reject fixed mappings like "exploration = Subagent, design = Agent Team" — always analyze characteristics
-- Role separation that prevents file conflicts between teammates is essential
+- Reject fixed *phase-type* mappings like "exploration = Subagent, design = Agent Team" — always analyze characteristics
+- **No fixed phase-type mapping, but there is a prior.** Cost and coordination-risk rise sharply: **Direct < Subagent < Agent Team**. Default to the cheapest approach that satisfies the phase; escalate only when the phase's characteristics *require* it **and** the value justifies the cost.
+- Role separation prevents file conflicts — but file separation alone does **not** prevent *semantic* conflicts at the seams (duplicate declarations, type mismatches, broken cross-references). See the Phase 7 integration step.
 - Use the minimum configuration that fits the task scale
+
+> **Why a prior, not a free choice (evidence).** Parallel **Subagent** fan-out wins for breadth-first, read-heavy, independent exploration; single-agent **Direct** wins for most coding, synthesis, and any coherence-critical writing; a communicating **Agent Team** is the **least-validated, highest-coordination-cost** option — no published head-to-head benchmark shows inter-agent communication beating "independent subagents + single synthesizer," and ~31% of multi-agent failures trace to inter-agent misalignment. Multi-agent also costs ~15× the tokens of a single session. Treat Agent Team as a **last resort for genuine real-time reconciliation** (e.g. BE↔FE API-contract negotiation), not a default for "debate." Full citations: [references/execution-evidence.md](references/execution-evidence.md).
 
 ## Parameters
 
@@ -85,7 +87,10 @@ Phase 7: Execution
     ├── Execute phases in order
     ├── Agent Team phases: TeamCreate → TaskCreate → Teammate Spawn
     ├── Subagent phases: parallel Agent tool calls
-    └── Pass results between phases (preceding phase output → next phase input)
+    ├── Pass results between phases (preceding phase output → next phase input)
+    └── Integration reconciliation after any parallel write phase
+        (single agent runs cross-boundary build/typecheck — catches semantic
+         conflicts that file ownership cannot)
 ```
 
 ## Phase 1: Request Analysis
@@ -108,12 +113,13 @@ See [approach-selection.md](approach-selection.md) for detailed criteria.
 
 ### Summary
 
+0. **Triage first — is delegation even warranted?** Decompose mentally, then ask: does this task have breadth-first / read-heavy parallelism, genuinely independent modules, or a high-value reconciliation need? If **no**, the answer is **Direct** — say so and stop. Over-decomposing a task a single agent does better is a documented anti-pattern, not thoroughness.
 1. **Decompose work into phases** (explore / design / implement / verify)
 2. **Analyze 5 characteristics per phase**: need for multi-perspective discussion, cross-layer coordination, independent parallelism, mutual result dependency, expertise differentiation
-3. **Judge each phase independently**: Agent Team / Subagent / direct execution
+3. **Judge each phase independently** against the prior **Direct < Subagent < Agent Team** — pick the cheapest that fits
 4. **Strategy decision**: single or hybrid
 
-> **Phase type does not determine the approach.** Always judge by characteristic analysis.
+> **Phase type does not determine the approach.** Always judge by characteristic analysis — but the cheaper approach wins ties (see Core Philosophy prior).
 
 ### Required Output (mandatory)
 
@@ -134,6 +140,18 @@ Per-phase approach decision:
 
 Strategy: hybrid — Subagent (explore) → Agent Team (design) → Subagent (build)
 ```
+
+### Economic viability gate (mandatory)
+
+Before accepting any non-Direct approach for a phase, name its cost and justify it:
+
+| Approach | Rough cost vs Direct | Escalate only when |
+|----------|----------------------|--------------------|
+| Direct | 1× (baseline) | — default — |
+| Subagent (parallel) | ~N× (N = fan-out width) | breadth-first / read-heavy / genuinely independent units |
+| Agent Team | ~15× chat-equivalent + super-linear coordination (n(n−1)/2 links) | real-time cross-perspective reconciliation that Subagent + single synthesis cannot do |
+
+If a phase's parallel benefit does not clearly outweigh its cost multiplier, **choose Direct**. Carry the chosen multiplier into the Phase 6 confirmation so the user sees the cost before approving. Detail: [approach-selection.md](approach-selection.md#economic-viability-gate).
 
 ### Gate Decision
 
@@ -239,8 +257,9 @@ See [execution-guide.md](execution-guide.md) for output format, execution code, 
 3. **Phase 7**: Execute phases in order
    - Agent Team: `TeamCreate` → `TaskCreate` → `TaskUpdate(owner)` → `Agent(team_name, prompt: <rendered slot from spawn-plan.md>)` spawn
    - Subagent: parallel `Agent` tool calls with the same rendered slots
-   - Hybrid: pass results across phases (preceding output → next prompt)
-4. **Shutdown**: `SendMessage(shutdown_request)` → `TeamDelete()`
+   - Hybrid: pass results across phases — for coherence-critical handoffs pass the **full artifact** (design.md, exploration report), not a lossy summary
+4. **Integration reconciliation (mandatory after any parallel write phase)**: file-ownership separation prevents *textual* conflicts, not *semantic* ones (duplicate declarations, type mismatches, broken cross-references surface at the seams — ~80% of complex parallel builds). A **single** agent (lead or a dedicated integrator) runs a cross-boundary build/typecheck over the merged surface and resolves seam conflicts before the work is called done. This is a **team-level DoD item**, separate from each teammate's own DoD. See [execution-guide.md](execution-guide.md#integration-reconciliation-after-parallel-writes).
+5. **Shutdown**: `SendMessage(shutdown_request)` → `TeamDelete()`
 
 ### Required Items in Teammate Spawn Prompt (JSON-first since v2.6)
 
@@ -309,10 +328,13 @@ See [references/](references/) for end-to-end traces of each scenario (input →
 
 These rules apply throughout the skill — not as one-time procedure steps but as ongoing behavior. Headline list:
 
-- Phase decomposition is non-optional
+- Phase decomposition (mental) is non-optional — but it must not force a team; over-decomposition is an anti-pattern
 - Per-phase independence beats whole-task judgment
-- Core question: "Do workers need to communicate?" (No → Subagent, Handoff → chain, Debate → Agent Team)
-- File ownership before parallelism
+- Cheaper-first prior: **Direct < Subagent < Agent Team** — escalate only on need **and** value
+- Economic viability gate before any non-Direct approach (state the cost multiplier)
+- Core question: "Do workers need to communicate?" (No → Subagent, Handoff → chain, **real-time reconciliation only** → Agent Team as last resort)
+- File ownership before parallelism — and integration reconciliation **after** it (file split ≠ semantic safety)
+- Coherence-critical artifacts authored by a **single** agent; coherence-critical handoffs pass full artifacts, not lossy summaries
 - Minimum viable team (2 over 5 if 2 suffice)
 - Always confirm via AskUserQuestion before spawning
 - Self-contained agents only (no dependency on user-level skills)
@@ -336,10 +358,15 @@ Phase 1 → 2 → 3 → 4 → 5 → 6 → 7 (see flow diagram above). For each u
 
 > Do **not** do any of these. They are wrong by design, not preference.
 
-Top 5 (full list in [references/known-issues.md](references/known-issues.md#forbidden)):
+Headline list (full list in [references/known-issues.md](references/known-issues.md#forbidden)):
 
-- ❌ Skip Phase decomposition for "obvious" tasks
+- ❌ Skip the **mental** Phase decomposition for "obvious" tasks
+- ❌ Over-decompose into a team a task a single agent does better, just to use a team
 - ❌ Pick an approach by phase **type** instead of characteristics
+- ❌ Escalate beyond Direct without stating the cost multiplier and the parallel benefit that justifies it
+- ❌ Use a communicating Agent Team for "debate" when independent subagents + a single synthesizer would do
+- ❌ Co-author one coherence-critical artifact (a single design doc / report / schema) across multiple teammates
+- ❌ Mark a parallel write phase done without the cross-boundary integration check
 - ❌ Allow two teammates to own the same file
 - ❌ Skip the AskUserQuestion confirmation gate before spawning
 - ❌ Hand-write spawn prompts without going through `create-document/teammate-spawn` (vague language and missing slots cause inconsistent results)
@@ -381,8 +408,11 @@ What this skill decides automatically vs what needs the user's taste:
 | Strategy classification (single / hybrid) | ✅ | — |
 | Pattern matching (Implementation / Research / Review / Design / Documentation / Strategy / Focused) | ✅ | — |
 | File-ownership conflict detection | ✅ | — |
+| Cost-multiplier estimate per phase (1× / ~N× / ~15×) | ✅ | — |
+| Integration reconciliation required (any parallel write phase) | ✅ | — |
 | `subagent_type` selection from the 14-agent generate-teammate catalog | ✅ | — |
 | Team size 2-5 recommendation | ✅ | — |
+| Whether the task's value justifies the cost multiplier | — | ✅ (user owns the spend decision) |
 | Final approval to spawn | — | ✅ (AskUserQuestion gate) |
 | Per-teammate spawn prompt content | drafted automatically | ✅ user reviews before spawn |
 | Whether to use plan approval mode | — | ✅ user opts in for risky tasks |
@@ -436,14 +466,20 @@ Manual checks for this skill:
 - Plugin agent definitions remain self-contained and do not use `skills:` frontmatter.
 - `references/` keeps at least four end-to-end traces.
 - `team-patterns.md` keeps Documentation Team, Strategy Team, and Design Team variants.
+- The `Direct < Subagent < Agent Team` prior, the economic viability gate, and the integration-reconciliation step are all present in `SKILL.md`.
+- `references/execution-evidence.md` exists and is cited from Core Philosophy.
 
 ## Pre-flight checklist
 
 Before spawning the team, confirm each of:
 
+- [ ] Triage done: delegation is actually warranted (not Direct)
 - [ ] All phases decomposed; per-phase decision table produced
 - [ ] Strategy classified (single / hybrid) with clear rationale
+- [ ] Cost multiplier stated for every non-Direct phase, and the parallel benefit justifies it
 - [ ] No two teammates own overlapping files
+- [ ] Integration reconciliation planned for every parallel write phase (single-agent cross-boundary check)
+- [ ] Coherence-critical artifacts assigned to a single author (no co-writing)
 - [ ] Team size ≤ 5 (if larger, role consolidation suggested)
 - [ ] Each teammate's spawn prompt has all 7 slots (ROLE / OWNED FILES / TECH STACK / TASK / REFERENCE DOCS / INTERFACES / DOD / COMMUNICATION)
 - [ ] User has approved the plan via AskUserQuestion

@@ -30,3 +30,12 @@ Every example follows the same structure as the skill execution flow:
 - Strategic decision-making (launch, pricing, GTM, positioning) → **Example 4**
 
 The 14 generate-teammate routing agents cover engineering, design, research, marketing, business, and adversarial lenses. Non-code workflows are first-class — see Example 4.
+
+## Reference docs (not traces)
+
+| File | Purpose |
+|------|---------|
+| [execution-evidence.md](execution-evidence.md) | The empirical basis (cited) for the `Direct < Subagent < Agent Team` prior, the economic viability gate, the integration-reconciliation step, and single-agent synthesis. Consult when justifying *why* a phase got its approach. |
+| [standing-rules.md](standing-rules.md) | The 12 ongoing-behavior rules with rationale. |
+| [known-issues.md](known-issues.md) | Forbidden list, pitfalls, and failure-mode recovery. |
+| [before-after-patterns.md](before-after-patterns.md) | BEFORE/AFTER contrasts for the skill's key decisions. |

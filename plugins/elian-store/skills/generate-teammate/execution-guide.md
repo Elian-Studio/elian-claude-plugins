@@ -95,9 +95,13 @@ Phase A (Subagent) → result summary → Phase B (Agent Team) → deliverables 
 
 #### Phase transition rules
 
-1. **Subagent → Agent Team**: summarize Subagent results and include in each teammate's spawn prompt
-2. **Agent Team → Subagent**: have Subagent prompts reference Agent Team deliverables (design.md, api-spec.md, etc.)
-3. **Subagent → Subagent**: include preceding Subagent's result in the following Subagent's prompt
+> **Pass full artifacts, not lossy summaries, across coherence-critical handoffs.** A summary drops
+> the implicit decisions a later phase needs; sharing the full trace/artifact is what prevents the
+> downstream agent from silently re-deciding and producing a conflicting result.
+
+1. **Subagent → Agent Team**: include each Subagent's **full output artifact** (the exploration report file, not a one-paragraph gist) in every teammate's spawn prompt — by reference to a written file where possible.
+2. **Agent Team → Subagent**: have Subagent prompts reference the Agent Team deliverables in full (design.md, api-spec.md, etc.), not a paraphrase.
+3. **Subagent → Subagent**: pass the preceding Subagent's full result; summarize only the non-coherence-critical parts to control prompt size.
 
 #### Hybrid execution example (explore → design → build)
 
@@ -130,6 +134,45 @@ Agent({
 Agent({ subagent_type: "backend-architect", prompt: "Build BE per design.md..." });
 Agent({ subagent_type: "frontend-architect", prompt: "Build FE per design.md..." });
 ```
+
+---
+
+## Integration reconciliation (after parallel writes)
+
+**Mandatory after any phase where two or more agents wrote code in parallel.** File-ownership
+separation guarantees there are no *textual* merge conflicts — it does **not** guarantee the parts
+fit together. Independent agents make independent implicit decisions, so the seams between their
+files accumulate *semantic* conflicts: duplicate declarations, type mismatches, mismatched function
+signatures, broken cross-references, divergent assumptions about a shared contract. Measured semantic
+conflict rates run ~5–10% on average and up to ~80% on complex tasks — invisible to any per-file
+check.
+
+So a single integrator closes the loop:
+
+1. **One agent only** (the lead or a dedicated `integrator`) — never parallelize reconciliation.
+2. Run a **cross-boundary build/typecheck/test over the merged surface** (e.g. `tsc --noEmit`,
+   `./gradlew compileJava test`, a full build) — not each teammate's own DoD, but the whole.
+3. Resolve seam conflicts (or reassign the specific fix to the owning teammate, then re-check).
+4. Only then is the parallel phase **done**. This is a **team-level Definition of Done**, tracked as
+   its own task, separate from each teammate's per-file DoD.
+
+```typescript
+// After parallel build completes, before shutdown:
+TaskCreate({ subject: "Integration reconciliation", description: "Build/typecheck merged surface; resolve semantic seam conflicts" });
+TaskUpdate({ task_id: integrationTask.id, owner: "lead" });   // single owner
+// lead (or integrator) runs the cross-boundary build and fixes/reassigns seam conflicts
+```
+
+---
+
+## Single-agent synthesis (coherence-critical artifacts)
+
+Any deliverable that must read as one coherent whole — a single design doc, a decision memo, an API
+spec, a schema, a final report — is **authored by one agent in one pass**. Do not let multiple
+teammates co-write it: collaborative writing introduces conflicting decisions, and "actions carry
+implicit decisions, conflicting decisions carry bad results." Teammates contribute *inputs* (their
+lens findings, their owned-file changes); the lead (or one designated author) writes the unified
+artifact. This is why every multi-perspective pattern ends in a single synthesizer, not a merge.
 
 ---
 
