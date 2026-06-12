@@ -262,7 +262,9 @@ See [execution-guide.md](execution-guide.md) for output format, execution code, 
 #### Render command
 
 ```bash
-CD="${CLAUDE_PLUGIN_ROOT}/skills/create-document"
+# Locate create-document (sibling skill on both Claude Code and Codex):
+CD="${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/skills/create-document}"
+CD="${CD:-${CODEX_HOME:-$HOME/.codex}/skills/create-document}"
 python3 "${CD}/scripts/render.py" \
   --template teammate-spawn \
   --data ./claudedocs/{team_name}/spawn.json \

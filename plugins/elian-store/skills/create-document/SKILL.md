@@ -96,8 +96,18 @@ The legacy persona review output template has been removed from the active contr
 
 ## Interface
 
+This skill runs on both Claude Code and Codex. Resolve its directory once, then reuse
+`${SKILL_DIR}` in every command below:
+
 ```bash
-python3 "${CLAUDE_SKILL_DIR}/scripts/render.py" \
+# Claude Code sets CLAUDE_SKILL_DIR (direct call) or CLAUDE_PLUGIN_ROOT (internal call);
+# Codex sets neither, so fall back to the Codex skills location.
+SKILL_DIR="${CLAUDE_SKILL_DIR:-${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/skills/create-document}}"
+SKILL_DIR="${SKILL_DIR:-${CODEX_HOME:-$HOME/.codex}/skills/create-document}"
+```
+
+```bash
+python3 "${SKILL_DIR}/scripts/render.py" \
   --template <name> \
   --data <json-path> \
   --out <out-path>
@@ -169,7 +179,8 @@ See [templates/decision-dashboard.html](templates/decision-dashboard.html) for n
 Standalone render:
 
 ```bash
-python3 "${CLAUDE_SKILL_DIR}/scripts/render.py" \
+# SKILL_DIR resolved as in "## Interface".
+python3 "${SKILL_DIR}/scripts/render.py" \
   --template decision-dashboard \
   --data ./decisions.json \
   --out claudedocs/PROJ-123/decisions.html
@@ -178,7 +189,9 @@ python3 "${CLAUDE_SKILL_DIR}/scripts/render.py" \
 Internal call from decision-dashboard:
 
 ```bash
-CD="${CLAUDE_PLUGIN_ROOT}/skills/create-document"
+# Locate create-document from the calling skill (sibling skill on both hosts):
+CD="${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/skills/create-document}"
+CD="${CD:-${CODEX_HOME:-$HOME/.codex}/skills/create-document}"
 python3 "${CD}/scripts/render.py" \
   --template decision-dashboard \
   --data "${TARGET_DIR}/decisions.json" \
@@ -226,7 +239,8 @@ Therefore:
 `render.py` automatically runs validation. For validation only:
 
 ```bash
-python3 "${CLAUDE_SKILL_DIR}/scripts/validate.py" \
+# SKILL_DIR resolved as in "## Interface".
+python3 "${SKILL_DIR}/scripts/validate.py" \
   schemas/decision-dashboard.schema.json \
   ./decisions.json --json
 ```

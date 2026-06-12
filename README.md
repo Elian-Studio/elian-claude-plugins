@@ -56,9 +56,13 @@ For the bundled plugin guide, use [plugins/elian-store/README.md](plugins/elian-
 
 ### Codex CLI
 
-Install or update the independent Codex prompt/config files:
+Install or update the independent Codex skill/prompt/config files:
 
 ```shell
+# Skills (shared with the Claude plugin via symlink, updated by `git pull`)
+./codex/setup.sh
+
+# Legacy prompts
 mkdir -p ~/.codex/prompts
 rm -f ~/.codex/prompts/on-call-elian.md
 cp codex/prompts/*.md ~/.codex/prompts/
@@ -71,7 +75,7 @@ cp codex/AGENTS.md ~/.codex/AGENTS.md
 cp codex/config.toml.example ~/.codex/config.toml
 ```
 
-Codex currently ships reference `/review`, `/brainstorm`, `/ai-assisted-feature-development`, `/design-ui`, `/decision-dashboard`, `/create-document`, `/implement`, `/fix`, `/improve`, `/manage-skills`, `/verify-implementation`, `/generate-teammate`, `/persona-review`, and `/pr-writer` prompts. See [codex/README.md](codex/README.md).
+Codex ships `/create-document`, `/decision-dashboard`, and `/design-ui` as shared **skills** (`codex/skills/`, symlinked into the plugin tree so they never drift) plus reference `/review`, `/brainstorm`, `/ai-assisted-feature-development`, `/implement`, `/fix`, `/improve`, `/manage-skills`, `/verify-implementation`, `/generate-teammate`, `/persona-review`, and `/pr-writer` prompts. See [codex/README.md](codex/README.md).
 
 ### Claude Workflows
 
@@ -119,8 +123,11 @@ Path: [codex/](codex/)
 
 | File | Role |
 |---|---|
+| [codex/setup.sh](codex/setup.sh) | Installs `codex/skills/*` into `~/.codex/skills` as symlinks (idempotent). |
+| [codex/skills/create-document](codex/skills/create-document) | Shared skill (symlink into the plugin tree) for `/create-document`. |
+| [codex/skills/decision-dashboard](codex/skills/decision-dashboard) | Shared skill for `/decision-dashboard`. |
+| [codex/skills/design-ui](codex/skills/design-ui) | Shared skill for `/design-ui`. |
 | [codex/prompts/ai-assisted-feature-development.md](codex/prompts/ai-assisted-feature-development.md) | Reference Codex prompt for `/ai-assisted-feature-development`. |
-| [codex/prompts/create-document.md](codex/prompts/create-document.md) | Reference Codex prompt for `/create-document`. |
 | [codex/prompts/brainstorm.md](codex/prompts/brainstorm.md) | Reference Codex prompt for `/brainstorm`. |
 | [codex/prompts/implement.md](codex/prompts/implement.md) | Reference Codex prompt for `/implement`. |
 | [codex/prompts/fix.md](codex/prompts/fix.md) | Reference Codex prompt for `/fix`. |
@@ -128,8 +135,6 @@ Path: [codex/](codex/)
 | [codex/prompts/manage-skills.md](codex/prompts/manage-skills.md) | Reference Codex prompt for `/manage-skills`. |
 | [codex/prompts/verify-implementation.md](codex/prompts/verify-implementation.md) | Reference Codex prompt for `/verify-implementation`. |
 | [codex/prompts/generate-teammate.md](codex/prompts/generate-teammate.md) | Reference Codex prompt for `/generate-teammate`. |
-| [codex/prompts/decision-dashboard.md](codex/prompts/decision-dashboard.md) | Reference Codex prompt for `/decision-dashboard`. |
-| [codex/prompts/design-ui.md](codex/prompts/design-ui.md) | Reference Codex prompt for `/design-ui`. |
 | [codex/prompts/review.md](codex/prompts/review.md) | Reference Codex prompt for `/review`. |
 | [codex/prompts/persona-review.md](codex/prompts/persona-review.md) | Reference Codex prompt for `/persona-review`. |
 | [codex/prompts/pr-writer.md](codex/prompts/pr-writer.md) | Reference Codex prompt for `/pr-writer`. |

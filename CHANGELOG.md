@@ -28,6 +28,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - `generate-teammate` remains handoff-only on Codex because the runtime cannot reproduce the plugin-side teammate-spawn flow exactly.
 - `manage-skills` and `verify-implementation` remain prompt-level orchestration equivalents rather than byte-for-byte skill/runtime matches.
 
+### 2.11.2 — 2026-06-12
+
+#### Added
+- Skills-based Codex distribution. `codex/skills/<name>` are relative symlinks into the shared plugin skill tree, and `codex/setup.sh` installs them into `~/.codex/skills/` (Codex follows symlinks, so `git pull` updates them with no re-copy). Migrated `create-document` (pilot), `decision-dashboard`, and `design-ui` from hand-mirrored Codex prompts to shared skills, retiring `codex/prompts/{create-document,decision-dashboard,design-ui}.md`. Codex catalog is now 11 prompts + 3 shared skills.
+
+#### Fixed
+- Made four skills' `SKILL.md` host-agnostic so one file runs on both Claude Code and Codex: `create-document`, `decision-dashboard`, `design-ui`, and `generate-teammate` no longer hard-depend on `${CLAUDE_PLUGIN_ROOT}` / `${CLAUDE_SKILL_DIR}`. Script paths resolve via a `${CLAUDE_SKILL_DIR:-${CLAUDE_PLUGIN_ROOT:+...}}` → `${CODEX_HOME:-$HOME/.codex}/skills/...` fallback. On Codex (both vars unset) those scripts were previously unreachable.
+
+#### Notes
+- Bumped the `elian-store` plugin version (`2.11.1` → `2.11.2`). The marketplace metadata version stays at `2.8.2` (no catalog-structure change).
+- `generate-teammate` is host-agnostic at the `SKILL.md` level but stays a Codex prompt — its teammate-spawn/subagent dispatch flow cannot be reproduced on Codex (handoff-only), so shipping it as a Codex skill would advertise a flow that does not run there.
+
 ### 2.11.1 — 2026-06-11
 
 #### Fixed
