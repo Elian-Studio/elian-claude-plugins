@@ -31,6 +31,7 @@
 | `persona-review` | You want a persona-specific critique instead of a generic review. | `/elian-store:persona-review` |
 | `harness-manager` | The Codex and Claude Code global harnesses have drifted and you want them reconciled. | `/elian-store:harness-manager` |
 | `pr-writer` | You need a review-friendly PR/MR title and body drafted from the diff, commits, and stated intent. | `/elian-store:pr-writer` |
+| `pr-review` | You want an existing PR/MR reviewed from many perspectives (specialists + personas) with one synthesized verdict, posted only on confirmation. | `/elian-store:pr-review` |
 | `skill-dispatcher` | You want an opt-in recommendation for the smallest relevant `elian-store` skill before starting work. | `/elian-store:skill-dispatcher` |
 
 ## Package Layout

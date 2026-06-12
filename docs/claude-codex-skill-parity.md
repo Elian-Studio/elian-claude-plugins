@@ -1,7 +1,7 @@
 # Claude / Codex Skill Parity Review
 
 Date: 2026-06-02
-Last updated: 2026-06-12 (migrated 13 commands from Codex prompts to shared Codex *skills* via `tools/generate.py`; only `generate-teammate` and `persona-review` stay prompts — their core is Claude subagent dispatch, which Codex cannot reproduce; `document-writer` and `harness-manager` remain Claude-only. Codex catalog: 2 prompts + 13 shared skills)
+Last updated: 2026-06-12 (migrated 13 commands from Codex prompts to shared Codex *skills* via `tools/generate.py`; only `generate-teammate` and `persona-review` stay prompts — their core is Claude subagent dispatch, which Codex cannot reproduce; `document-writer` and `harness-manager` remain Claude-only. Codex catalog: 2 prompts + 13 shared skills. 2026-06-12: added `pr-review` as a third Claude-only skill — parallel multi-subagent review panel the Codex runtime cannot reproduce.)
 
 ## Goal
 
@@ -31,19 +31,19 @@ A Claude skill and Codex prompt are considered aligned only when all of these ma
 
 | Area | Claude | Codex | Status |
 |---|---:|---:|---|
-| Catalog entries | 17 skills | 2 prompts + 13 shared skills | 15 matched + 2 documented Claude-only |
+| Catalog entries | 18 skills | 2 prompts + 13 shared skills | 15 matched + 3 documented Claude-only |
 | Command naming | `/elian-store:<skill>` | `/<prompt-file>` | Mostly alignable |
 | Current matched commands | `ai-assisted-feature-development`, `brainstorm`, `create-document`, `decision-dashboard`, `design-ui`, `fix`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `review`, `verify-implementation`, `persona-review`, `pr-writer`, `skill-dispatcher` | `ai-assisted-feature-development`, `brainstorm`, `create-document`, `decision-dashboard`, `design-ui`, `fix`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `review`, `verify-implementation`, `persona-review`, `pr-writer`, `skill-dispatcher` | Aligned |
 | Legacy `on-call-elian` | Removed from current Claude skill catalog | Removed from current Codex prompt catalog | Aligned |
 | Validation | YAML + skill-owned validators where present | Prompt/config review | Asymmetric, manual |
 
-Current conclusion: **the two trees now cover the same ported command catalog, but they are not byte-for-byte or runtime-identical yet**. The name drift around `on-call-elian` is fixed, the 15 ported commands all have Codex counterparts (2 prompts + 13 shared skills), the 2 Claude-only skills (`harness-manager`, `document-writer`) are documented exceptions below, and the remaining divergence is platform/runtime behavior rather than missing prompt coverage.
+Current conclusion: **the two trees now cover the same ported command catalog, but they are not byte-for-byte or runtime-identical yet**. The name drift around `on-call-elian` is fixed, the 15 ported commands all have Codex counterparts (2 prompts + 13 shared skills), the 3 Claude-only skills (`harness-manager`, `document-writer`, `pr-review`) are documented exceptions below, and the remaining divergence is platform/runtime behavior rather than missing prompt coverage.
 
 **Skills-based Codex distribution.** Instead of hand-mirrored prompts, `codex/skills/<name>` is a relative symlink into `plugins/elian-store/skills/<name>/`, and `codex/setup.sh` symlinks it into `~/.codex/skills/`. Both tools read one `SKILL.md`, so migrated commands cannot drift. `tools/generate.py` (manifest `tools/clusters.json`) maintains the symlinks and lints every `SKILL.md` for host-agnostic script paths. **13 commands are now shared skills** — everything except the four exceptions below.
 
 **Third-host decision.** The current Claude + Codex shape should stay simple: shared `SKILL.md` symlinks for portable skills plus hand-authored Codex prompts for the two subagent-core flows. Template/adapter generation is deferred until a third host such as Gemini or Cursor becomes a real target; adding that machinery now would increase release and validation surface without solving an active parity gap.
 
-**The four exceptions.** Two skills are **Claude-only** (`document-writer` hard-codes `~/.claude/skills/...`; `harness-manager` operates on the global harnesses) and never ship to Codex. Two stay **hand-authored Codex prompts** because their core is Claude subagent dispatch, which Codex cannot reproduce: `generate-teammate` (teammate-spawn / subagent team flow) and `persona-review` (per-persona subagent dispatch + aggregation). Their `SKILL.md` is host-agnostic, but symlinking it would advertise a flow that does not run on Codex.
+**The five exceptions.** Three skills are **Claude-only** (`document-writer` hard-codes `~/.claude/skills/...`; `harness-manager` operates on the global harnesses; `pr-review` is a parallel multi-subagent review panel) and never ship to Codex. Two stay **hand-authored Codex prompts** because their core is Claude subagent dispatch, which Codex cannot reproduce: `generate-teammate` (teammate-spawn / subagent team flow) and `persona-review` (per-persona subagent dispatch + aggregation). Their `SKILL.md` is host-agnostic, but symlinking it would advertise a flow that does not run on Codex.
 
 **Host-agnostic `SKILL.md` portability** (resolve `SKILL_DIR` / sibling `CD` with a `${CLAUDE_SKILL_DIR:-${CLAUDE_PLUGIN_ROOT:+...}}` → `${CODEX_HOME:-$HOME/.codex}/skills/...` fallback, never a bare `CLAUDE_PLUGIN_ROOT`/`CLAUDE_SKILL_DIR`) is applied to all six skills that used those vars: `create-document`, `decision-dashboard`, `design-ui`, `generate-teammate`, `manage-skills`, and `verify-implementation`. The last two were caught by the `tools/generate.py` lint; the lint now gates every skill.
 
@@ -138,6 +138,7 @@ These skills ship in the Claude plugin without a `codex/prompts/<skill>.md` coun
 |---|---|
 | `harness-manager` | Meta-tool that operates on **both** harnesses' global files at once (`~/.claude/CLAUDE.md` ↔ `~/.codex/AGENTS.md`, `~/.claude.json` ↔ `~/.codex/config.toml`, commands ↔ prompts, skills). It is not a per-tool workflow to mirror; a Codex prompt that drives the same scan/report/reconcile flow from the Codex side is a reasonable future addition, not a behavioral mirror. Until authored, the Claude skill is the single entry point. |
 | `document-writer` | House-style self-contained HTML/MD document generator shipped to the Claude plugin (PR #19). A Codex prompt port is feasible and a reasonable future addition, but not yet authored — Claude-only by deferral, not platform limitation. Tracked as a port candidate. |
+| `pr-review` | Multi-perspective PR/MR reviewer whose core is **parallel multi-subagent panel dispatch** — up to ~17 specialist + persona reviewers run concurrently via the Agent tool, then synthesized into one verdict. The Codex runtime cannot reproduce the concurrent panel (same limitation as `generate-teammate` / `persona-review`). A Codex prompt that drives a sequential, handoff-style review is a reasonable future addition, not a behavioral mirror. |
 
 ## Operating Rule Going Forward
 

@@ -14,7 +14,7 @@
       "name": "elian-store",
       "source": "./plugins/elian-store",
       "description": "Workflow bundle with opt-in skill routing, decision artifacts, UI design, AI-assisted feature planning, TDD implementation flows, engineering review, verification orchestration, persona review, harness sync, and bundled domain agents.",
-      "version": "2.14.0",
+      "version": "2.15.0",
       "author": {
         "name": "Daniel (Elian-Studio)"
       },

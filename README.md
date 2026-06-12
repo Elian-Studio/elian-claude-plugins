@@ -86,7 +86,7 @@ cp codex/AGENTS.md ~/.codex/AGENTS.md
 cp codex/config.toml.example ~/.codex/config.toml
 ```
 
-Codex ships **13 shared skills** (`codex/skills/`, symlinked into the plugin tree so they never drift) plus **2 reference prompts** — `/generate-teammate` and `/persona-review`, which stay prompts because their core is Claude subagent dispatch that Codex cannot reproduce. (`document-writer` and `harness-manager` are Claude-only.) See [codex/README.md](codex/README.md).
+Codex ships **13 shared skills** (`codex/skills/`, symlinked into the plugin tree so they never drift) plus **2 reference prompts** — `/generate-teammate` and `/persona-review`, which stay prompts because their core is Claude subagent dispatch that Codex cannot reproduce. (`document-writer`, `harness-manager`, and `pr-review` are Claude-only.) See [codex/README.md](codex/README.md).
 
 ### Claude Workflows
 
@@ -127,6 +127,7 @@ Path: [plugins/elian-store/](plugins/elian-store/)
 | [persona-review](plugins/elian-store/skills/persona-review/) | Review plans/docs/ideas through selected persona lenses in each persona's native style. | `/elian-store:persona-review` |
 | [harness-manager](plugins/elian-store/skills/harness-manager/) | Detect and reconcile drift between the Codex and Claude Code global harnesses (rules, MCP, commands, skills). | `/elian-store:harness-manager` |
 | [pr-writer](plugins/elian-store/skills/pr-writer/) | Draft a review-friendly PR/MR title and body from the diff, commits, and stated intent (GitHub `gh` / GitLab `glab` aware). | `/elian-store:pr-writer` |
+| [pr-review](plugins/elian-store/skills/pr-review/) | Review an existing PR/MR through a panel of specialist + persona perspectives, synthesize one verdict, and post to the PR only on confirmation. | `/elian-store:pr-review` |
 | [skill-dispatcher](plugins/elian-store/skills/skill-dispatcher/) | Opt-in router that recommends the smallest relevant `elian-store` skill before work starts. | `/elian-store:skill-dispatcher` |
 
 ### Codex Companion Tree

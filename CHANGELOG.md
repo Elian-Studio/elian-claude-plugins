@@ -30,6 +30,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - `generate-teammate` remains handoff-only on Codex because the runtime cannot reproduce the plugin-side teammate-spawn flow exactly.
 - `manage-skills` and `verify-implementation` remain prompt-level orchestration equivalents rather than byte-for-byte skill/runtime matches.
 
+### 2.15.0 — 2026-06-12
+
+#### Added
+- **`/pr-review`** — new skill at `plugins/elian-store/skills/pr-review/`. Orchestrates a multi-perspective review of an existing pull request (GitHub PR) or merge request (GitLab MR) — the review counterpart to `/pr-writer`. Resolves the PR (current branch, `pr:<id>`, or URL), gathers its description, linked issue, commits, diff, and CI status, then dispatches a panel of independent read-only reviewers: always-on engineering specialists (correctness, security, performance, architecture, tests/maintainability, requirements-fit), scope-triggered specialists (frontend/UX, backend, data/migrations, API contract, devops, docs), and all six persona judges (Beck, Dean, Evans, Fowler, Martin, Daniel) reusing the bundled `agents/`. Synthesizes the panel into one verdict (Approve / Comment / Request changes) — deduping by `path:line:category`, raising confidence on cross-perspective agreement, surfacing conflicting opinions as trade-offs, and contrasting the diff against stated intent. Local report by default; posts to the PR (`gh pr review` / `glab mr note`) only after explicit confirmation; never merges or edits code. References: `perspectives.md` (per-lens questions and red flags) and `example-review.md` (worked BEFORE/AFTER report).
+
+#### Notes
+- `pr-review` is documented as a **Claude-only** skill in `docs/claude-codex-skill-parity.md`; its core is parallel multi-subagent panel dispatch, which the Codex runtime cannot reproduce (same rationale as `generate-teammate` / `persona-review`).
+- Bumped the `elian-store` plugin version (`2.14.0` → `2.15.0`, minor — new user-visible skill). The marketplace metadata version stays at `2.8.2` (no catalog-structure change).
+
 ### 2.14.0 — 2026-06-12
 
 #### Added
