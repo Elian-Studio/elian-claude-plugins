@@ -111,6 +111,7 @@ run_migrations() {
   local migrations_dir="$plugin_root/migrations"
   local migrated_version="$data_dir/migrated-version"
   local migration_log="$data_dir/migration.log"
+  local lock_dir="$data_dir/migration.lock"
 
   if [ -z "$current" ]; then
     return 0
@@ -125,7 +126,20 @@ run_migrations() {
     return 0
   fi
 
-  python3 - "$current" "$data_dir" "$migrations_dir" "$migrated_version" "$migration_log" <<'PY'
+  mkdir -p "$data_dir"
+
+  # Serialize migrations across concurrent SessionStarts so two sessions never
+  # run the same scripts at once. flock is absent on macOS, so use an atomic
+  # mkdir lock. Steal a lock older than 5 minutes left by a hard-killed session
+  # so migrations can never wedge permanently.
+  if [ -d "$lock_dir" ] && [ -n "$(find "$lock_dir" -maxdepth 0 -mmin +5 2>/dev/null)" ]; then
+    rmdir "$lock_dir" 2>/dev/null || true
+  fi
+  if ! mkdir "$lock_dir" 2>/dev/null; then
+    return 0  # another SessionStart holds the lock and is doing the work
+  fi
+
+  python3 - "$current" "$data_dir" "$migrations_dir" "$migrated_version" "$migration_log" <<'PY' || true
 import os
 import re
 import subprocess
@@ -180,7 +194,14 @@ for path in migrations.glob("v*.sh"):
         scripts.append((key, path))
 scripts.sort(key=lambda item: item[0])
 
-env = os.environ.copy()
+try:
+    timeout_s = int(os.environ.get("ELIAN_STORE_MIGRATION_TIMEOUT", "60"))
+except ValueError:
+    timeout_s = 60
+
+# Run migration scripts with a minimal environment so session secrets (tokens,
+# API keys) present in the parent process are never handed to them.
+env = {k: os.environ[k] for k in ("PATH", "HOME", "TMPDIR", "LANG", "LC_ALL") if k in os.environ}
 env.update({
     "ELIAN_STORE_PREVIOUS_VERSION": previous,
     "ELIAN_STORE_CURRENT_VERSION": current,
@@ -190,14 +211,25 @@ env.update({
 
 for key, path in scripts:
     append_log(f"running {path.name} for {previous} -> {current}")
-    with log.open("a", encoding="utf-8") as f:
-        result = subprocess.run(["bash", str(path)], stdout=f, stderr=subprocess.STDOUT, env=env)
+    try:
+        with log.open("a", encoding="utf-8") as f:
+            result = subprocess.run(
+                ["bash", str(path)],
+                stdout=f, stderr=subprocess.STDOUT, env=env, timeout=timeout_s,
+            )
+    except subprocess.TimeoutExpired:
+        append_log(f"timeout {path.name} after {timeout_s}s; will retry on next SessionStart")
+        sys.exit(0)
     if result.returncode != 0:
         append_log(f"failed {path.name} with exit {result.returncode}; will retry on next SessionStart")
         sys.exit(0)
+    # Per-script checkpoint: record this version so a later failure does not
+    # re-run scripts that already succeeded on the next SessionStart.
+    write_marker(".".join(str(x) for x in key))
 
 write_marker(current)
 PY
+  rmdir "$lock_dir" 2>/dev/null || true
 }
 
 selftest() {
@@ -296,6 +328,71 @@ EOF
   fi
   if [ -f "$corrupt_data/order" ]; then
     printf 'selftest failed: corrupt marker ran historical migrations\n' >&2
+    exit 1
+  fi
+
+  # Concurrency lock: a held lock makes run_migrations skip (no double-run).
+  local lock_data="$tmp/lock-data"
+  mkdir -p "$lock_data/migration.lock"
+  printf '1.0.0\n' > "$lock_data/migrated-version"
+  run_migrations "2.0.0" "$lock_data" "$plugin_root"
+  if [ -f "$lock_data/order" ] || [ "$(cat "$lock_data/migrated-version")" != "1.0.0" ]; then
+    printf 'selftest failed: held lock did not prevent migration\n' >&2
+    exit 1
+  fi
+  rmdir "$lock_data/migration.lock" 2>/dev/null || true
+
+  # Per-script checkpoint: a mid-chain failure leaves the marker at the last
+  # successful script's version, not the original previous version.
+  local cp_root="$tmp/cp-plugin"
+  local cp_data="$tmp/cp-data"
+  mkdir -p "$cp_root/migrations" "$cp_data"
+  printf '1.0.0\n' > "$cp_data/migrated-version"
+  cat > "$cp_root/migrations/v1.1.0.sh" <<'EOF'
+printf 'ok\n' >> "$ELIAN_STORE_DATA_DIR/cp-order"
+EOF
+  cat > "$cp_root/migrations/v1.2.0.sh" <<'EOF'
+exit 1
+EOF
+  run_migrations "1.2.0" "$cp_data" "$cp_root"
+  if [ "$(cat "$cp_data/migrated-version")" != "1.1.0" ]; then
+    printf 'selftest failed: per-script checkpoint (expected 1.1.0, got %s)\n' "$(cat "$cp_data/migrated-version" 2>/dev/null)" >&2
+    exit 1
+  fi
+
+  # Timeout: a hung migration is killed and the marker is not advanced.
+  local to_root="$tmp/to-plugin"
+  local to_data="$tmp/to-data"
+  mkdir -p "$to_root/migrations" "$to_data"
+  printf '1.0.0\n' > "$to_data/migrated-version"
+  cat > "$to_root/migrations/v1.1.0.sh" <<'EOF'
+sleep 5
+EOF
+  export ELIAN_STORE_MIGRATION_TIMEOUT=1
+  run_migrations "1.1.0" "$to_data" "$to_root"
+  unset ELIAN_STORE_MIGRATION_TIMEOUT
+  if [ "$(cat "$to_data/migrated-version")" != "1.0.0" ]; then
+    printf 'selftest failed: timeout advanced the marker\n' >&2
+    exit 1
+  fi
+  if ! grep -q "timeout v1.1.0.sh" "$to_data/migration.log" 2>/dev/null; then
+    printf 'selftest failed: timeout not logged\n' >&2
+    exit 1
+  fi
+
+  # Minimal env: session secrets are not exposed to migration scripts.
+  local env_root="$tmp/env-plugin"
+  local env_data="$tmp/env-data"
+  mkdir -p "$env_root/migrations" "$env_data"
+  printf '1.0.0\n' > "$env_data/migrated-version"
+  cat > "$env_root/migrations/v1.1.0.sh" <<'EOF'
+printf 'secret=[%s]\n' "${ELIAN_TEST_SECRET:-}" >> "$ELIAN_STORE_DATA_DIR/env-out"
+EOF
+  export ELIAN_TEST_SECRET="leaked"
+  run_migrations "1.1.0" "$env_data" "$env_root"
+  unset ELIAN_TEST_SECRET
+  if ! grep -q 'secret=\[\]' "$env_data/env-out" 2>/dev/null; then
+    printf 'selftest failed: session env leaked to migration script\n' >&2
     exit 1
   fi
 
