@@ -145,7 +145,8 @@ Path: [codex/](codex/)
 
 Shared skills read one host-agnostic `SKILL.md` and cannot drift between the trees. Only the two
 subagent-core prompts (`generate-teammate`, `persona-review`) are independent files that must be
-kept in sync by hand; parity status is tracked in [docs/claude-codex-skill-parity.md](docs/claude-codex-skill-parity.md).
+kept in sync by hand; the three Claude-only skills (`document-writer`, `harness-manager`, `pr-review`)
+have no Codex counterpart at all. Parity status is tracked in [docs/claude-codex-skill-parity.md](docs/claude-codex-skill-parity.md).
 
 ### Claude Workflows
 

@@ -4,7 +4,7 @@ description: "Orchestrate a multi-perspective review of an existing pull request
 when_to_use: "Use right after pr-writer creates or updates a PR/MR, or whenever the user wants a many-angle panel review of an existing pull request before merge. Trigger phrases: 'review this PR', 'PR review panel', 'multi-perspective PR review', 'should we merge this PR', 'review PR #123 from every angle', '/pr-review'. Do NOT use for local-only diff review with handoff (use /review), persona-only critique of a plan or doc (use /persona-review), drafting the PR title/body (use /pr-writer), or editing code (use /fix or /improve)."
 argument-hint: "[current | pr:<id> | <url> | branch:<base>] [--post] [--personas all|none|<list>] [--scope <areas>] [--depth quick|deep]"
 disable-model-invocation: true
-allowed-tools: Read, Glob, Grep, Bash(git status*), Bash(git diff*), Bash(git log*), Bash(git show*), Bash(git branch*), Bash(git rev-parse*), Bash(git merge-base*), Bash(git fetch*), Bash(gh pr view*), Bash(gh pr diff*), Bash(gh pr checks*), Bash(gh pr list*), Bash(glab mr view*), Bash(glab mr diff*), Agent, AskUserQuestion
+allowed-tools: Read, Glob, Grep, Bash(git status*), Bash(git diff*), Bash(git log*), Bash(git show*), Bash(git branch*), Bash(git rev-parse*), Bash(git merge-base*), Bash(git fetch*), Bash(git remote*), Bash(gh pr view*), Bash(gh pr diff*), Bash(gh pr checks*), Bash(gh pr list*), Bash(gh auth status*), Bash(glab mr view*), Bash(glab mr diff*), Bash(glab auth status*), Bash(gh pr review*), Bash(gh pr comment*), Bash(glab mr note*), Bash(glab mr approve*), Agent, AskUserQuestion
 ---
 
 # /pr-review — multi-perspective pull request review
@@ -177,9 +177,10 @@ If the user asked to post (or used `--post`), draft the comment, **show it and t
 
 - **GitHub:** review state + body —
   `gh pr review <id> --request-changes --body-file <draft>` (or `--comment` / `--approve`), or a plain `gh pr comment <id> --body-file <draft>`.
+- **Self-authored PRs:** GitHub blocks `--approve` / `--request-changes` reviews on your own PR. Fall back to `gh pr comment <id> --body-file <draft>` to post the review as a plain comment, and state the verdict in the comment body.
 - **GitLab:** `glab mr note <id> --message <draft>` for a summary note (and `glab mr approve <id>` only if explicitly approving).
 
-Never post on the user's behalf without the confirm step. Map the verdict to the review state (`Request changes` -> `--request-changes`, etc.) but let the user override.
+The POST/auth commands above are listed in `allowed-tools` so they run without a second OS-level prompt, but this confirm step is the real gate: never post without showing the draft + exact command and getting an explicit yes. Map the verdict to the review state (`Request changes` -> `--request-changes`, etc.) but let the user override.
 
 ## What's automated vs what needs your taste
 

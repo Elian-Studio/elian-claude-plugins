@@ -72,6 +72,7 @@ import sys
 version = sys.argv[1].lstrip("v")
 lines = sys.stdin.read().splitlines()
 capture = False
+skip_sub = False
 out = []
 
 for line in lines:
@@ -87,9 +88,15 @@ for line in lines:
     if not stripped or stripped == "---" or stripped.startswith(">"):
         continue
     if stripped.startswith("#### "):
-        out.append(stripped[5:].strip() + ":")
-    else:
-        out.append(stripped)
+        sub = stripped[5:].strip()
+        # Skip maintainer-facing housekeeping ("Notes") in the user notification.
+        skip_sub = sub.lower() == "notes"
+        if not skip_sub:
+            out.append(sub + ":")
+        continue
+    if skip_sub:
+        continue
+    out.append(stripped)
     if len(out) >= 12:
         break
 
@@ -178,7 +185,7 @@ env.update({
     "ELIAN_STORE_PREVIOUS_VERSION": previous,
     "ELIAN_STORE_CURRENT_VERSION": current,
     "ELIAN_STORE_DATA_DIR": str(data),
-    "ELIAN_STORE_PLUGIN_ROOT": str(Path(sys.argv[3]).parent),
+    "ELIAN_STORE_PLUGIN_ROOT": str(migrations.parent),
 })
 
 for key, path in scripts:
@@ -208,6 +215,9 @@ selftest() {
 - First line.
 - Second line.
 
+#### Notes
+- Housekeeping line that should not reach users.
+
 ### 2.13.0 — 2026-06-12
 - Older line.
 EOF
@@ -215,6 +225,9 @@ EOF
   case "$notes" in
     *"Added:"*"First line."*"Second line."*) ;;
     *) printf 'selftest failed: changelog extraction\n' >&2; exit 1 ;;
+  esac
+  case "$notes" in
+    *"Notes:"*|*"Housekeeping"*) printf 'selftest failed: Notes subsection leaked into notification\n' >&2; exit 1 ;;
   esac
 
   local plugin_root="$tmp/plugin"
@@ -256,6 +269,36 @@ EOF
     exit 1
   fi
 
+  # Steady-state path: when the marker already equals current, run_migrations is
+  # a no-op (the bash guard short-circuits before spawning python3).
+  local guard_data="$tmp/guard-data"
+  mkdir -p "$guard_data"
+  printf '2.0.0\n' > "$guard_data/migrated-version"
+  run_migrations "2.0.0" "$guard_data" "$plugin_root"
+  if [ -f "$guard_data/order" ] || [ "$(cat "$guard_data/migrated-version")" != "2.0.0" ]; then
+    printf 'selftest failed: steady-state path was not a no-op\n' >&2
+    exit 1
+  fi
+
+  # Corrupt marker: an unparseable version is logged and rewritten to current,
+  # and no historical migration runs.
+  local corrupt_data="$tmp/corrupt-data"
+  mkdir -p "$corrupt_data"
+  printf 'not-a-version\n' > "$corrupt_data/migrated-version"
+  run_migrations "2.0.0" "$corrupt_data" "$plugin_root"
+  if [ "$(cat "$corrupt_data/migrated-version")" != "2.0.0" ]; then
+    printf 'selftest failed: corrupt marker not rewritten to current\n' >&2
+    exit 1
+  fi
+  if ! grep -q "invalid migrated-version marker" "$corrupt_data/migration.log" 2>/dev/null; then
+    printf 'selftest failed: corrupt marker not logged\n' >&2
+    exit 1
+  fi
+  if [ -f "$corrupt_data/order" ]; then
+    printf 'selftest failed: corrupt marker ran historical migrations\n' >&2
+    exit 1
+  fi
+
   printf 'OK check-update selftest\n'
 }
 
@@ -272,7 +315,10 @@ run_migrations "$CURRENT" "$DATA_DIR" "$PLUGIN_ROOT" || true
 
 # 2) Surface a queued notification (from a previous session's background probe).
 if [ -f "$NOTIFY" ]; then
-  cat "$NOTIFY"
+  # Strip ESC bytes so a tampered remote CHANGELOG/marketplace entry cannot inject
+  # terminal escape sequences (ANSI/OSC/CSI all begin with ESC) into the session.
+  # UTF-8 multibyte sequences never contain 0x1b, so the bell emoji survives.
+  LC_ALL=C tr -d '\033' < "$NOTIFY"
   rm -f "$NOTIFY"
 fi
 

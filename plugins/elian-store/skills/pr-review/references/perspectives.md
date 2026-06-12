@@ -134,6 +134,8 @@ Run when the diff touches the area; otherwise return `NO FINDINGS` quickly.
 
 Default all six (`--personas all`). Preserve each voice; do not template them.
 
+The canonical persona definitions live in `../persona-review/references/personas/*.md` (beck, dean, evans, fowler, martin, daniel). The one-line lenses below are a quick index for dispatch — when a persona's voice or rules change, update the `persona-review` file as the source of truth and keep this index in sync rather than letting the two drift.
+
 ### Beck — `persona-beck-reviewer`
 TDD/XP. Was this driven by a test? Is it the simplest thing that works? What was
 built that nobody needs yet (YAGNI)? Is feedback fast?
