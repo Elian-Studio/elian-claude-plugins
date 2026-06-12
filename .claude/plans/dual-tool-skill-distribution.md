@@ -118,8 +118,16 @@ separate decision, NOT in this kickoff.
       `codex/skills/` symlinks (`--apply-codex`), retired their prompts, updated docs. `persona-review`
       reclassified to `prompt_only` (subagent dispatch is its core, like `generate-teammate`).
       **Codex catalog = 12 shared skills + 2 prompts**; `document-writer`/`harness-manager` Claude-only.
-- [ ] A5: Cutover decision — elian-store fate (deprecate vs hard-cut the published bundle into the
-      5 thematic plugins). SEPARATE, deferred — the one breaking change left.
+- [x] A5 DECIDED (2026-06-12): **no cutover** — keep `elian-store` as the single published plugin.
+      The 5-plugin split fails the repo's own portfolio bar (no audience/permission/cadence
+      divergence), reverses the v2.0.0 per-skill→bundle consolidation, and has no graceful migration
+      path (marketplace lacks deprecate/replaces; removal would silently orphan installs). The split
+      stays staged in `dist/`, gated on a future divergence trigger. Decision recorded in
+      `docs/plugin-portfolio-hybrid-model.md` ("Split decision (2026-06-12)").
+
+**Dual-tool distribution effort: COMPLETE.** Codex = 12 shared skills + 2 prompts (host-agnostic
+SSOT, drift-free); `tools/generate.py` does lint + codex-sync + version-drift gate + release bump +
+staged 5-plugin emit. The thematic split is a ready-when-needed capability, not a live distribution.
 
 ## Open questions
 - ~~Does Claude Code plugin install follow symlinks?~~ **ANSWERED (C2):** install copies the

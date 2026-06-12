@@ -72,6 +72,24 @@ codex/
 8. Avoid shallow command growth.
    A lifecycle gap is not enough reason to add a skill. Add one only when it has a repeatable workflow, clear boundary, expected output, and verification method.
 
+## Split decision (2026-06-12)
+
+The dual-tool distribution work built a generator (`tools/generate.py`, manifest `tools/clusters.json`) that can render `elian-store`'s 16 skills into **five composition-respecting thematic plugins** (`elian-artifacts`, `elian-tdd`, `elian-review`, `elian-design`, `elian-harness`) plus a marketplace catalog. The split is **validated and staged in the gitignored `dist/`, but deliberately not published.**
+
+**Decision: keep `elian-store` as the single published plugin.** The split does not meet the bar in Operating Principle 1 — the five clusters share one audience, one permission profile, and one release cadence, so the bundle is not "harmful." Two further reasons:
+
+- **History:** v2.0.0 (2026-04-28) consolidated the per-skill `decision-dashboard` plugin *into* `elian-store`. Publishing the split would reverse that deliberate move.
+- **No graceful migration:** the Claude Code marketplace has no `deprecated`/`replaces`/`alias` field. Removing `elian-store` would orphan existing installs (the SessionStart update hook looks for an `elian-store` entry that would be gone → silent; no user notification) and force a manual `uninstall`+`install` (the v2.0.0 precedent).
+
+**Revisit when** a real divergence appears — then split only the cluster that diverges:
+
+- a cluster needs a **different permission profile** (e.g. `elian-harness` mutates global config while `elian-review` is read-only);
+- a cluster needs a **different release cadence**;
+- real **à-la-carte demand** appears (users want one cluster, not the whole bundle);
+- the bundle's install size becomes a concrete user complaint.
+
+**Mechanism when triggered:** run `tools/generate.py --emit`, then publish the *specific* diverging cluster(s) as **new marketplace entries alongside** `elian-store` (coexistence), never a hard cut — there is no graceful removal path. The generator keeps the staged output drift-free against the bundle SSOT.
+
 ## Skill Intake Checklist
 
 Before adding or materially changing a skill, answer:

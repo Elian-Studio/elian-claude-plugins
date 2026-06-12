@@ -26,6 +26,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Added an explicit output contract to `codex/prompts/persona-review.md` so all Codex prompts now share the same invocation / forbidden / output-contract shape.
 
 #### Notes
+- The thematic 5-plugin split (`tools/generate.py --emit` → gitignored `dist/`) is **intentionally staged-only, not published**. `elian-store` stays the single published plugin per `docs/plugin-portfolio-hybrid-model.md` ("Split decision, 2026-06-12"): the clusters share one audience, permission profile, and release cadence, so the bundle is not harmful, and the marketplace has no graceful-removal path. It will be published cluster-by-cluster only when a real divergence appears.
 - `generate-teammate` remains handoff-only on Codex because the runtime cannot reproduce the plugin-side teammate-spawn flow exactly.
 - `manage-skills` and `verify-implementation` remain prompt-level orchestration equivalents rather than byte-for-byte skill/runtime matches.
 
