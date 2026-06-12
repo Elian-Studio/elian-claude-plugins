@@ -8,11 +8,13 @@ Usage:
   python3 tools/generate.py              # validate manifest + lint + codex status + cluster plan
   python3 tools/generate.py --emit       # also emit thematic plugins + marketplace.json to dist/
   python3 tools/generate.py --apply-codex  # also create missing codex/skills/<name> symlinks
+  python3 tools/generate.py --bump patch --emit  # release: bump version + CHANGELOG stub, then build
 
-Exit codes: 0 ok, 1 manifest invalid, 2 lint violations, 3 emit/validate failure.
+Exit codes: 0 ok, 1 manifest invalid, 2 lint violations, 3 emit/validate failure, 4 version error.
 Stdlib only (no pyyaml / external deps).
 """
 import argparse
+import datetime
 import json
 import os
 import re
@@ -22,6 +24,10 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 MANIFEST = REPO / "tools" / "clusters.json"
+PLUGIN_JSON = REPO / "plugins" / "elian-store" / ".claude-plugin" / "plugin.json"
+MARKET_JSON = REPO / ".claude-plugin" / "marketplace.json"
+CHANGELOG = REPO / "CHANGELOG.md"
+SEMVER = re.compile(r"^(\d+)\.(\d+)\.(\d+)$")
 
 # Bare ${CLAUDE_PLUGIN_ROOT} / ${CLAUDE_SKILL_DIR} with NO ':' inside the braces
 # (a ':-' / ':+' fallback is host-agnostic and allowed). Only checked inside bash fences.
@@ -212,10 +218,65 @@ def validate_dist(dist):
     return errors
 
 
+def read_versions():
+    pj = json.loads(PLUGIN_JSON.read_text(encoding="utf-8"))["version"]
+    mk = json.loads(MARKET_JSON.read_text(encoding="utf-8"))
+    entry = next((p for p in mk["plugins"] if p["name"] == "elian-store"), None)
+    return pj, (entry or {}).get("version"), mk["metadata"]["version"]
+
+
+def bump_semver(version, level):
+    m = SEMVER.match(version)
+    if not m:
+        fail(4, f"plugin version '{version}' is not X.Y.Z")
+    major, minor, patch = (int(x) for x in m.groups())
+    return {
+        "major": f"{major + 1}.0.0",
+        "minor": f"{major}.{minor + 1}.0",
+        "patch": f"{major}.{minor}.{patch + 1}",
+    }[level]
+
+
+def _replace_version(path, old, new):
+    """Replace exactly the one "version": "<old>" field (the elian-store entry / plugin).
+    marketplace.json metadata.version differs from the plugin version, so this is unambiguous."""
+    text = path.read_text(encoding="utf-8")
+    needle = f'"version": "{old}"'
+    n = text.count(needle)
+    if n != 1:
+        fail(4, f"{path.name}: expected exactly one {needle!r}, found {n}")
+    path.write_text(text.replace(needle, f'"version": "{new}"'), encoding="utf-8")
+
+
+def scaffold_changelog(newver, date):
+    lines = CHANGELOG.read_text(encoding="utf-8").splitlines(keepends=True)
+    for i, line in enumerate(lines):
+        if re.match(r"^### \d+\.\d+\.\d+ ", line):  # first existing release heading
+            lines.insert(i, f"### {newver} — {date}\n\n#### Changed\n- TODO: describe the change before opening the PR.\n\n")
+            CHANGELOG.write_text("".join(lines), encoding="utf-8")
+            return True
+    return False
+
+
+def do_bump(level, date):
+    pj_ver, entry_ver, meta_ver = read_versions()
+    if pj_ver != entry_ver:
+        fail(4, f"version drift before bump: plugin.json={pj_ver} marketplace entry={entry_ver}")
+    newver = bump_semver(pj_ver, level)
+    _replace_version(PLUGIN_JSON, pj_ver, newver)
+    _replace_version(MARKET_JSON, pj_ver, newver)
+    scaffolded = scaffold_changelog(newver, date)
+    print(f"Bumped elian-store {pj_ver} -> {newver} (plugin.json + marketplace entry).")
+    print(f"  CHANGELOG: {'scaffolded a stub — fill it in' if scaffolded else 'NO insertion point; add an entry manually'}.")
+    print(f"  marketplace metadata stays {meta_ver}; review README docs for this change.")
+
+
 def main():
     ap = argparse.ArgumentParser(description="Phase A thematic-cluster generator")
     ap.add_argument("--emit", action="store_true", help="emit thematic plugins to dist/")
     ap.add_argument("--apply-codex", action="store_true", help="create missing codex/skills symlinks")
+    ap.add_argument("--bump", choices=["patch", "minor", "major"], help="bump the elian-store version")
+    ap.add_argument("--date", default=None, help="CHANGELOG release date (YYYY-MM-DD; default today)")
     args = ap.parse_args()
 
     m = load_manifest()
@@ -245,7 +306,18 @@ def main():
     else:
         print("Lint OK: no bare CLAUDE_* in any bash block (all host-agnostic).")
 
-    # 3) cluster plan
+    # 3) version + release
+    pj_ver, entry_ver, meta_ver = read_versions()
+    print(f"\nVersion: plugin.json={pj_ver}, marketplace entry={entry_ver}, metadata={meta_ver}")
+    if args.bump:
+        date = args.date or datetime.date.today().isoformat()
+        do_bump(args.bump, date)
+    elif pj_ver != entry_ver:
+        fail(4, f"version drift: plugin.json={pj_ver} != marketplace entry={entry_ver}")
+    else:
+        print("  consistent (plugin.json == marketplace entry).")
+
+    # 4) cluster plan
     print("\nCluster plan:")
     for name, cfg in m["plugins"].items():
         disp = [f"{s}[{codex_disposition(s, m)}]" for s in cfg["skills"]]

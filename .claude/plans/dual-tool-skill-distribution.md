@@ -110,13 +110,16 @@ separate decision, NOT in this kickoff.
 - [x] A3: DONE — emitted 5 plugins; composition preserved (elian-artifacts holds create-document +
       both callers + 14 agents; elian-tdd holds `_shared`; elian-review holds 7 persona agents);
       cross-validated with the repo ruby YAML/JSON smoke tests; no `__pycache__` leak.
-- [ ] A4: Release automation — single command: bump → build → validate. (generator does build+validate;
-      version bump not yet wired in.)
+- [x] A4 DONE (2026-06-12): `--bump {patch|minor|major}` bumps `plugin.json` + the marketplace
+      `elian-store` entry (metadata.version untouched) and scaffolds a dated CHANGELOG stub; the
+      default run gates **version drift** (fails if plugin.json != marketplace entry). Single command
+      `tools/generate.py --bump patch --emit` = bump → build → validate. Tested 2.11.2→2.11.3, reverted.
 - [x] Remaining-skill migration DONE (2026-06-12): migrated 9 of the 10 reported "missing" skills to
       `codex/skills/` symlinks (`--apply-codex`), retired their prompts, updated docs. `persona-review`
       reclassified to `prompt_only` (subagent dispatch is its core, like `generate-teammate`).
       **Codex catalog = 12 shared skills + 2 prompts**; `document-writer`/`harness-manager` Claude-only.
-- [ ] A5: Cutover decision (elian-store fate) + per-skill release automation (A4). SEPARATE, deferred.
+- [ ] A5: Cutover decision — elian-store fate (deprecate vs hard-cut the published bundle into the
+      5 thematic plugins). SEPARATE, deferred — the one breaking change left.
 
 ## Open questions
 - ~~Does Claude Code plugin install follow symlinks?~~ **ANSWERED (C2):** install copies the
