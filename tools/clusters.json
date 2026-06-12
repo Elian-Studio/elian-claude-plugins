@@ -1,5 +1,5 @@
 {
-  "_comment": "Thematic-cluster manifest for the Phase A generator (tools/generate.py). SSOT is plugins/elian-store/skills/<name>/ + agents/ + skills/_shared/. This maps the 16 skills into composition-respecting plugins. Revise freely — it is config.",
+  "_comment": "Thematic-cluster manifest for the Phase A generator (tools/generate.py). SSOT is plugins/elian-store/skills/<name>/ + agents/ + skills/_shared/. This maps the 17 skills into composition-respecting plugins. Revise freely — it is config.",
 
   "source": {
     "skills_dir": "plugins/elian-store/skills",
@@ -24,8 +24,8 @@
   "plugins": {
     "elian-artifacts": {
       "displayName": "Elian Artifacts",
-      "description": "Artifact generation and team orchestration: render schema-validated documents, build decision dashboards, spawn teammates, and brainstorm before committing.",
-      "skills": ["create-document", "decision-dashboard", "generate-teammate", "brainstorm"],
+      "description": "Artifact generation and team orchestration: route to the right workflow, render schema-validated documents, build decision dashboards, spawn teammates, and brainstorm before committing.",
+      "skills": ["skill-dispatcher", "create-document", "decision-dashboard", "generate-teammate", "brainstorm"],
       "agents": "domain"
     },
     "elian-tdd": {

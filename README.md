@@ -40,6 +40,12 @@ Update later:
 /plugin update elian-store@elian
 ```
 
+If you prefer Claude Code's native marketplace auto-update behavior, enable marketplace/plugin
+auto-update in your Claude Code settings. `elian-store` already uses `plugin.json.version` as the
+installed update cache key, so installed users receive plugin-content releases when Claude Code
+performs marketplace auto-update. Keep the manual commands above for explicit refreshes or when
+auto-update is disabled.
+
 Claude invocation format:
 
 ```text
@@ -75,7 +81,7 @@ cp codex/AGENTS.md ~/.codex/AGENTS.md
 cp codex/config.toml.example ~/.codex/config.toml
 ```
 
-Codex ships **12 shared skills** (`codex/skills/`, symlinked into the plugin tree so they never drift) plus **2 reference prompts** — `/generate-teammate` and `/persona-review`, which stay prompts because their core is Claude subagent dispatch that Codex cannot reproduce. (`document-writer` and `harness-manager` are Claude-only.) See [codex/README.md](codex/README.md).
+Codex ships **13 shared skills** (`codex/skills/`, symlinked into the plugin tree so they never drift) plus **2 reference prompts** — `/generate-teammate` and `/persona-review`, which stay prompts because their core is Claude subagent dispatch that Codex cannot reproduce. (`document-writer` and `harness-manager` are Claude-only.) See [codex/README.md](codex/README.md).
 
 ### Claude Workflows
 
@@ -116,6 +122,7 @@ Path: [plugins/elian-store/](plugins/elian-store/)
 | [persona-review](plugins/elian-store/skills/persona-review/) | Review plans/docs/ideas through selected persona lenses in each persona's native style. | `/elian-store:persona-review` |
 | [harness-manager](plugins/elian-store/skills/harness-manager/) | Detect and reconcile drift between the Codex and Claude Code global harnesses (rules, MCP, commands, skills). | `/elian-store:harness-manager` |
 | [pr-writer](plugins/elian-store/skills/pr-writer/) | Draft a review-friendly PR/MR title and body from the diff, commits, and stated intent (GitHub `gh` / GitLab `glab` aware). | `/elian-store:pr-writer` |
+| [skill-dispatcher](plugins/elian-store/skills/skill-dispatcher/) | Opt-in router that recommends the smallest relevant `elian-store` skill before work starts. | `/elian-store:skill-dispatcher` |
 
 ### Codex Companion Tree
 
@@ -124,7 +131,7 @@ Path: [codex/](codex/)
 | File | Role |
 |---|---|
 | [codex/setup.sh](codex/setup.sh) | Installs `codex/skills/*` into `~/.codex/skills` as symlinks (idempotent). |
-| [codex/skills/](codex/skills/) | 12 shared skills — symlinks into `plugins/elian-store/skills/<name>/`, generated/lint-checked by `tools/generate.py`. |
+| [codex/skills/](codex/skills/) | 13 shared skills — symlinks into `plugins/elian-store/skills/<name>/`, generated/lint-checked by `tools/generate.py`. |
 | [codex/prompts/generate-teammate.md](codex/prompts/generate-teammate.md) | Reference prompt for `/generate-teammate` — subagent-core, stays a prompt. |
 | [codex/prompts/persona-review.md](codex/prompts/persona-review.md) | Reference prompt for `/persona-review` — subagent-core, stays a prompt. |
 | [codex/AGENTS.md](codex/AGENTS.md) | Codex project/global instruction template. |

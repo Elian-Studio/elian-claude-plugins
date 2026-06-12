@@ -1,7 +1,7 @@
 # Claude / Codex Skill Parity Review
 
 Date: 2026-06-02
-Last updated: 2026-06-12 (migrated 12 commands from Codex prompts to shared Codex *skills* via `tools/generate.py`; only `generate-teammate` and `persona-review` stay prompts — their core is Claude subagent dispatch, which Codex cannot reproduce; `document-writer` and `harness-manager` remain Claude-only. Codex catalog: 2 prompts + 12 shared skills)
+Last updated: 2026-06-12 (migrated 13 commands from Codex prompts to shared Codex *skills* via `tools/generate.py`; only `generate-teammate` and `persona-review` stay prompts — their core is Claude subagent dispatch, which Codex cannot reproduce; `document-writer` and `harness-manager` remain Claude-only. Codex catalog: 2 prompts + 13 shared skills)
 
 ## Goal
 
@@ -31,15 +31,17 @@ A Claude skill and Codex prompt are considered aligned only when all of these ma
 
 | Area | Claude | Codex | Status |
 |---|---:|---:|---|
-| Catalog entries | 16 skills | 2 prompts + 12 shared skills | 14 matched + 2 documented Claude-only |
+| Catalog entries | 17 skills | 2 prompts + 13 shared skills | 15 matched + 2 documented Claude-only |
 | Command naming | `/elian-store:<skill>` | `/<prompt-file>` | Mostly alignable |
-| Current matched commands | `ai-assisted-feature-development`, `brainstorm`, `create-document`, `decision-dashboard`, `design-ui`, `fix`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `review`, `verify-implementation`, `persona-review`, `pr-writer` | `ai-assisted-feature-development`, `brainstorm`, `create-document`, `decision-dashboard`, `design-ui`, `fix`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `review`, `verify-implementation`, `persona-review`, `pr-writer` | Aligned |
+| Current matched commands | `ai-assisted-feature-development`, `brainstorm`, `create-document`, `decision-dashboard`, `design-ui`, `fix`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `review`, `verify-implementation`, `persona-review`, `pr-writer`, `skill-dispatcher` | `ai-assisted-feature-development`, `brainstorm`, `create-document`, `decision-dashboard`, `design-ui`, `fix`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `review`, `verify-implementation`, `persona-review`, `pr-writer`, `skill-dispatcher` | Aligned |
 | Legacy `on-call-elian` | Removed from current Claude skill catalog | Removed from current Codex prompt catalog | Aligned |
 | Validation | YAML + skill-owned validators where present | Prompt/config review | Asymmetric, manual |
 
-Current conclusion: **the two trees now cover the same ported command catalog, but they are not byte-for-byte or runtime-identical yet**. The name drift around `on-call-elian` is fixed, the 14 ported commands all have Codex counterparts (2 prompts + 12 shared skills), the 2 Claude-only skills (`harness-manager`, `document-writer`) are documented exceptions below, and the remaining divergence is platform/runtime behavior rather than missing prompt coverage.
+Current conclusion: **the two trees now cover the same ported command catalog, but they are not byte-for-byte or runtime-identical yet**. The name drift around `on-call-elian` is fixed, the 15 ported commands all have Codex counterparts (2 prompts + 13 shared skills), the 2 Claude-only skills (`harness-manager`, `document-writer`) are documented exceptions below, and the remaining divergence is platform/runtime behavior rather than missing prompt coverage.
 
-**Skills-based Codex distribution.** Instead of hand-mirrored prompts, `codex/skills/<name>` is a relative symlink into `plugins/elian-store/skills/<name>/`, and `codex/setup.sh` symlinks it into `~/.codex/skills/`. Both tools read one `SKILL.md`, so migrated commands cannot drift. `tools/generate.py` (manifest `tools/clusters.json`) maintains the symlinks and lints every `SKILL.md` for host-agnostic script paths. **12 commands are now shared skills** — everything except the four exceptions below.
+**Skills-based Codex distribution.** Instead of hand-mirrored prompts, `codex/skills/<name>` is a relative symlink into `plugins/elian-store/skills/<name>/`, and `codex/setup.sh` symlinks it into `~/.codex/skills/`. Both tools read one `SKILL.md`, so migrated commands cannot drift. `tools/generate.py` (manifest `tools/clusters.json`) maintains the symlinks and lints every `SKILL.md` for host-agnostic script paths. **13 commands are now shared skills** — everything except the four exceptions below.
+
+**Third-host decision.** The current Claude + Codex shape should stay simple: shared `SKILL.md` symlinks for portable skills plus hand-authored Codex prompts for the two subagent-core flows. Template/adapter generation is deferred until a third host such as Gemini or Cursor becomes a real target; adding that machinery now would increase release and validation surface without solving an active parity gap.
 
 **The four exceptions.** Two skills are **Claude-only** (`document-writer` hard-codes `~/.claude/skills/...`; `harness-manager` operates on the global harnesses) and never ship to Codex. Two stay **hand-authored Codex prompts** because their core is Claude subagent dispatch, which Codex cannot reproduce: `generate-teammate` (teammate-spawn / subagent team flow) and `persona-review` (per-persona subagent dispatch + aggregation). Their `SKILL.md` is host-agnostic, but symlinking it would advertise a flow that does not run on Codex.
 
@@ -80,6 +82,7 @@ Do not treat these gaps as immediate parity bugs. They are roadmap gaps and shou
 | `persona-review` | Review plans/docs/ideas through selected persona lenses with persona-native output | Aligned | Claude and Codex now share the same command name, default persona choices (`daniel`, `evans`, `dean`, `martin`, custom path), interview mode, and free-form review contract. Claude still uses persona-specific subagents; Codex keeps the same judgment shape in-process without Claude Agent tools. | Present |
 | `review` | Read-only engineering review of code, diffs, PRs, or changed files with findings-first output | Good | Codex now shares the same findings-first contract and read-only boundary. Keep the target/diff/line evidence discipline aligned with the Claude skill. | Present |
 | `pr-writer` | Draft a review-friendly PR/MR title and body from the diff, commits, and stated intent, contrasting intent vs implementation | Good | Both trees share the draft-only posture, PLAN -> DRAFT -> CONTRAST flow, platform (`gh`/`glab`) detection, and the same title/body output contract. Claude scopes read-only git tools via `allowed-tools`; Codex enforces the same draft-only boundary in prompt prose. | Present |
+| `skill-dispatcher` | Recommend the smallest relevant `elian-store` skill before work starts | Good utility | Opt-in only, not a mandatory preamble. It routes to existing skills, says when no special skill is needed, and stops instead of chaining into downstream workflows. | Present |
 
 ## Required Work To Make Them Identical
 
@@ -125,6 +128,7 @@ Completed:
 - `verify-implementation` now closes the verification orchestration lane at the prompt level.
 - `persona-review` now matches the Claude command name and the native free-form review contract.
 - `pr-writer` ships in both trees with a shared draft-only PR/MR description contract and platform-aware (`gh`/`glab`) context gathering.
+- `skill-dispatcher` ships in both trees as an opt-in discovery layer for choosing the smallest relevant skill without making every task pass through a proactive dispatcher.
 
 ## Documented Exceptions (Claude-only, no Codex prompt)
 

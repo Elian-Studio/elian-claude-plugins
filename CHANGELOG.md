@@ -21,7 +21,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Added `plugins/elian-store/README.md` as a plugin-local guide for real usage, edit locations, and validation boundaries.
 
 #### Changed
-- Refreshed `docs/claude-codex-skill-parity.md` to reflect the 13-prompt Codex catalog and the remaining platform-limited gaps.
+- Refreshed `docs/claude-codex-skill-parity.md` to reflect the shared-skill Codex catalog and the remaining platform-limited gaps.
 - Kept Codex prompts as plain Markdown on purpose; no YAML frontmatter was added to the prompt files.
 - Added an explicit output contract to `codex/prompts/persona-review.md` so all Codex prompts now share the same invocation / forbidden / output-contract shape.
 
@@ -29,6 +29,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - The thematic 5-plugin split (`tools/generate.py --emit` → gitignored `dist/`) is **intentionally staged-only, not published**. `elian-store` stays the single published plugin per `docs/plugin-portfolio-hybrid-model.md` ("Split decision, 2026-06-12"): the clusters share one audience, permission profile, and release cadence, so the bundle is not harmful, and the marketplace has no graceful-removal path. It will be published cluster-by-cluster only when a real divergence appears.
 - `generate-teammate` remains handoff-only on Codex because the runtime cannot reproduce the plugin-side teammate-spawn flow exactly.
 - `manage-skills` and `verify-implementation` remain prompt-level orchestration equivalents rather than byte-for-byte skill/runtime matches.
+
+### 2.13.0 — 2026-06-12
+
+#### Added
+- **`/skill-dispatcher`** — new opt-in router at `plugins/elian-store/skills/skill-dispatcher/`. It recommends the smallest relevant `elian-store` skill for a request, says when no special skill is needed, and stops instead of chaining into downstream workflows. This adds a discovery layer without making every task pass through a proactive dispatcher.
+- Added the matching Codex shared-skill symlink target via `tools/clusters.json` / `codex/skills/skill-dispatcher`, keeping the Claude and Codex routing behavior on one `SKILL.md`.
+
+#### Changed
+- Documented Claude Code marketplace auto-update guidance in the root README and plugin README while keeping the explicit `/plugin marketplace update` + `/plugin update` commands for manual refreshes.
+- Recorded the current multi-host decision in `docs/claude-codex-skill-parity.md`: keep the current symlink + hand-authored prompt model for Claude + Codex, and defer template/adapter generation until a third host is a real target.
+
+#### Notes
+- Bumped the `elian-store` plugin version (`2.12.0` → `2.13.0`, minor — new user-visible skill). The marketplace metadata version stays at `2.8.2` (no catalog-structure change).
 
 ### 2.12.0 — 2026-06-12
 

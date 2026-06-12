@@ -62,6 +62,7 @@ After installation, use this command in Codex TUI:
 /improve <issue-id> [--side back|front|both] [--step N] [--skip-docs]
 /manage-skills [skill-name | focus-area | question]
 /verify-implementation [optional verify skill name]
+/skill-dispatcher <request-or-goal> [--mode quick|full]
 /generate-teammate <project description or task requirements>
 /review <target> [--depth quick|deep] [--lenses security,performance,quality,design,adversarial]
 /persona-review <target> [--persona daniel|evans|dean|martin|all|comma-list|<path>] [--depth quick|deep|interview]
@@ -75,7 +76,7 @@ codex/
   AGENTS.md
   setup.sh                 # installs codex/skills/* into ~/.codex/skills (symlinks)
   skills/                  # symlinks into ../../plugins/elian-store/skills/<name>
-    ...                    # all Codex-portable skills (12; see tools/clusters.json)
+    ...                    # all Codex-portable skills (13; see tools/clusters.json)
   prompts/
     generate-teammate.md   # subagent-core — stays a prompt
     persona-review.md      # subagent-core — stays a prompt
@@ -84,7 +85,7 @@ codex/
 
 The `skills/` symlinks are generated and lint-checked by `tools/generate.py` from the
 `tools/clusters.json` manifest — run it instead of editing `codex/skills/` by hand. The Codex
-catalog is **12 shared skills + 2 prompts** (`generate-teammate`, `persona-review`); the two
+catalog is **13 shared skills + 2 prompts** (`generate-teammate`, `persona-review`); the two
 Claude-only skills (`document-writer`, `harness-manager`) do not appear here.
 
 Claude/Codex catalog parity status and porting order are tracked in [`../docs/claude-codex-skill-parity.md`](../docs/claude-codex-skill-parity.md).
