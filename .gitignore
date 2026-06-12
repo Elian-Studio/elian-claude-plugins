@@ -27,3 +27,9 @@ codex/config.toml
 
 # Phase A generator output (derived, not source)
 dist/
+
+# Local scratch: reports, analyses, brainstorm reflections (per global CLAUDE.md)
+claudedocs/
+
+# Playwright MCP session output (traces, downloads, session state)
+.playwright-mcp/
