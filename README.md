@@ -46,6 +46,11 @@ installed update cache key, so installed users receive plugin-content releases w
 performs marketplace auto-update. Keep the manual commands above for explicit refreshes or when
 auto-update is disabled.
 
+On SessionStart, `elian-store` also checks for updates once every 24 hours. When it finds a newer
+version, the next session shows the update command plus a short CHANGELOG excerpt when the release
+notes are reachable. The same hook records installed versions and can run versioned migrations from
+`plugins/elian-store/migrations/vX.Y.Z.sh` after future upgrades.
+
 Claude invocation format:
 
 ```text
@@ -81,7 +86,7 @@ cp codex/AGENTS.md ~/.codex/AGENTS.md
 cp codex/config.toml.example ~/.codex/config.toml
 ```
 
-Codex ships **13 shared skills** (`codex/skills/`, symlinked into the plugin tree so they never drift) plus **2 reference prompts** — `/generate-teammate` and `/persona-review`, which stay prompts because their core is Claude subagent dispatch that Codex cannot reproduce. (`document-writer` and `harness-manager` are Claude-only.) See [codex/README.md](codex/README.md).
+Codex ships **13 shared skills** (`codex/skills/`, symlinked into the plugin tree so they never drift) plus **2 reference prompts** — `/generate-teammate` and `/persona-review`, which stay prompts because their core is Claude subagent dispatch that Codex cannot reproduce. (`document-writer`, `harness-manager`, and `pr-review` are Claude-only.) See [codex/README.md](codex/README.md).
 
 ### Claude Workflows
 
@@ -122,6 +127,7 @@ Path: [plugins/elian-store/](plugins/elian-store/)
 | [persona-review](plugins/elian-store/skills/persona-review/) | Review plans/docs/ideas through selected persona lenses in each persona's native style. | `/elian-store:persona-review` |
 | [harness-manager](plugins/elian-store/skills/harness-manager/) | Detect and reconcile drift between the Codex and Claude Code global harnesses (rules, MCP, commands, skills). | `/elian-store:harness-manager` |
 | [pr-writer](plugins/elian-store/skills/pr-writer/) | Draft a review-friendly PR/MR title and body from the diff, commits, and stated intent (GitHub `gh` / GitLab `glab` aware). | `/elian-store:pr-writer` |
+| [pr-review](plugins/elian-store/skills/pr-review/) | Review an existing PR/MR through a panel of specialist + persona perspectives, synthesize one verdict, and post to the PR only on confirmation. | `/elian-store:pr-review` |
 | [skill-dispatcher](plugins/elian-store/skills/skill-dispatcher/) | Opt-in router that recommends the smallest relevant `elian-store` skill before work starts. | `/elian-store:skill-dispatcher` |
 
 ### Codex Companion Tree
@@ -139,7 +145,8 @@ Path: [codex/](codex/)
 
 Shared skills read one host-agnostic `SKILL.md` and cannot drift between the trees. Only the two
 subagent-core prompts (`generate-teammate`, `persona-review`) are independent files that must be
-kept in sync by hand; parity status is tracked in [docs/claude-codex-skill-parity.md](docs/claude-codex-skill-parity.md).
+kept in sync by hand; the three Claude-only skills (`document-writer`, `harness-manager`, `pr-review`)
+have no Codex counterpart at all. Parity status is tracked in [docs/claude-codex-skill-parity.md](docs/claude-codex-skill-parity.md).
 
 ### Claude Workflows
 

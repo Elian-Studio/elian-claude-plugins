@@ -30,6 +30,29 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - `generate-teammate` remains handoff-only on Codex because the runtime cannot reproduce the plugin-side teammate-spawn flow exactly.
 - `manage-skills` and `verify-implementation` remain prompt-level orchestration equivalents rather than byte-for-byte skill/runtime matches.
 
+### 2.15.0 — 2026-06-12
+
+#### Added
+- **`/pr-review`** — new skill at `plugins/elian-store/skills/pr-review/`. Orchestrates a multi-perspective review of an existing pull request (GitHub PR) or merge request (GitLab MR) — the review counterpart to `/pr-writer`. Resolves the PR (current branch, `pr:<id>`, or URL), gathers its description, linked issue, commits, diff, and CI status, then dispatches a panel of independent read-only reviewers: always-on engineering specialists (correctness, security, performance, architecture, tests/maintainability, requirements-fit), scope-triggered specialists (frontend/UX, backend, data/migrations, API contract, devops, docs), and all six persona judges (Beck, Dean, Evans, Fowler, Martin, Daniel) reusing the bundled `agents/`. Synthesizes the panel into one verdict (Approve / Comment / Request changes) — deduping by `path:line:category`, raising confidence on cross-perspective agreement, surfacing conflicting opinions as trade-offs, and contrasting the diff against stated intent. Local report by default; posts to the PR (`gh pr review` / `glab mr note`) only after explicit confirmation; never merges or edits code. References: `perspectives.md` (per-lens questions and red flags) and `example-review.md` (worked BEFORE/AFTER report).
+
+#### Fixed
+- Addressed `/pr-review` panel findings on the introducing PR (#23): added the POST + auth commands (`gh pr review`/`gh pr comment`, `glab mr note`/`glab mr approve`, `gh`/`glab auth status`, `git remote`) to the `pr-review` `allowed-tools`; the SessionStart update hook now strips ESC bytes from queued notifications (terminal-escape hardening), excludes the maintainer-facing `#### Notes` subsection from the CHANGELOG excerpt, and derives `ELIAN_STORE_PLUGIN_ROOT` from the bound migrations path. Added `--selftest` cases for the steady-state guard, a corrupt marker, and Notes exclusion. Fixed a stale "four exceptions" reference in `docs/claude-codex-skill-parity.md` and clarified the README Claude-only wording.
+- Hardened the migration runner ahead of its first script: concurrent SessionStarts are serialized with an atomic `mkdir` lock (portable — `flock` is absent on macOS — with 5-minute stale-lock recovery); a per-script checkpoint advances the recorded version after each success so a mid-chain failure no longer re-runs already-applied scripts; each script gets a wall-clock budget (`ELIAN_STORE_MIGRATION_TIMEOUT`, default 60s) so a hung script can't wedge SessionStart; and scripts run with a minimal environment (`PATH`/`HOME`/`TMPDIR`/`LANG`/`LC_ALL` + `ELIAN_STORE_*`) so session secrets are never exposed. New `--selftest` cases cover the lock, checkpoint, timeout, and env isolation.
+
+#### Notes
+- `pr-review` is documented as a **Claude-only** skill in `docs/claude-codex-skill-parity.md`; its core is parallel multi-subagent panel dispatch, which the Codex runtime cannot reproduce (same rationale as `generate-teammate` / `persona-review`).
+- Bumped the `elian-store` plugin version (`2.14.0` → `2.15.0`, minor — new user-visible skill). The marketplace metadata version stays at `2.8.2` (no catalog-structure change).
+
+### 2.14.0 — 2026-06-12
+
+#### Added
+- Extended the SessionStart update hook with short CHANGELOG excerpts in queued update notifications. When the remote `CHANGELOG.md` is reachable, users now see the relevant release section before the manual `/plugin marketplace update` and `/plugin update` commands.
+- Added the version migration runner structure under `plugins/elian-store/migrations/`. Future `vX.Y.Z.sh` scripts run once after an installed plugin moves from an older recorded version to the current local `plugin.json.version`; first installs record the current version and skip historical migrations.
+- Added `plugins/elian-store/hooks/check-update.sh --selftest` to cover CHANGELOG extraction, migration ordering, marker updates, and first-install skip behavior without network access.
+
+#### Notes
+- Bumped the `elian-store` plugin version (`2.13.0` → `2.14.0`, minor — update lifecycle behavior change). The marketplace metadata version stays at `2.8.2` (no catalog-structure change).
+
 ### 2.13.0 — 2026-06-12
 
 #### Added
