@@ -200,7 +200,7 @@ Important distinction:
 | Change portfolio roadmap | `docs/plugin-portfolio-hybrid-model.md` and `docs/gstack-skill-review.md` |
 | Change Claude/Codex parity | `docs/claude-codex-skill-parity.md` |
 
-Version rule: plugin-distributed behavior changes require updating `plugin.json`, root marketplace metadata, README, and CHANGELOG together.
+Version rule: plugin-distributed behavior changes require updating `plugin.json`, the marketplace `elian-store` entry version (not the root `metadata.version`), README, and CHANGELOG together.
 
 ---
 

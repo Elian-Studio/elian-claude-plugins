@@ -22,3 +22,5 @@ When the two ever differ, **`CLAUDE.md` wins**: update it, then reflect the chan
 - Release bump: any user-visible plugin change must update `plugins/elian-store/.claude-plugin/plugin.json`,
   `.claude-plugin/marketplace.json` (`elian-store` entry), `README.md`, and `CHANGELOG.md` together.
   `codex/` is versioned independently. See `CLAUDE.md` for the full procedure and the pre-PR validation commands.
+- Skills with side effects default to `disable-model-invocation: true`. Keep each `SKILL.md` under
+  500 lines and its `description` + `when_to_use` under 1,536 characters (the character limit is hard-enforced).
