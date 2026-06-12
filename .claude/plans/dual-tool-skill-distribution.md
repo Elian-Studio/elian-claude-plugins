@@ -112,8 +112,11 @@ separate decision, NOT in this kickoff.
       cross-validated with the repo ruby YAML/JSON smoke tests; no `__pycache__` leak.
 - [ ] A4: Release automation — single command: bump → build → validate. (generator does build+validate;
       version bump not yet wired in.)
-- [ ] A5: Cutover decision (elian-store fate) + docs. SEPARATE, deferred. Also pending: migrate the
-      10 remaining Codex-portable skills (`--apply-codex` + retire prompts + docs).
+- [x] Remaining-skill migration DONE (2026-06-12): migrated 9 of the 10 reported "missing" skills to
+      `codex/skills/` symlinks (`--apply-codex`), retired their prompts, updated docs. `persona-review`
+      reclassified to `prompt_only` (subagent dispatch is its core, like `generate-teammate`).
+      **Codex catalog = 12 shared skills + 2 prompts**; `document-writer`/`harness-manager` Claude-only.
+- [ ] A5: Cutover decision (elian-store fate) + per-skill release automation (A4). SEPARATE, deferred.
 
 ## Open questions
 - ~~Does Claude Code plugin install follow symlinks?~~ **ANSWERED (C2):** install copies the

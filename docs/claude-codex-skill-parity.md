@@ -1,7 +1,7 @@
 # Claude / Codex Skill Parity Review
 
 Date: 2026-06-02
-Last updated: 2026-06-12 (`document-writer` recorded as a Claude-only exception; `create-document`, `decision-dashboard`, `design-ui` migrated from Codex prompts to shared Codex *skills*; `generate-teammate` SKILL.md made host-agnostic but kept as a prompt — Codex skills now 11 prompts + 3 shared skills)
+Last updated: 2026-06-12 (migrated 12 commands from Codex prompts to shared Codex *skills* via `tools/generate.py`; only `generate-teammate` and `persona-review` stay prompts — their core is Claude subagent dispatch, which Codex cannot reproduce; `document-writer` and `harness-manager` remain Claude-only. Codex catalog: 2 prompts + 12 shared skills)
 
 ## Goal
 
@@ -31,17 +31,19 @@ A Claude skill and Codex prompt are considered aligned only when all of these ma
 
 | Area | Claude | Codex | Status |
 |---|---:|---:|---|
-| Catalog entries | 16 skills | 11 prompts + 3 shared skills | 14 matched + 2 documented Claude-only |
+| Catalog entries | 16 skills | 2 prompts + 12 shared skills | 14 matched + 2 documented Claude-only |
 | Command naming | `/elian-store:<skill>` | `/<prompt-file>` | Mostly alignable |
 | Current matched commands | `ai-assisted-feature-development`, `brainstorm`, `create-document`, `decision-dashboard`, `design-ui`, `fix`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `review`, `verify-implementation`, `persona-review`, `pr-writer` | `ai-assisted-feature-development`, `brainstorm`, `create-document`, `decision-dashboard`, `design-ui`, `fix`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `review`, `verify-implementation`, `persona-review`, `pr-writer` | Aligned |
 | Legacy `on-call-elian` | Removed from current Claude skill catalog | Removed from current Codex prompt catalog | Aligned |
 | Validation | YAML + skill-owned validators where present | Prompt/config review | Asymmetric, manual |
 
-Current conclusion: **the two trees now cover the same ported command catalog, but they are not byte-for-byte or runtime-identical yet**. The name drift around `on-call-elian` is fixed, the 14 ported commands all have Codex counterparts (11 prompts + 3 shared skills), the 2 Claude-only skills (`harness-manager`, `document-writer`) are documented exceptions below, and the remaining divergence is platform/runtime behavior rather than missing prompt coverage.
+Current conclusion: **the two trees now cover the same ported command catalog, but they are not byte-for-byte or runtime-identical yet**. The name drift around `on-call-elian` is fixed, the 14 ported commands all have Codex counterparts (2 prompts + 12 shared skills), the 2 Claude-only skills (`harness-manager`, `document-writer`) are documented exceptions below, and the remaining divergence is platform/runtime behavior rather than missing prompt coverage.
 
-**Skills-based Codex distribution.** Instead of hand-mirrored prompts, `codex/skills/<name>` is a relative symlink into `plugins/elian-store/skills/<name>/`, and `codex/setup.sh` symlinks it into `~/.codex/skills/`. Both tools read one `SKILL.md`, so migrated commands cannot drift. Migrated so far: `create-document` (pilot), `decision-dashboard`, `design-ui`.
+**Skills-based Codex distribution.** Instead of hand-mirrored prompts, `codex/skills/<name>` is a relative symlink into `plugins/elian-store/skills/<name>/`, and `codex/setup.sh` symlinks it into `~/.codex/skills/`. Both tools read one `SKILL.md`, so migrated commands cannot drift. `tools/generate.py` (manifest `tools/clusters.json`) maintains the symlinks and lints every `SKILL.md` for host-agnostic script paths. **12 commands are now shared skills** — everything except the four exceptions below.
 
-The host-agnostic `SKILL.md` portability fix (resolve `SKILL_DIR` / sibling `CD` with a `${CLAUDE_SKILL_DIR:-${CLAUDE_PLUGIN_ROOT:+...}}` → `${CODEX_HOME:-$HOME/.codex}/skills/...` fallback, never a bare `CLAUDE_PLUGIN_ROOT`/`CLAUDE_SKILL_DIR`) is now applied to all four skills that used those vars: `create-document`, `decision-dashboard`, `design-ui`, and `generate-teammate`. `generate-teammate` is host-agnostic at the `SKILL.md` level but **stays a prompt** — Codex cannot reproduce its teammate-spawn/subagent dispatch flow (handoff-only), so shipping it as a Codex skill would advertise a flow that does not run there.
+**The four exceptions.** Two skills are **Claude-only** (`document-writer` hard-codes `~/.claude/skills/...`; `harness-manager` operates on the global harnesses) and never ship to Codex. Two stay **hand-authored Codex prompts** because their core is Claude subagent dispatch, which Codex cannot reproduce: `generate-teammate` (teammate-spawn / subagent team flow) and `persona-review` (per-persona subagent dispatch + aggregation). Their `SKILL.md` is host-agnostic, but symlinking it would advertise a flow that does not run on Codex.
+
+**Host-agnostic `SKILL.md` portability** (resolve `SKILL_DIR` / sibling `CD` with a `${CLAUDE_SKILL_DIR:-${CLAUDE_PLUGIN_ROOT:+...}}` → `${CODEX_HOME:-$HOME/.codex}/skills/...` fallback, never a bare `CLAUDE_PLUGIN_ROOT`/`CLAUDE_SKILL_DIR`) is applied to all six skills that used those vars: `create-document`, `decision-dashboard`, `design-ui`, `generate-teammate`, `manage-skills`, and `verify-implementation`. The last two were caught by the `tools/generate.py` lint; the lint now gates every skill.
 
 ## gstack Portfolio Lens
 

@@ -10,19 +10,23 @@ This tree is an independent Codex CLI distribution bundle. It is separate from t
 | Distribution | Installed through marketplace metadata | Copied or symlinked into `~/.codex/` by the user |
 | Validation | YAML/frontmatter smoke test + skill-owned validator | Prompt/config/parity review |
 
-## Drift Warning
+## Drift model
 
-This repository uses an independent two-tree model for **prompts**. Each legacy `codex/prompts/*.md` (`ai-assisted-feature-development`, `brainstorm`, `fix`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `persona-review`, `pr-writer`, `review`, `verify-implementation`) and its Claude counterpart are separate files. When one side changes, the author must check the other side manually.
+Most commands ship as **shared skills**: `codex/skills/<name>` is a symlink into
+`plugins/elian-store/skills/<name>/`, so Claude and Codex read the same host-agnostic `SKILL.md`
+and **cannot drift**. The Codex-portable set is whatever `tools/clusters.json` does not mark
+`claude_only` or `prompt_only`; `tools/generate.py` maintains the symlinks and lints every
+`SKILL.md` for host-agnostic script paths.
 
-Forgetting one side can make Claude and Codex behave differently. Pull requests should inspect both diffs when a command exists in both trees.
+Two commands stay hand-authored `codex/prompts/*.md` because their core is **Claude subagent
+dispatch**, which Codex cannot reproduce:
+- `generate-teammate` — teammate-spawn / subagent team flow (handoff-only on Codex).
+- `persona-review` — per-persona subagent dispatch + aggregation.
 
-> **Migrated skills do not drift.** `create-document`, `decision-dashboard`, and `design-ui` now
-> ship once as skills: each `codex/skills/<name>` is a symlink into
-> `plugins/elian-store/skills/<name>/`, so both tools read the same `SKILL.md` (made host-agnostic —
-> no `CLAUDE_PLUGIN_ROOT`/`CLAUDE_SKILL_DIR` hard dependency). Migrated skills are exempt from the
-> manual two-side check above. `generate-teammate` keeps its prompt for now: its `SKILL.md` is also
-> host-agnostic, but the teammate-spawn flow cannot be reproduced on Codex (handoff-only). See
-> [`../docs/claude-codex-skill-parity.md`](../docs/claude-codex-skill-parity.md).
+For these two only, the Codex prompt and the Claude `SKILL.md` are separate files; a change on one
+side must be checked against the other. Two more skills are **Claude-only** and never ship to Codex:
+`document-writer` and `harness-manager`. Everything else is a drift-free shared skill. See
+[`../docs/claude-codex-skill-parity.md`](../docs/claude-codex-skill-parity.md).
 
 ## Install
 
@@ -70,25 +74,17 @@ codex/
   README.md
   AGENTS.md
   setup.sh                 # installs codex/skills/* into ~/.codex/skills (symlinks)
-  skills/                  # each entry is a symlink into ../../plugins/elian-store/skills/<name>
-    create-document
-    decision-dashboard
-    design-ui
+  skills/                  # symlinks into ../../plugins/elian-store/skills/<name>
+    ...                    # all Codex-portable skills (12; see tools/clusters.json)
   prompts/
-    ai-assisted-feature-development.md
-    brainstorm.md
-    fix.md
-    generate-teammate.md
-    improve.md
-    implement.md
-    manage-skills.md
-    persona-review.md
-    pr-writer.md
-    review.md
-    verify-implementation.md
+    generate-teammate.md   # subagent-core — stays a prompt
+    persona-review.md      # subagent-core — stays a prompt
   config.toml.example
 ```
 
-Current porting scope (prompts): `ai-assisted-feature-development`, `brainstorm`, `fix`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `persona-review`, `pr-writer`, `review`, and `verify-implementation`. `create-document`, `decision-dashboard`, and `design-ui` have graduated from prompts to **shared skills** (`codex/skills/`). `generate-teammate` is host-agnostic at the `SKILL.md` level but stays a prompt (Codex cannot reproduce its teammate-spawn flow). Remaining prompts follow the same skill-symlink pattern gradually.
+The `skills/` symlinks are generated and lint-checked by `tools/generate.py` from the
+`tools/clusters.json` manifest — run it instead of editing `codex/skills/` by hand. The Codex
+catalog is **12 shared skills + 2 prompts** (`generate-teammate`, `persona-review`); the two
+Claude-only skills (`document-writer`, `harness-manager`) do not appear here.
 
 Claude/Codex catalog parity status and porting order are tracked in [`../docs/claude-codex-skill-parity.md`](../docs/claude-codex-skill-parity.md).

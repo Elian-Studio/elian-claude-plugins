@@ -55,6 +55,6 @@
   "codex": {
     "_comment": "Codex distribution per skill. claude_only = never ships to Codex; prompt_only = stays a hand-authored Codex prompt (not a shared skill); everything else lint-clean ships as a codex/skills/<name> symlink.",
     "claude_only": ["document-writer", "harness-manager"],
-    "prompt_only": ["generate-teammate"]
+    "prompt_only": ["generate-teammate", "persona-review"]
   }
 }
