@@ -24,3 +24,6 @@ Thumbs.db
 # Codex CLI per-developer local state (codex/ 트리는 plugins/ 와 독립)
 .codex/
 codex/config.toml
+
+# Phase A generator output (derived, not source)
+dist/

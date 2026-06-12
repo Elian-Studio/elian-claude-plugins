@@ -73,18 +73,47 @@ and with the parity-maintenance burden automated away rather than done by hand.
       `teammate-spawn` render returns exit 0 / verdict PASS / 116-line output. setup.sh replaced
       the stale broken `~/.codex/skills/create-document` copy with the working symlink.
 
-### Phase A — Generalize to SSOT + generator (after C validates)
-- [ ] A1: Decide SSOT layout (`skills/<name>/` as source of truth) and write the `build`
-      generator: emits Claude per-skill plugins (`plugins/<name>/` + per-skill `plugin.json`
-      + `marketplace.json` with N entries) and the Codex skills tree, and propagates
-      version/CHANGELOG.
-- [ ] A2: Resolve shared resources — where do `agents/`, `_shared/`, and `hooks/` live in a
-      per-skill world? (Shared "elian-agents" plugin? bundle-per-skill? single shared updater
-      instead of 16 SessionStart hooks?)
-- [ ] A3: Migrate all 16 skills to SSOT; generate both trees.
-- [ ] A4: Release automation — single command: bump → build → validate (YAML + JSON smoke tests).
-- [ ] A5: Update README/docs for per-skill install; decide the fate of the `elian-store` bundle
-      (deprecate, or keep as a documented "install these N" meta-entry).
+### Phase A — Generator + thematic-cluster plugins (granularity decided 2026-06-12)
+
+**Granularity = THEMATIC CLUSTERS, not pure per-skill.** Phase C + investigation proved the
+skills compose, so per-skill plugins would break composition on Claude (each plugin has its own
+`$CLAUDE_PLUGIN_ROOT`; no inter-plugin dependency mechanism):
+- `create-document` is a render engine called by `decision-dashboard` + `generate-teammate`.
+- `skills/_shared/execution-strategy.md` is used by `fix` + `improve` + `implement`.
+- `agents/` (21) are plugin-level: `generate-teammate` needs 14 domain agents, `persona-review`
+  needs the 7 `persona-*` agents.
+So the installable unit is the composition cluster, not the single skill.
+
+**SSOT stays `plugins/elian-store/skills/<name>/` + `agents/` + `skills/_shared/`** (no churn-move
+to a top-level `skills/`). The generator reads a cluster manifest and emits derived trees.
+
+**Proposed cluster manifest** (config — easy to revise; lives in `tools/clusters.json`):
+| Plugin | Skills | Bundled agents | Codex-portable |
+|---|---|---|---|
+| `elian-artifacts` | create-document, decision-dashboard, generate-teammate, brainstorm | 14 domain agents | all but generate-teammate (handoff-only) |
+| `elian-tdd` | implement, fix, improve (+ `_shared`) | — | yes |
+| `elian-review` | review, persona-review, verify-implementation, manage-skills | 7 `persona-*` agents | yes |
+| `elian-design` | design-ui, document-writer, ai-assisted-feature-development | — | design-ui, aafd (document-writer Claude-only) |
+| `elian-harness` | harness-manager, pr-writer | — | pr-writer (harness-manager Claude-only) |
+
+**BREAKING-CHANGE RISK:** splitting the published `elian-store` plugin orphans existing installs.
+Generator emits to `dist/` (gitignored) — live `plugins/elian-store/` is untouched until a
+deliberate cutover. Cutover strategy (deprecate elian-store as a meta-pointer vs hard cut) is a
+separate decision, NOT in this kickoff.
+
+- [x] A1: `tools/clusters.json` manifest + `tools/generate.py` generator. DONE — report-only by
+      default; `--emit` writes `dist/`, `--apply-codex` creates symlinks. `dist/` gitignored.
+- [x] A2: Generator capabilities DONE: (a) lint SKILL.md for bare `${CLAUDE_*}` inside bash fences —
+      **caught 2 previously-missed broken skills (`manage-skills`, `verify-implementation`), now
+      fixed**; (b) codex/skills symlink status (10 portable skills still "missing" = next migration);
+      (c) emit 5 thematic plugins + `marketplace.json` to `dist/`; (d) validate emitted JSON + SKILL.md.
+- [x] A3: DONE — emitted 5 plugins; composition preserved (elian-artifacts holds create-document +
+      both callers + 14 agents; elian-tdd holds `_shared`; elian-review holds 7 persona agents);
+      cross-validated with the repo ruby YAML/JSON smoke tests; no `__pycache__` leak.
+- [ ] A4: Release automation — single command: bump → build → validate. (generator does build+validate;
+      version bump not yet wired in.)
+- [ ] A5: Cutover decision (elian-store fate) + docs. SEPARATE, deferred. Also pending: migrate the
+      10 remaining Codex-portable skills (`--apply-codex` + retire prompts + docs).
 
 ## Open questions
 - ~~Does Claude Code plugin install follow symlinks?~~ **ANSWERED (C2):** install copies the

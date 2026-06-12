@@ -57,7 +57,9 @@ Run one verification skill:
 Show the discovered `verify-*` skills and planned workflow steps without executing checks:
 
 ```bash
-python3 "${CLAUDE_SKILL_DIR}/scripts/check-skill-discovery.py" .claude/skills/
+SKILL_DIR="${CLAUDE_SKILL_DIR:-${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/skills/verify-implementation}}"
+SKILL_DIR="${SKILL_DIR:-${CODEX_HOME:-$HOME/.codex}/skills/verify-implementation}"
+python3 "${SKILL_DIR}/scripts/check-skill-discovery.py" .claude/skills/
 ```
 
 ## Standing rules
@@ -161,8 +163,10 @@ Residual issues must be explicit:
 ## Validation
 
 ```bash
-python3 "${CLAUDE_SKILL_DIR}/scripts/check-skill-discovery.py" .claude/skills/
-python3 "${CLAUDE_SKILL_DIR}/scripts/check-skill-discovery.py" .claude/skills/ --json
+SKILL_DIR="${CLAUDE_SKILL_DIR:-${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/skills/verify-implementation}}"
+SKILL_DIR="${SKILL_DIR:-${CODEX_HOME:-$HOME/.codex}/skills/verify-implementation}"
+python3 "${SKILL_DIR}/scripts/check-skill-discovery.py" .claude/skills/
+python3 "${SKILL_DIR}/scripts/check-skill-discovery.py" .claude/skills/ --json
 ```
 
 Checks:

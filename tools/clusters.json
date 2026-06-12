@@ -1,0 +1,60 @@
+{
+  "_comment": "Thematic-cluster manifest for the Phase A generator (tools/generate.py). SSOT is plugins/elian-store/skills/<name>/ + agents/ + skills/_shared/. This maps the 16 skills into composition-respecting plugins. Revise freely — it is config.",
+
+  "source": {
+    "skills_dir": "plugins/elian-store/skills",
+    "agents_dir": "plugins/elian-store/agents",
+    "shared_dir": "plugins/elian-store/skills/_shared"
+  },
+
+  "agent_groups": {
+    "domain": [
+      "frontend-architect", "backend-architect", "system-architect", "security-engineer",
+      "performance-engineer", "quality-engineer", "devops-architect", "requirements-analyst",
+      "ui-ux-designer", "technical-writer", "ux-researcher", "marketing-strategist",
+      "business-analyst", "devil-advocate"
+    ],
+    "persona": [
+      "persona-beck-reviewer", "persona-custom-reviewer", "persona-daniel-reviewer",
+      "persona-dean-reviewer", "persona-evans-reviewer", "persona-fowler-reviewer",
+      "persona-martin-reviewer"
+    ]
+  },
+
+  "plugins": {
+    "elian-artifacts": {
+      "displayName": "Elian Artifacts",
+      "description": "Artifact generation and team orchestration: render schema-validated documents, build decision dashboards, spawn teammates, and brainstorm before committing.",
+      "skills": ["create-document", "decision-dashboard", "generate-teammate", "brainstorm"],
+      "agents": "domain"
+    },
+    "elian-tdd": {
+      "displayName": "Elian TDD",
+      "description": "Approval-gated TDD development flow: implement features, fix bugs, and make behavior-changing improvements with shared execution strategy.",
+      "skills": ["implement", "fix", "improve"],
+      "shared": true
+    },
+    "elian-review": {
+      "displayName": "Elian Review",
+      "description": "Engineering review and verification: findings-first code review, persona-lens review, verify-skill discovery, and verify-skill drift repair.",
+      "skills": ["review", "persona-review", "verify-implementation", "manage-skills"],
+      "agents": "persona"
+    },
+    "elian-design": {
+      "displayName": "Elian Design",
+      "description": "Design and authoring: UI/UX design artifacts, self-contained house-styled documents, and AI-assisted feature framing.",
+      "skills": ["design-ui", "document-writer", "ai-assisted-feature-development"]
+    },
+    "elian-harness": {
+      "displayName": "Elian Harness",
+      "description": "Maintainer tooling: reconcile Claude/Codex global harness drift and draft review-friendly PR/MR descriptions.",
+      "skills": ["harness-manager", "pr-writer"]
+    }
+  },
+
+  "codex": {
+    "_comment": "Codex distribution per skill. claude_only = never ships to Codex; prompt_only = stays a hand-authored Codex prompt (not a shared skill); everything else lint-clean ships as a codex/skills/<name> symlink.",
+    "claude_only": ["document-writer", "harness-manager"],
+    "prompt_only": ["generate-teammate"]
+  }
+}
