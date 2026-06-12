@@ -30,6 +30,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - `generate-teammate` remains handoff-only on Codex because the runtime cannot reproduce the plugin-side teammate-spawn flow exactly.
 - `manage-skills` and `verify-implementation` remain prompt-level orchestration equivalents rather than byte-for-byte skill/runtime matches.
 
+### 2.14.0 — 2026-06-12
+
+#### Added
+- Extended the SessionStart update hook with short CHANGELOG excerpts in queued update notifications. When the remote `CHANGELOG.md` is reachable, users now see the relevant release section before the manual `/plugin marketplace update` and `/plugin update` commands.
+- Added the version migration runner structure under `plugins/elian-store/migrations/`. Future `vX.Y.Z.sh` scripts run once after an installed plugin moves from an older recorded version to the current local `plugin.json.version`; first installs record the current version and skip historical migrations.
+- Added `plugins/elian-store/hooks/check-update.sh --selftest` to cover CHANGELOG extraction, migration ordering, marker updates, and first-install skip behavior without network access.
+
+#### Notes
+- Bumped the `elian-store` plugin version (`2.13.0` → `2.14.0`, minor — update lifecycle behavior change). The marketplace metadata version stays at `2.8.2` (no catalog-structure change).
+
 ### 2.13.0 — 2026-06-12
 
 #### Added

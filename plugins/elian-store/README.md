@@ -6,6 +6,7 @@
 
 - Install the plugin from the marketplace entry in the repo root.
 - Enable Claude Code marketplace/plugin auto-update in your Claude Code settings if you want native marketplace updates instead of only manual `/plugin update` refreshes.
+- The SessionStart update hook shows a short CHANGELOG excerpt for available updates when release notes are reachable, and runs versioned `migrations/vX.Y.Z.sh` scripts after future upgrades.
 - Use `/elian-store:<skill-name>` to invoke a skill.
 - Read the skill's `SKILL.md` before changing or extending it.
 - Use the root `README.md` for repository-level structure and parity context.
@@ -39,6 +40,7 @@ plugins/elian-store/
   .claude-plugin/plugin.json
   agents/
   hooks/
+  migrations/
   skills/
     <skill>/
       SKILL.md

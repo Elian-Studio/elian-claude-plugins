@@ -46,6 +46,11 @@ installed update cache key, so installed users receive plugin-content releases w
 performs marketplace auto-update. Keep the manual commands above for explicit refreshes or when
 auto-update is disabled.
 
+On SessionStart, `elian-store` also checks for updates once every 24 hours. When it finds a newer
+version, the next session shows the update command plus a short CHANGELOG excerpt when the release
+notes are reachable. The same hook records installed versions and can run versioned migrations from
+`plugins/elian-store/migrations/vX.Y.Z.sh` after future upgrades.
+
 Claude invocation format:
 
 ```text

@@ -4,14 +4,18 @@
 # Behavior:
 # - Runs on every Claude Code SessionStart, but is throttled to one network
 #   probe per 24 h.
-# - Foreground path is fast (only marker / notify file checks). The actual
-#   network call is forked to a background child so SessionStart latency
+# - Foreground path is fast (queued notification + local migration check).
+#   The network call is forked to a background child so SessionStart latency
 #   stays in the millisecond range.
 # - Compares the locally installed elian-store version (read from this
 #   plugin's plugin.json) against the latest entry in
 #   marketplace.json on the GitHub main branch.
 # - When a new version is found, writes a notification file. The next
-#   SessionStart prints it once and removes it.
+#   SessionStart prints it once and removes it. If reachable, the notification
+#   includes a short CHANGELOG excerpt for the target version.
+# - Runs local version migrations from migrations/vX.Y.Z.sh once per installed
+#   plugin version. First installs record the current version and skip old
+#   migrations.
 # - All failures are silent (offline, rate-limited, malformed JSON, etc.).
 #
 # Disabling: remove the SessionStart hook from
@@ -21,6 +25,9 @@
 
 set -e
 
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+PLUGIN_JSON="$PLUGIN_ROOT/.claude-plugin/plugin.json"
+
 # ${CLAUDE_PLUGIN_DATA} is a per-plugin persistent directory provided by
 # Claude Code. Fall back to a deterministic path so the script still works
 # when the env var is absent (e.g., running this hook by hand).
@@ -29,66 +36,287 @@ MARKER="$DATA_DIR/last-update-check"
 NOTIFY="$DATA_DIR/notify"
 THROTTLE_MIN=$((24 * 60))
 
+MARKETPLACE_URL='https://raw.githubusercontent.com/Elian-Studio/elian-claude-plugins/main/.claude-plugin/marketplace.json'
+CHANGELOG_URL='https://raw.githubusercontent.com/Elian-Studio/elian-claude-plugins/main/CHANGELOG.md'
+CHANGELOG_WEB_URL='https://github.com/Elian-Studio/elian-claude-plugins/blob/main/CHANGELOG.md'
+
+read_plugin_version() {
+  python3 -c '
+import json, sys
+try:
+    with open(sys.argv[1], encoding="utf-8") as f:
+        print(json.load(f)["version"])
+except Exception:
+    pass
+' "$1"
+}
+
+read_marketplace_version() {
+  python3 -c '
+import json, sys
+try:
+    d = json.load(sys.stdin)
+    p = next((p for p in d.get("plugins", []) if p.get("name") == "elian-store"), None)
+    if p and p.get("version"):
+        print(p["version"])
+except Exception:
+    pass
+'
+}
+
+extract_changelog_notes() {
+  local version="$1"
+  python3 -c '
+import sys
+
+version = sys.argv[1].lstrip("v")
+lines = sys.stdin.read().splitlines()
+capture = False
+out = []
+
+for line in lines:
+    stripped = line.strip()
+    if stripped.startswith("### "):
+        if capture:
+            break
+        heading = stripped[4:].strip()
+        capture = heading == version or heading.startswith(version + " ")
+        continue
+    if not capture:
+        continue
+    if not stripped or stripped == "---" or stripped.startswith(">"):
+        continue
+    if stripped.startswith("#### "):
+        out.append(stripped[5:].strip() + ":")
+    else:
+        out.append(stripped)
+    if len(out) >= 12:
+        break
+
+print("\n".join(out))
+' "$version"
+}
+
+run_migrations() {
+  local current="$1"
+  local data_dir="$2"
+  local plugin_root="$3"
+  local migrations_dir="$plugin_root/migrations"
+  local migrated_version="$data_dir/migrated-version"
+  local migration_log="$data_dir/migration.log"
+
+  if [ -z "$current" ]; then
+    return 0
+  fi
+
+  # Steady-state fast path: when the recorded version already matches the
+  # current one (the common case after first install/upgrade), skip the
+  # python3 spawn entirely so SessionStart stays in the millisecond range.
+  # First install (marker missing), upgrade (marker != current), and a
+  # corrupt marker all fall through to the python path, which handles them.
+  if [ -f "$migrated_version" ] && [ "$(cat "$migrated_version" 2>/dev/null)" = "$current" ]; then
+    return 0
+  fi
+
+  python3 - "$current" "$data_dir" "$migrations_dir" "$migrated_version" "$migration_log" <<'PY'
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+current, data_dir, migrations_dir, marker, log_path = sys.argv[1:]
+data = Path(data_dir)
+migrations = Path(migrations_dir)
+marker_path = Path(marker)
+log = Path(log_path)
+
+def parse(version):
+    m = re.fullmatch(r"v?(\d+)\.(\d+)\.(\d+)", (version or "").strip())
+    return tuple(int(x) for x in m.groups()) if m else None
+
+def write_marker(version):
+    data.mkdir(parents=True, exist_ok=True)
+    marker_path.write_text(version + "\n", encoding="utf-8")
+
+def append_log(message):
+    data.mkdir(parents=True, exist_ok=True)
+    with log.open("a", encoding="utf-8") as f:
+        f.write(message.rstrip() + "\n")
+
+current_key = parse(current)
+if current_key is None:
+    sys.exit(0)
+
+if not marker_path.exists():
+    write_marker(current)
+    sys.exit(0)
+
+previous = marker_path.read_text(encoding="utf-8").strip()
+previous_key = parse(previous)
+if previous_key is None:
+    append_log(f"invalid migrated-version marker {previous!r}; recording {current}")
+    write_marker(current)
+    sys.exit(0)
+
+if previous_key >= current_key:
+    sys.exit(0)
+
+if not migrations.is_dir():
+    write_marker(current)
+    sys.exit(0)
+
+scripts = []
+for path in migrations.glob("v*.sh"):
+    key = parse(path.stem)
+    if key and previous_key < key <= current_key:
+        scripts.append((key, path))
+scripts.sort(key=lambda item: item[0])
+
+env = os.environ.copy()
+env.update({
+    "ELIAN_STORE_PREVIOUS_VERSION": previous,
+    "ELIAN_STORE_CURRENT_VERSION": current,
+    "ELIAN_STORE_DATA_DIR": str(data),
+    "ELIAN_STORE_PLUGIN_ROOT": str(Path(sys.argv[3]).parent),
+})
+
+for key, path in scripts:
+    append_log(f"running {path.name} for {previous} -> {current}")
+    with log.open("a", encoding="utf-8") as f:
+        result = subprocess.run(["bash", str(path)], stdout=f, stderr=subprocess.STDOUT, env=env)
+    if result.returncode != 0:
+        append_log(f"failed {path.name} with exit {result.returncode}; will retry on next SessionStart")
+        sys.exit(0)
+
+write_marker(current)
+PY
+}
+
+selftest() {
+  local tmp
+  tmp="$(mktemp -d)"
+  trap 'rm -rf "$tmp"' EXIT
+
+  local notes
+  notes="$(cat <<'EOF' | extract_changelog_notes "2.14.0"
+# Changelog
+
+### 2.14.0 — 2026-06-12
+
+#### Added
+- First line.
+- Second line.
+
+### 2.13.0 — 2026-06-12
+- Older line.
+EOF
+)"
+  case "$notes" in
+    *"Added:"*"First line."*"Second line."*) ;;
+    *) printf 'selftest failed: changelog extraction\n' >&2; exit 1 ;;
+  esac
+
+  local plugin_root="$tmp/plugin"
+  local data_dir="$tmp/data"
+  mkdir -p "$plugin_root/migrations" "$data_dir"
+  printf '1.0.0\n' > "$data_dir/migrated-version"
+  cat > "$plugin_root/migrations/v1.1.0.sh" <<'EOF'
+printf 'v1.1.0 %s -> %s\n' "$ELIAN_STORE_PREVIOUS_VERSION" "$ELIAN_STORE_CURRENT_VERSION" >> "$ELIAN_STORE_DATA_DIR/order"
+EOF
+  cat > "$plugin_root/migrations/v2.0.0.sh" <<'EOF'
+printf 'v2.0.0 %s -> %s\n' "$ELIAN_STORE_PREVIOUS_VERSION" "$ELIAN_STORE_CURRENT_VERSION" >> "$ELIAN_STORE_DATA_DIR/order"
+EOF
+  cat > "$plugin_root/migrations/v2.1.0.sh" <<'EOF'
+printf 'v2.1.0 should-not-run\n' >> "$ELIAN_STORE_DATA_DIR/order"
+EOF
+
+  run_migrations "2.0.0" "$data_dir" "$plugin_root"
+  if ! diff -u "$data_dir/order" - <<'EOF' >/dev/null; then
+v1.1.0 1.0.0 -> 2.0.0
+v2.0.0 1.0.0 -> 2.0.0
+EOF
+    printf 'selftest failed: migration order\n' >&2
+    exit 1
+  fi
+  if [ "$(cat "$data_dir/migrated-version")" != "2.0.0" ]; then
+    printf 'selftest failed: migrated-version marker\n' >&2
+    exit 1
+  fi
+
+  local fresh_data="$tmp/fresh-data"
+  mkdir -p "$fresh_data"
+  run_migrations "2.1.0" "$fresh_data" "$plugin_root"
+  if [ -f "$fresh_data/order" ]; then
+    printf 'selftest failed: fresh install ran historical migrations\n' >&2
+    exit 1
+  fi
+  if [ "$(cat "$fresh_data/migrated-version")" != "2.1.0" ]; then
+    printf 'selftest failed: fresh install marker\n' >&2
+    exit 1
+  fi
+
+  printf 'OK check-update selftest\n'
+}
+
+if [ "${1:-}" = "--selftest" ]; then
+  selftest
+  exit 0
+fi
+
 mkdir -p "$DATA_DIR"
 
-# 1) Surface a queued notification (from a previous session's background probe).
+# 1) Run local migrations before surfacing update notifications.
+CURRENT="$(read_plugin_version "$PLUGIN_JSON" 2>/dev/null || true)"
+run_migrations "$CURRENT" "$DATA_DIR" "$PLUGIN_ROOT" || true
+
+# 2) Surface a queued notification (from a previous session's background probe).
 if [ -f "$NOTIFY" ]; then
   cat "$NOTIFY"
   rm -f "$NOTIFY"
 fi
 
-# 2) Throttle to one probe per THROTTLE_MIN minutes.
+# 3) Throttle to one probe per THROTTLE_MIN minutes.
 if [ -f "$MARKER" ] && find "$MARKER" -mmin -"$THROTTLE_MIN" -print -quit 2>/dev/null | grep -q .; then
   exit 0
 fi
 
-# 3) Touch the marker now so concurrent SessionStarts don't race the same probe.
+# 4) Touch the marker now so concurrent SessionStarts don't race the same probe.
 touch "$MARKER"
 
-# 4) Fork the network probe to the background. The session continues immediately.
+# 5) Fork the network probe to the background. The session continues immediately.
 (
-  PLUGIN_JSON="${CLAUDE_PLUGIN_ROOT:-}/.claude-plugin/plugin.json"
-  if [ ! -f "$PLUGIN_JSON" ]; then
-    exit 0
-  fi
-
-  CURRENT=$(python3 -c "
-import json, sys
-try:
-    print(json.load(open(sys.argv[1]))['version'])
-except Exception:
-    pass
-" "$PLUGIN_JSON" 2>/dev/null) || exit 0
-
   if [ -z "$CURRENT" ]; then
     exit 0
   fi
 
-  REMOTE_URL='https://raw.githubusercontent.com/Elian-Studio/elian-claude-plugins/main/.claude-plugin/marketplace.json'
-  REMOTE=$(curl -fsSL --max-time 10 "$REMOTE_URL" 2>/dev/null) || exit 0
-
-  LATEST=$(printf '%s' "$REMOTE" | python3 -c "
-import json, sys
-try:
-    d = json.load(sys.stdin)
-    p = next((p for p in d.get('plugins', []) if p.get('name') == 'elian-store'), None)
-    if p and p.get('version'):
-        print(p['version'])
-except Exception:
-    pass
-" 2>/dev/null) || exit 0
+  REMOTE="$(curl -fsSL --max-time 10 "$MARKETPLACE_URL" 2>/dev/null)" || exit 0
+  LATEST="$(printf '%s' "$REMOTE" | read_marketplace_version 2>/dev/null || true)"
 
   if [ -z "$LATEST" ]; then
     exit 0
   fi
 
   if [ "$CURRENT" != "$LATEST" ]; then
+    NOTES=""
+    CHANGELOG="$(curl -fsSL --max-time 10 "$CHANGELOG_URL" 2>/dev/null || true)"
+    if [ -n "$CHANGELOG" ]; then
+      NOTES="$(printf '%s' "$CHANGELOG" | extract_changelog_notes "$LATEST" 2>/dev/null || true)"
+    fi
+
     {
       printf '🔔 elian-store update available: v%s → v%s\n\n' "$CURRENT" "$LATEST"
+      if [ -n "$NOTES" ]; then
+        printf 'What changed in v%s:\n' "$LATEST"
+        printf '%s\n' "$NOTES" | while IFS= read -r line; do
+          printf '  %s\n' "$line"
+        done
+        printf '\n'
+      fi
       printf 'To update:\n'
       printf '  /plugin marketplace update elian\n'
       printf '  /plugin update elian-store@elian\n\n'
-      printf 'Release notes: https://github.com/Elian-Studio/elian-claude-plugins/blob/main/CHANGELOG.md\n'
+      printf 'Release notes: %s\n' "$CHANGELOG_WEB_URL"
       printf '(This check runs once every 24 h. To disable, remove the SessionStart hook from plugin.json.)\n'
     } > "$NOTIFY"
   fi
