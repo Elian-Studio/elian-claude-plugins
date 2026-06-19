@@ -1,5 +1,5 @@
 {
-  "_comment": "Thematic-cluster manifest for the Phase A generator (tools/generate.py). SSOT is plugins/elian-store/skills/<name>/ + agents/ + skills/_shared/. This maps the 17 skills into composition-respecting plugins. Revise freely — it is config.",
+  "_comment": "Thematic-cluster manifest for the Phase A generator (tools/generate.py). SSOT is plugins/elian-store/skills/<name>/ + agents/ + skills/_shared/. This maps the 18 skills into composition-respecting plugins. Revise freely — it is config.",
 
   "source": {
     "skills_dir": "plugins/elian-store/skills",
@@ -37,7 +37,7 @@
     "elian-review": {
       "displayName": "Elian Review",
       "description": "Engineering review and verification: findings-first code review, persona-lens review, verify-skill discovery, and verify-skill drift repair.",
-      "skills": ["review", "persona-review", "verify-implementation", "manage-skills"],
+      "skills": ["review", "persona-review", "pr-review", "verify-implementation", "manage-skills"],
       "agents": "persona"
     },
     "elian-design": {
@@ -54,7 +54,7 @@
 
   "codex": {
     "_comment": "Codex distribution per skill. claude_only = never ships to Codex; prompt_only = stays a hand-authored Codex prompt (not a shared skill); everything else lint-clean ships as a codex/skills/<name> symlink.",
-    "claude_only": ["document-writer", "harness-manager"],
+    "claude_only": ["document-writer", "harness-manager", "pr-review"],
     "prompt_only": ["generate-teammate", "persona-review"]
   }
 }

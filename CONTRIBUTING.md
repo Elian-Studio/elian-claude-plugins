@@ -92,8 +92,10 @@ plugins/elian-store/
 4. Bump `plugins/elian-store/.claude-plugin/plugin.json` version.
 5. Bump the `elian-store` entry version in `.claude-plugin/marketplace.json`.
 6. Update `README.md`, `CHANGELOG.md`, and relevant parity or portfolio docs.
-7. Run YAML smoke tests and any skill-owned validators.
-8. Open a pull request, review, and merge.
+7. Register the skill in `tools/clusters.json`: add it to exactly one plugin's `skills` array, and set its Codex disposition (`codex.claude_only` or `codex.prompt_only`, or omit both to ship it as a `codex/skills/<name>` symlink). This is easy to miss — `README`/`CHANGELOG`/parity docs get attention, but the machine manifest does not, and an unregistered skill makes `tools/generate.py` fail with "skill '<name>' is not assigned to any plugin".
+8. Run `python3 tools/generate.py` and confirm it exits 0 (manifest + bare-`CLAUDE_*` lint + version consistency + `codex/skills` symlink status).
+9. Run YAML smoke tests and any skill-owned validators.
+10. Open a pull request, review, and merge.
 
 Adding a completely separate plugin requires a separate pull request and a separate guide. The current default is one bundled plugin.
 
