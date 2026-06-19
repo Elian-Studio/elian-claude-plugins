@@ -37,12 +37,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 #### Added
 - **8 new built-in personas**, expanding the roster beyond its backend/code-quality focus into frontend, UX, accessibility, API, business, and marketing lenses: `abramov` (Dan Abramov — frontend state ownership and data flow), `evanyou` (Evan You — reactivity boundary and component-API ergonomics), `norman` (Don Norman — human-centered usability), `rams` (Dieter Rams — UI visual hierarchy and restraint), `dunford` (April Dunford — marketing positioning), `christensen` (Clayton Christensen — jobs-to-be-done and disruption), `watson` (Léonie Watson — accessibility and assistive-technology), and `fielding` (Roy Fielding — REST/HTTP contract design). Each ships a persona definition (`references/personas/<slug>.md`) and a read-only reviewer subagent (`agents/persona-<slug>-reviewer.md`).
-- **Wired the two existing orphan personas** `beck` (Kent Beck — TDD/XP) and `fowler` (Martin Fowler — refactoring/enterprise architecture) into the router; their definition and agent files already existed but were unreachable from `SKILL.md`. The selectable roster is now 14 personas plus custom.
-- Updated `scripts/validate_skill.py` to require and read-only/no-scorecard-check all 14 persona reviewer agents, and ported the auto-selection signal map, expanded persona table, and per-persona lens bullets to the Codex companion prompt (`codex/prompts/persona-review.md`) for parity.
+- **Wired the two existing orphan personas** `beck` (Kent Beck — TDD/XP) and `fowler` (Martin Fowler — refactoring/enterprise architecture) into the router; their definition and agent files already existed but were unreachable from `SKILL.md`. The selectable roster is now 14 personas plus custom. Their definition files were also translated from Korean to English (now that real dispatch routes to them, they fall under the repo's English-only rule).
+- Updated `scripts/validate_skill.py` to require and read-only/no-scorecard-check all 14 named persona reviewer agents (plus the existing custom reviewer), and ported the auto-selection signal map, expanded persona table, and per-persona lens bullets to the Codex companion prompt (`codex/prompts/persona-review.md`) for parity.
+
+#### Fixed
+- De-collided overlapping persona axes introduced while wiring the roster: `martin` owns **function-level** code smells and `fowler` owns **structural (module-level)** code smells in both the persona-library and the signal map; removed the stale `TDD` / `test strategy` descriptors from `martin` in the Codex Phase 2 table (those belong to `beck`) so the Codex prompt matches `SKILL.md`. Refreshed the `persona-review` row in `docs/claude-codex-skill-parity.md`, which still described the old single-`daniel` default and 4-persona roster.
 
 #### Notes
 - Bumped the `elian-store` plugin version (`2.15.0` → `2.16.0`, minor — new personas and a changed default selection behavior, backward compatible since `--persona` still pins a single lens). The marketplace metadata version stays at `2.8.2` (no catalog-structure change).
-- Security (`schneier`) was intentionally left out of this batch; the existing Korean persona definition files (`beck`, `fowler`, `daniel`, etc.) are a separate English-only cleanup, not part of this change.
+- Security (`schneier`) was intentionally left out of this batch. With `beck` and `fowler` translated, all 14 persona definition files under `references/personas/` are now English, satisfying the repo's English-only rule.
 
 ### 2.15.0 — 2026-06-12
 

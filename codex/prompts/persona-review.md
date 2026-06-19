@@ -54,9 +54,9 @@ Signal map (match the target's path, content, and intent):
 | Operations, infra, hook, retry, deployment, incident, runbook | `daniel` |
 | Domain model, aggregate, entity, invariant, bounded context, ubiquitous language | `evans` |
 | Queue, scheduler, cache, sharding, replication, latency, throughput, hot key | `dean` |
-| Function/class design, SOLID, naming, code smell, unit-level refactor | `martin` |
+| Function/class design, SOLID, naming, function-level code smell, unit-level refactor | `martin` |
 | Test strategy, TDD, test-first, small increments, characterization tests | `beck` |
-| Module boundaries, large refactor, enterprise patterns, architecture evolution, migration | `fowler` |
+| Module boundaries, structural (module-level) code smells, large refactor, enterprise patterns, architecture evolution, migration | `fowler` |
 | React, state management, hooks, frontend data flow, async UI state | `abramov` |
 | Vue, reactivity, ref/reactive, computed/watch, SFC, component API | `evanyou` |
 | User flow, usability, mental model, discoverability, feedback | `norman` |
@@ -94,9 +94,9 @@ If the input is one or two lines and goal, scope, or success criteria are unclea
 | `daniel` | Operability, mechanisms, axiom vs policy, automation, failure modes | General design, operational changes, everyday code |
 | `evans` | DDD, ubiquitous language, aggregate, bounded context, ACL, domain event | Domain model, service boundaries |
 | `dean` | Tail latency, SPOF, hot key, idempotency, retry, backpressure, locality | Distributed systems, queue, cache, DB scaling |
-| `martin` | Clean Code, SOLID, TDD, naming, small functions, dependency direction | Code quality, OO design, test strategy |
+| `martin` | Clean Code, SOLID, naming, SRP, small functions, dependency direction | Code quality, OO design, maintainability |
 | `beck` | TDD, simple design, fast feedback, small steps, YAGNI | Test strategy, incremental delivery, refactoring safety |
-| `fowler` | Refactoring, code smells, module boundaries, enterprise patterns, evolution | Architecture evolution, large refactors, migrations |
+| `fowler` | Refactoring, structural (module-level) code smells, module boundaries, enterprise patterns, evolution | Architecture evolution, large refactors, migrations |
 | `abramov` | State ownership, unidirectional data flow, effects, async UI states | React/state-heavy UI, data-flow design |
 | `evanyou` | Reactivity boundary, computed vs watch, component-API ergonomics | Vue/reactive UI, component contracts |
 | `norman` | Mental-model match, discoverability, feedback, error recovery | UX flows, usability, interaction design |

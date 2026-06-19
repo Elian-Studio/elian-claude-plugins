@@ -68,7 +68,7 @@ Auto-selection (Phase 0) chooses personas from the target by default. Use `--per
 | [`dean`](references/personas/dean.md) | `persona-dean-reviewer` | Distributed systems, scale, tail latency, SPOF, hot keys, backpressure | High-traffic flows, queues, caches, DB scaling |
 | [`martin`](references/personas/martin.md) | `persona-martin-reviewer` | Clean Code, SOLID, naming, SRP, testability | Function/class design, OO structure, code quality |
 | [`beck`](references/personas/beck.md) | `persona-beck-reviewer` | TDD, simple design, fast feedback, small steps, YAGNI | Test strategy, incremental delivery, refactoring safety |
-| [`fowler`](references/personas/fowler.md) | `persona-fowler-reviewer` | Refactoring, code smells, module boundaries, enterprise patterns, evolution | Architecture evolution, large refactors, migrations |
+| [`fowler`](references/personas/fowler.md) | `persona-fowler-reviewer` | Refactoring, structural (module-level) code smells, module boundaries, enterprise patterns, evolution | Architecture evolution, large refactors, migrations |
 | [`abramov`](references/personas/abramov.md) | `persona-abramov-reviewer` | Frontend state ownership, unidirectional data flow, effects, async UI states | React/state-heavy UI, data-flow design |
 | [`evanyou`](references/personas/evanyou.md) | `persona-evanyou-reviewer` | Reactivity boundary, computed vs watch, component-API ergonomics | Vue/reactive UI, component contracts |
 | [`norman`](references/personas/norman.md) | `persona-norman-reviewer` | Mental-model match, discoverability, feedback, error recovery | UX flows, usability, interaction design |
@@ -233,9 +233,9 @@ When the user pins `--persona <name>`, `all`, a comma-list, or a custom path, ho
 | Operations, infra, hooks, retries, deployment, incident, runbook | `daniel` |
 | Domain model, aggregate, entity, invariant, bounded context, ubiquitous language | `evans` |
 | Queue, scheduler, cache, sharding, replication, latency, throughput, hot key | `dean` |
-| Function/class design, SOLID, naming, code smell, unit-level refactor | `martin` |
+| Function/class design, SOLID, naming, function-level code smell, unit-level refactor | `martin` |
 | Test strategy, TDD, test-first, small increments, characterization tests | `beck` |
-| Module boundaries, large refactor, enterprise patterns, architecture evolution, migration | `fowler` |
+| Module boundaries, structural (module-level) code smells, large refactor, enterprise patterns, architecture evolution, migration | `fowler` |
 | React, state management, hooks, frontend data flow, async UI state | `abramov` |
 | Vue, reactivity, ref/reactive, computed/watch, SFC, component API | `evanyou` |
 | User flow, usability, mental model, discoverability, feedback | `norman` |
