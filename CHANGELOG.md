@@ -30,6 +30,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - `generate-teammate` remains handoff-only on Codex because the runtime cannot reproduce the plugin-side teammate-spawn flow exactly.
 - `manage-skills` and `verify-implementation` remain prompt-level orchestration equivalents rather than byte-for-byte skill/runtime matches.
 
+### 2.16.0 — 2026-06-19
+
+#### Changed
+- **`/persona-review` now auto-selects reviewers by default.** Previously the skill defaulted to a single `daniel` review and required an explicit `--persona` (or `all`/comma-list) to use more lenses, so most runs returned one or two perspectives. Phase 0 is rewritten: when no `--persona` is given (or `--persona auto`), the skill reads the target, matches it against a **signal map** of expertise axes, and dispatches the matching read-only persona reviewers in parallel — one persona for a single-axis target, several for a multi-axis target (capped at the 3 strongest), with a `daniel` fallback when no axis clearly matches. Multi-persona runs add one `## Lead synthesis`. An explicit `--persona <name>|all|comma-list|<path>` still overrides auto-selection.
+
+#### Added
+- **8 new built-in personas**, expanding the roster beyond its backend/code-quality focus into frontend, UX, accessibility, API, business, and marketing lenses: `abramov` (Dan Abramov — frontend state ownership and data flow), `evanyou` (Evan You — reactivity boundary and component-API ergonomics), `norman` (Don Norman — human-centered usability), `rams` (Dieter Rams — UI visual hierarchy and restraint), `dunford` (April Dunford — marketing positioning), `christensen` (Clayton Christensen — jobs-to-be-done and disruption), `watson` (Léonie Watson — accessibility and assistive-technology), and `fielding` (Roy Fielding — REST/HTTP contract design). Each ships a persona definition (`references/personas/<slug>.md`) and a read-only reviewer subagent (`agents/persona-<slug>-reviewer.md`).
+- **Wired the two existing orphan personas** `beck` (Kent Beck — TDD/XP) and `fowler` (Martin Fowler — refactoring/enterprise architecture) into the router; their definition and agent files already existed but were unreachable from `SKILL.md`. The selectable roster is now 14 personas plus custom.
+- Updated `scripts/validate_skill.py` to require and read-only/no-scorecard-check all 14 persona reviewer agents, and ported the auto-selection signal map, expanded persona table, and per-persona lens bullets to the Codex companion prompt (`codex/prompts/persona-review.md`) for parity.
+
+#### Notes
+- Bumped the `elian-store` plugin version (`2.15.0` → `2.16.0`, minor — new personas and a changed default selection behavior, backward compatible since `--persona` still pins a single lens). The marketplace metadata version stays at `2.8.2` (no catalog-structure change).
+- Security (`schneier`) was intentionally left out of this batch; the existing Korean persona definition files (`beck`, `fowler`, `daniel`, etc.) are a separate English-only cleanup, not part of this change.
+
 ### 2.15.0 — 2026-06-12
 
 #### Added

@@ -17,7 +17,9 @@
     "persona": [
       "persona-beck-reviewer", "persona-custom-reviewer", "persona-daniel-reviewer",
       "persona-dean-reviewer", "persona-evans-reviewer", "persona-fowler-reviewer",
-      "persona-martin-reviewer"
+      "persona-martin-reviewer", "persona-abramov-reviewer", "persona-evanyou-reviewer",
+      "persona-norman-reviewer", "persona-rams-reviewer", "persona-dunford-reviewer",
+      "persona-christensen-reviewer", "persona-watson-reviewer", "persona-fielding-reviewer"
     ]
   },
 

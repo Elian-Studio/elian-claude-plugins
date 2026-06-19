@@ -1,17 +1,19 @@
 ---
 name: persona-review
-description: "When a user wants a plan, design, document, PR description, or idea reviewed through Daniel, Evans, Dean, Martin, multiple persona reviewers, or a custom persona, route the target to selected read-only persona reviewer subagent(s) and return each persona's native judgment style without a shared scorecard or fixed output template."
-when_to_use: "Use before locking in a non-trivial decision, when the user asks for a persona lens such as Daniel, Evans, Dean, Martin, multiple persona reviewers, or a custom persona, or when a fuzzy idea needs one clarification before critique. Trigger phrases: 'review through a persona', 'Daniel lens', 'Evans domain review', 'Dean scale review', 'Martin clean-code review', '/persona-review', '--depth interview'."
-argument-hint: "<target-path-or-text> [--persona daniel|evans|dean|martin|all|<path-to-custom>|comma-list] [--depth quick|deep|interview]"
+description: "When a user wants a plan, design, document, PR description, code, or idea reviewed through expert personas, analyze the target and auto-select the matching read-only persona reviewer subagents (frontend, UX, accessibility, API, domain, scale, code, business, marketing, operations), dispatch them in parallel, and return each persona's native judgment with a short lead synthesis — no shared scorecard or fixed template. Falls back to Daniel when no axis clearly matches; honors an explicit --persona override."
+when_to_use: "Use before locking a non-trivial decision, when a target spans several expertise axes, or when the user names a persona lens. Auto-selection picks reviewers from the target's signals; override with --persona <name>|all|auto|comma-list|<path>. Trigger phrases: 'persona review', 'review through a persona', 'which experts should review this', 'frontend/UX/accessibility/API/domain/scale review', '/persona-review', '--depth interview'."
+argument-hint: "<target-path-or-text> [--persona auto|daniel|evans|dean|martin|beck|fowler|abramov|evanyou|norman|rams|dunford|christensen|watson|fielding|all|comma-list|<path>] [--depth quick|deep|interview]"
 disable-model-invocation: true
 allowed-tools: Read, Glob, Grep, Bash(git diff*), Bash(git log*), Bash(git status*), Agent, AskUserQuestion
 ---
 
 # /persona-review
 
-Route the user's plan, document, PR description, design, code diff, or idea to selected read-only persona reviewer subagents. The goal is not to fill a scorecard. The goal is to expose weak assumptions, hidden costs, model problems, operational risks, and the next useful question through the selected persona's judgment style.
+Route the user's plan, document, PR description, design, code diff, or idea to read-only persona reviewer subagents. The goal is not to fill a scorecard. The goal is to expose weak assumptions, hidden costs, model problems, operational risks, and the next useful question through each selected persona's judgment style.
 
-The main skill is a lead/router, not the reviewer. Built-in persona reviews must be performed by `persona-daniel-reviewer`, `persona-evans-reviewer`, `persona-dean-reviewer`, `persona-martin-reviewer`, or `persona-custom-reviewer`.
+By default this skill **auto-selects** the personas that match the target. It analyzes the target, detects which expertise axes it touches, and dispatches the matching reviewers in parallel (up to three), then adds one lead synthesis. A single-axis target runs one persona; a multi-axis target runs several; a target with no clear axis falls back to `daniel`. An explicit `--persona` always overrides auto-selection.
+
+The main skill is a lead/router, not the reviewer. Built-in persona reviews must be performed by the matching `persona-<name>-reviewer` subagent (the full map is in the [Subagent Execution Contract](#subagent-execution-contract)), or by `persona-custom-reviewer` for a custom file.
 
 If the user intent is unclear, do not critique prematurely. Ask one clarifying question before dispatch.
 
@@ -26,10 +28,11 @@ Core contract:
 
 ## Standing Rules
 
-- The main skill owns target collection, thin-input judgment, subagent dispatch, and aggregation.
+- The main skill owns target collection, thin-input judgment, persona auto-selection, subagent dispatch, and aggregation.
 - Preserve subagent output as much as possible. Add lead synthesis only for multi-persona runs.
 - `$ARGUMENTS` overrides environment variables and defaults.
-- `${PERSONA_REVIEW_DEFAULT}` can set the default persona.
+- When no `--persona` is given, auto-selection runs by default (see Phase 0). `--persona auto` requests it explicitly.
+- `${PERSONA_REVIEW_DEFAULT}` can pin a fixed default persona, replacing auto-selection.
 - `${PERSONA_REVIEW_DEPTH}` can set the default depth.
 - Every mode is read-only. If implementation is needed, emit a handoff payload only.
 
@@ -37,11 +40,11 @@ Core contract:
 
 | Mode | What it does | Use when |
 |---|---|---|
-| `quick` (default) | Runs the selected persona subagent once | Fast review of one idea, file, document, or diff |
-| `deep` | Gives the subagent more evidence or allows extra read-only exploration | Architecture, PR, domain, or operational changes |
+| `quick` (default) | Runs the selected or auto-selected persona subagent(s) once each | Fast review of one idea, file, document, or diff |
+| `deep` | Gives the subagent(s) more evidence or allows extra read-only exploration | Architecture, PR, domain, or operational changes |
 | `interview` | Runs review, asks the single uncertainty that changes the conclusion, and can repeat up to three rounds | The answer depends on goal, constraint, or ownership clarification |
 
-`--persona` and `--depth` are independent. `--persona evans --depth deep` runs an Evans-style review with deeper evidence.
+`--persona` and `--depth` are independent. `--persona evans --depth deep` runs an Evans-style review with deeper evidence. Depth controls evidence and rounds; persona selection (manual or auto) controls who reviews.
 
 ## Where this fits in the workflow
 
@@ -56,26 +59,45 @@ brainstorm -> persona-review lead -> persona reviewer subagent(s) -> lead aggreg
 
 ## Persona library
 
-Choose one persona from `references/personas/` with `--persona`. A persona changes the judgment lens, not just the output format.
+Auto-selection (Phase 0) chooses personas from the target by default. Use `--persona` to pin a specific lens, set, or `all`. A persona changes the judgment lens, not just the output format.
 
 | Persona | subagent_type | Pressure axis | Strongest targets |
 |---|---|---|---|
-| [`daniel`](references/personas/daniel.md) (default) | `persona-daniel-reviewer` | Operability, mechanisms, axiom vs policy, automation | General review, operational changes, everyday code |
+| [`daniel`](references/personas/daniel.md) (fallback) | `persona-daniel-reviewer` | Operability, mechanisms, axiom vs policy, automation, failure modes | Operational changes, infra, hooks, retries, everyday code |
 | [`evans`](references/personas/evans.md) | `persona-evans-reviewer` | DDD, bounded context, ubiquitous language, aggregate, ACL | Domain models, architecture boundaries, new service seams |
 | [`dean`](references/personas/dean.md) | `persona-dean-reviewer` | Distributed systems, scale, tail latency, SPOF, hot keys, backpressure | High-traffic flows, queues, caches, DB scaling |
-| [`martin`](references/personas/martin.md) | `persona-martin-reviewer` | Clean Code, SOLID, TDD, naming, SRP, testability | Code quality, OO design, test strategy |
+| [`martin`](references/personas/martin.md) | `persona-martin-reviewer` | Clean Code, SOLID, naming, SRP, testability | Function/class design, OO structure, code quality |
+| [`beck`](references/personas/beck.md) | `persona-beck-reviewer` | TDD, simple design, fast feedback, small steps, YAGNI | Test strategy, incremental delivery, refactoring safety |
+| [`fowler`](references/personas/fowler.md) | `persona-fowler-reviewer` | Refactoring, code smells, module boundaries, enterprise patterns, evolution | Architecture evolution, large refactors, migrations |
+| [`abramov`](references/personas/abramov.md) | `persona-abramov-reviewer` | Frontend state ownership, unidirectional data flow, effects, async UI states | React/state-heavy UI, data-flow design |
+| [`evanyou`](references/personas/evanyou.md) | `persona-evanyou-reviewer` | Reactivity boundary, computed vs watch, component-API ergonomics | Vue/reactive UI, component contracts |
+| [`norman`](references/personas/norman.md) | `persona-norman-reviewer` | Mental-model match, discoverability, feedback, error recovery | UX flows, usability, interaction design |
+| [`rams`](references/personas/rams.md) | `persona-rams-reviewer` | Necessity, visual hierarchy, token consistency, honest detail | UI visual design, design systems, component states |
+| [`dunford`](references/personas/dunford.md) | `persona-dunford-reviewer` | Positioning, competitive alternative, value translation, best-fit customer | Marketing copy, landing pages, messaging |
+| [`christensen`](references/personas/christensen.md) | `persona-christensen-reviewer` | Jobs-to-be-done, circumstance, disruption type, business-model fit | Product/strategy decisions, business model |
+| [`watson`](references/personas/watson.md) | `persona-watson-reviewer` | Semantic HTML, keyboard, name/role/value, real AT verification | Accessibility, a11y, ARIA, inclusive design |
+| [`fielding`](references/personas/fielding.md) | `persona-fielding-reviewer` | Resource design, HTTP semantics, statelessness, idempotency, evolution | API/REST design, HTTP contracts |
 | custom path | `persona-custom-reviewer` | The provided custom persona file | User-defined lens |
 
-Recommended selection:
+Recommended selection (auto-selection applies these automatically; this table is for manual `--persona` choices):
 
 | Situation | Recommended persona | Reason |
 |---|---|---|
 | Operational changes, notifications, retries, hooks | `daniel` | Operability and automation lens |
 | Domain model, aggregate, service boundary | `evans` | Domain language and invariant pressure |
 | 100x traffic, cache, queue, DB design, latency risk | `dean` | Distributed-systems and tail-latency lens |
-| Code review, refactor, function design, tests | `martin` | Code structure and testability lens |
-| Domain plus scale decision | `evans` then `dean` | One persona should focus on one axis |
-| Non-technical scope, schedule, or team decision | another skill | This skill is optimized for technical judgment |
+| Function design, refactor, naming, SOLID | `martin` | Code structure and testability lens |
+| Test strategy, TDD, small increments | `beck` | Test-first and simple-design lens |
+| Large refactor, module boundaries, architecture evolution | `fowler` | Refactoring-sequence and evolution lens |
+| React or state-heavy frontend, data flow | `abramov` | State-ownership and data-flow lens |
+| Vue or reactive component design | `evanyou` | Reactivity-boundary and component-API lens |
+| Usability, user flow, mental model | `norman` | Human-centered usability lens |
+| Visual design, hierarchy, design tokens | `rams` | Restraint and visual-consistency lens |
+| Positioning, landing page, marketing message | `dunford` | Positioning and value-translation lens |
+| Product/business model or strategy decision | `christensen` | Jobs-to-be-done and disruption lens |
+| Accessibility, keyboard, screen reader, ARIA | `watson` | Inclusive-design and AT lens |
+| API/REST design, HTTP contract | `fielding` | Uniform-interface and evolution lens |
+| Target spans several of the above | auto-selection or a comma-list | One persona per axis, run in parallel |
 
 ### Custom personas
 
@@ -101,7 +123,7 @@ A custom persona should preferably use this structure:
 |---|---|
 | Target file, text, or diff collection | What should be reviewed |
 | Thin-input detection | Answer to the intent question |
-| Default `daniel` persona selection | Different persona, `all`, comma-list, or custom path |
+| Auto-selection of matching personas (up to 3, `daniel` fallback) | A pinned persona, `all`, comma-list, or custom path |
 | Built-in/custom persona dispatch | Whether to accept or challenge the persona judgment |
 | Single-result relay or multi-persona aggregation | Whether to act on the result |
 | Handoff payload when needed | Whether to run an implementation skill |
@@ -123,12 +145,23 @@ The main skill is the lead/router. Built-in persona requests must dispatch to th
 
 | persona arg | subagent_type |
 |---|---|
-| `daniel` or omitted | `persona-daniel-reviewer` |
+| omitted or `auto` | Auto-select from the target's signals (Phase 0); dispatch up to three in parallel; `daniel` fallback |
+| `daniel` | `persona-daniel-reviewer` |
 | `evans` | `persona-evans-reviewer` |
 | `dean` | `persona-dean-reviewer` |
 | `martin` | `persona-martin-reviewer` |
-| `all` | Run the four built-in reviewers in parallel |
-| comma-list such as `daniel,evans` | Run only the selected reviewers in parallel |
+| `beck` | `persona-beck-reviewer` |
+| `fowler` | `persona-fowler-reviewer` |
+| `abramov` | `persona-abramov-reviewer` |
+| `evanyou` | `persona-evanyou-reviewer` |
+| `norman` | `persona-norman-reviewer` |
+| `rams` | `persona-rams-reviewer` |
+| `dunford` | `persona-dunford-reviewer` |
+| `christensen` | `persona-christensen-reviewer` |
+| `watson` | `persona-watson-reviewer` |
+| `fielding` | `persona-fielding-reviewer` |
+| `all` | Run all built-in reviewers in parallel |
+| comma-list such as `abramov,watson` | Run only the selected reviewers in parallel |
 | custom file path | Run `persona-custom-reviewer` with the custom persona body |
 
 ### Agent prompt payload
@@ -181,23 +214,46 @@ Phase 5: Handoff or close
 ### Procedure
 
 1. Parse target, `--persona`, and `--depth` from `$ARGUMENTS`.
-2. If persona is missing, use `${PERSONA_REVIEW_DEFAULT}` or `daniel`.
+2. If persona is missing or `auto`, run auto-selection (Phase 0). `${PERSONA_REVIEW_DEFAULT}`, if set, pins a fixed persona instead.
 3. If depth is missing, use `${PERSONA_REVIEW_DEPTH}` or `quick`.
 4. Read the target and judge input density.
-5. Map persona arg to `subagent_type`.
-6. Build a read-only evidence payload and run `Agent`.
-7. Relay a single persona result; add lead synthesis only for multiple personas.
+5. Map the chosen persona(s) to `subagent_type`(s).
+6. Build a read-only evidence payload and run `Agent` for each persona (in parallel when more than one).
+7. Relay a single persona result; add lead synthesis when more than one persona ran.
 8. In `interview` mode, ask one conclusion-changing question and stop.
 
-### Phase 0: Persona selection or recommendation
+### Phase 0: Persona selection (auto by default)
 
-If no persona is specified, infer a recommendation but proceed with `daniel` by default.
+When the user pins `--persona <name>`, `all`, a comma-list, or a custom path, honor it directly. Otherwise — no `--persona`, or `--persona auto` — **auto-select**: read the target, detect which expertise axes it touches, and dispatch the matching personas. Do not default to a single persona before looking at the target.
 
-- Domain, aggregate, ubiquitous language, or bounded-context files: recommend `evans`.
-- Queue, scheduler, replication, sharding, cache, or latency topics: recommend `dean`.
-- New function, class, refactor, or test strategy: recommend `martin`.
-- Operations, infrastructure, hooks, retries, or automation: recommend `daniel`.
-- Ambiguous match: use `daniel`.
+**Signal map** — match the target's path, content, and the user's intent against these axes:
+
+| Target signal | Auto-selected persona |
+|---|---|
+| Operations, infra, hooks, retries, deployment, incident, runbook | `daniel` |
+| Domain model, aggregate, entity, invariant, bounded context, ubiquitous language | `evans` |
+| Queue, scheduler, cache, sharding, replication, latency, throughput, hot key | `dean` |
+| Function/class design, SOLID, naming, code smell, unit-level refactor | `martin` |
+| Test strategy, TDD, test-first, small increments, characterization tests | `beck` |
+| Module boundaries, large refactor, enterprise patterns, architecture evolution, migration | `fowler` |
+| React, state management, hooks, frontend data flow, async UI state | `abramov` |
+| Vue, reactivity, ref/reactive, computed/watch, SFC, component API | `evanyou` |
+| User flow, usability, mental model, discoverability, feedback | `norman` |
+| Visual design, spacing, hierarchy, design tokens, component visual states | `rams` |
+| Positioning, value proposition, landing page, marketing copy, messaging | `dunford` |
+| Business model, product strategy, monetization, market, jobs-to-be-done | `christensen` |
+| Accessibility, a11y, ARIA, keyboard, screen reader, WCAG, contrast | `watson` |
+| REST, HTTP, endpoint, API contract, status code, resource design | `fielding` |
+| No clear signal, or purely ambiguous | `daniel` (fallback) |
+
+**Selection rule:**
+
+- **1 axis matches** → run that one persona.
+- **2–3 axes match** → run those personas in parallel and add one `## Lead synthesis`.
+- **More than 3 match** → run only the 3 strongest (most central to the target) and note which axes were dropped so the user can re-run with a comma-list.
+- **0 axes / ambiguous** → fall back to `daniel`.
+
+Never dispatch more than three personas in auto mode. The user forces the full roster with `--persona all` or a specific set with a comma-list. State the auto-selected personas (and the signals that triggered them) in one line before dispatching.
 
 ### Phase 1: Target collection and input-density judgment
 
@@ -216,6 +272,7 @@ Ask before review when input is thin or ambiguous.
 
 ### Phase 2: Persona to subagent dispatch decision
 
+- Auto (no `--persona` or `--persona auto`): use the Phase 0 selection; map each selected persona to its `subagent_type` and prepare parallel runs when more than one.
 - Name arg: choose the matching `subagent_type`.
 - `all` or comma-list: prepare parallel read-only subagent runs.
 - Path arg: read the custom persona file and choose `persona-custom-reviewer`.
@@ -283,6 +340,8 @@ If the review should lead to implementation, emit a handoff payload only. Do not
 | Making every persona use the same structure | Apply the persona file's Voice and Forbidden sections first |
 | Main skill writes the review directly | Built-in personas must run through subagents |
 | Rewriting multi-persona output into one voice | Preserve subagent output and add only lead synthesis |
+| Defaulting to `daniel` without reading the target | Auto-select from the Phase 0 signal map first; fall back only when no axis matches |
+| Auto-selecting too many personas | Cap at the 3 strongest in auto mode; use a comma-list or `all` to go wider |
 | Over-critiquing a one-line idea | Ask one intent or success-criteria question first |
 | Filling gaps with guesses | Mark the missing evidence and ask the next question |
 | Sliding from review into execution | Emit handoff only |
