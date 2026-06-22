@@ -80,6 +80,16 @@ REQUIRED_AGENT_FILES = [
     "persona-evans-reviewer.md",
     "persona-dean-reviewer.md",
     "persona-martin-reviewer.md",
+    "persona-beck-reviewer.md",
+    "persona-fowler-reviewer.md",
+    "persona-abramov-reviewer.md",
+    "persona-evanyou-reviewer.md",
+    "persona-norman-reviewer.md",
+    "persona-rams-reviewer.md",
+    "persona-dunford-reviewer.md",
+    "persona-christensen-reviewer.md",
+    "persona-watson-reviewer.md",
+    "persona-fielding-reviewer.md",
     "persona-custom-reviewer.md",
 ]
 REQUIRED_AGENT_NAMES = [p[:-3] for p in REQUIRED_AGENT_FILES]
