@@ -33,6 +33,9 @@
 | `pr-writer` | You need a review-friendly PR/MR title and body drafted from the diff, commits, and stated intent. | `/elian-store:pr-writer` |
 | `pr-review` | You want an existing PR/MR reviewed from many perspectives (specialists + personas) with one synthesized verdict, posted only on confirmation. | `/elian-store:pr-review` |
 | `skill-dispatcher` | You want an opt-in recommendation for the smallest relevant `elian-store` skill before starting work. | `/elian-store:skill-dispatcher` |
+| `verify-before-claiming` | You are about to claim work passes/builds/is fixed/done and want to force fresh evidence first. | `/elian-store:verify-before-claiming` |
+| `respond-to-review` | You received review feedback on your change and need to respond with rigor before implementing. | `/elian-store:respond-to-review` |
+| `finish-branch` | Your branch is done and you need to decide merge / push+PR / keep / discard with safe cleanup. | `/elian-store:finish-branch` |
 
 ## Package Layout
 

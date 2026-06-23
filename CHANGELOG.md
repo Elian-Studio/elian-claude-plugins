@@ -30,6 +30,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - `generate-teammate` remains handoff-only on Codex because the runtime cannot reproduce the plugin-side teammate-spawn flow exactly.
 - `manage-skills` and `verify-implementation` remain prompt-level orchestration equivalents rather than byte-for-byte skill/runtime matches.
 
+### 2.18.0 — 2026-06-23
+
+#### Added
+- **Three new skills derived from [obra/superpowers](https://github.com/obra/superpowers)**, each filling a gap elian-store had nowhere else. The skills borrow superpowers' mechanisms but not its always-on/coercive framing — two are always-on read-only behavioral gates, one is opt-in and side-effecting.
+  - **`/verify-before-claiming`** (`skills/verify-before-claiming/`, elian-review) — a claim-time honesty gate: "no completion claim without fresh verification evidence." Ships the Iron Law, a Gate Function (IDENTIFY→RUN→READ→VERIFY→claim), a `Claim → Requires → Not sufficient` table, and a rationalization table. Always-on (`disable-model-invocation: false`), read-only. Its `when_to_use` explicitly disambiguates from `/verify-implementation` (which discovers/runs project verify-* skills) — this gate proves the specific claim you are about to make.
+  - **`/respond-to-review`** (`skills/respond-to-review/`, elian-review) — the consumer side of code review (the producer side is `/review` and `/pr-review`): verify each suggestion against the codebase before implementing, no performative agreement ("You're absolutely right!"/thanks), push back with technical reasoning when wrong, clarify all ambiguous items first, YAGNI-grep "implement properly" asks. Triages and hands execution to `/fix` or `/improve`. Always-on, read-only.
+  - **`/finish-branch`** (`skills/finish-branch/`, elian-harness) — disposition of a finished branch: verify tests → detect workspace → present a closed merge / push+PR / keep / discard menu → execute with safety invariants (merge before worktree-remove before branch-delete; only remove worktrees you own; typed `discard` confirmation; never force-push unrequested). Thin by design: the push+PR option delegates to `/ship` and commit authoring to `/commit`; native worktrees are cleaned via `ExitWorktree`. Opt-in (`disable-model-invocation: true`); registered as the fourth Claude-only skill (native worktree tooling) in `docs/claude-codex-skill-parity.md`.
+- `verify-before-claiming` and `respond-to-review` ship to Codex as shared `codex/skills/` symlinks (portable); each carries its own `scripts/validate_skill.py`. `finish-branch` is Claude-only (no validator script, matching `harness-manager`).
+
+#### Notes
+- Bumped the `elian-store` plugin version (`2.17.0` → `2.18.0`, minor — three new user-visible skills, backward compatible). The marketplace metadata version stays at `2.8.2` (no catalog-structure change). Registered all three in `tools/clusters.json` (elian-review ×2, elian-harness ×1; `finish-branch` in `codex.claude_only`).
+
 ### 2.17.0 — 2026-06-23
 
 #### Added

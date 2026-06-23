@@ -1,5 +1,5 @@
 {
-  "_comment": "Thematic-cluster manifest for the Phase A generator (tools/generate.py). SSOT is plugins/elian-store/skills/<name>/ + agents/ + skills/_shared/. This maps the 18 skills into composition-respecting plugins. Revise freely — it is config.",
+  "_comment": "Thematic-cluster manifest for the Phase A generator (tools/generate.py). SSOT is plugins/elian-store/skills/<name>/ + agents/ + skills/_shared/. This maps the 21 skills into composition-respecting plugins. Revise freely — it is config.",
 
   "source": {
     "skills_dir": "plugins/elian-store/skills",
@@ -38,8 +38,8 @@
     },
     "elian-review": {
       "displayName": "Elian Review",
-      "description": "Engineering review and verification: findings-first code review, persona-lens review, verify-skill discovery, and verify-skill drift repair.",
-      "skills": ["review", "persona-review", "pr-review", "verify-implementation", "manage-skills"],
+      "description": "Engineering review and verification: findings-first code review, persona-lens review, verify-skill discovery, verify-skill drift repair, a claim-time evidence gate, and the consumer side of receiving review feedback.",
+      "skills": ["review", "persona-review", "pr-review", "verify-implementation", "manage-skills", "verify-before-claiming", "respond-to-review"],
       "agents": "persona"
     },
     "elian-design": {
@@ -49,14 +49,14 @@
     },
     "elian-harness": {
       "displayName": "Elian Harness",
-      "description": "Maintainer tooling: reconcile Claude/Codex global harness drift and draft review-friendly PR/MR descriptions.",
-      "skills": ["harness-manager", "pr-writer"]
+      "description": "Maintainer tooling: reconcile Claude/Codex global harness drift, draft review-friendly PR/MR descriptions, and finish a development branch (merge / PR / keep / discard) with worktree-safe cleanup.",
+      "skills": ["harness-manager", "pr-writer", "finish-branch"]
     }
   },
 
   "codex": {
     "_comment": "Codex distribution per skill. claude_only = never ships to Codex; prompt_only = stays a hand-authored Codex prompt (not a shared skill); everything else lint-clean ships as a codex/skills/<name> symlink.",
-    "claude_only": ["document-writer", "harness-manager", "pr-review"],
+    "claude_only": ["document-writer", "harness-manager", "pr-review", "finish-branch"],
     "prompt_only": ["generate-teammate", "persona-review"]
   }
 }
