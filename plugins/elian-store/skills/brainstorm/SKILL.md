@@ -26,9 +26,16 @@ Phase 1: Context recognition
 Phase 2: Requirements probing (Socratic)
 Phase 3: Option drafting (3+ approaches)
 Phase 4: Tradeoff comparison
-Phase 5: ★ Decision gate ★
+Phase 5: ★ Decision gate ★ ── HARD GATE: no implementation before approval
 Phase 6: Handoff to implementation
 ```
+
+> **★ Implementation Hard Gate ★**
+> Do NOT write code, scaffold files, run mutating commands, or invoke an implementation skill
+> (`/implement`, `/generate-teammate`, …) until the user has approved an option at the Phase 5
+> decision gate. This holds for **every** topic regardless of perceived simplicity — "obviously
+> trivial" requests are exactly where an unexamined assumption costs the most. Brainstorm produces
+> a decision and a plan; it never implements.
 
 ### Phase 1: Context recognition
 
@@ -128,6 +135,10 @@ Drafting principles:
 1. **MVP option** — simplest, fastest.
 2. **Balanced option** — quality vs speed.
 3. **Ideal option** — unconstrained, best design.
+4. **Name the boundaries.** For each option, state more than the file scope: the module boundaries
+   it draws, the interface/contract each unit exposes, and what it depends on — i.e. *what it does
+   / how it's used / what it depends on*. A unit you can't describe that way isn't bounded yet, and
+   an option that piles everything into one growing unit is a smell to split.
 
 Match project conventions when relevant — refer to existing code patterns.
 
@@ -207,6 +218,29 @@ Write to `docs/domains/{domain}/`. If `/manage-domain-docs` exists, integrate.
 
 No file produced; conversation context only.
 
+#### Plan self-review (when a file was written)
+
+After writing the plan/doc (`--output plan` or `doc`), re-read it with fresh eyes and fix inline —
+no re-review loop, just fix and move on. This checks the **artifact**, distinct from the process
+**Reflection** at the end of the skill (which critiques the brainstorm, not the file):
+
+1. **Placeholder scan** — any `TBD`, `TODO`, empty section, or vague requirement? Resolve it.
+2. **Internal consistency** — does the Decision match the Requirements and the Phased plan? Any
+   section contradict another?
+3. **Scope** — is this focused enough for one implementation pass, or does it still need a split?
+4. **Ambiguity** — could any requirement be read two ways? Pick one and make it explicit.
+
+#### Written-plan review gate (when a file was written)
+
+After the self-review passes, ask the user to review the **written file** before any handoff:
+
+> "Plan written to `.claude/plans/{id}.md`. Please review it and tell me if anything should change
+> before we hand off to `/implement`."
+
+Wait for the response. On change request → edit the file and re-run the Plan self-review. Only once
+the user approves do you surface the Next-steps card. (`--output none` skips both steps — there is
+no artifact to review; go straight to the card.)
+
 #### Next steps card
 
 ```markdown
@@ -234,6 +268,8 @@ No file produced; conversation context only.
 
 - **Ask, don't assume.** Every assumption you skip is a misunderstanding waiting at integration.
 - **3+ options.** A single option isn't a comparison; it's an instruction.
+- **No implementation before the gate.** Don't write code, scaffold, or invoke an implementation
+  skill until Phase 5 is approved — no matter how trivial the topic looks.
 - **The user owns the decision.** The skill recommends, not decides.
 - **Persist artifacts.** Conversation context dies; `.claude/plans/{id}.md` survives.
 - **Match existing patterns** unless explicitly justified deviating.
@@ -246,6 +282,8 @@ No file produced; conversation context only.
 ## Forbidden
 
 - ❌ Drafting only 1 option. That's an instruction, not a brainstorm.
+- ❌ Writing code, scaffolding, or invoking an implementation skill before Phase 5 is approved. Brainstorm decides; it never implements.
+- ❌ Handing off a plan file the user hasn't reviewed. The written-plan gate is not optional when a file was produced.
 - ❌ Skipping `AskUserQuestion` in Phase 5. The user owns the decision.
 - ❌ Recommending an option without naming the rejected ones. The "why not" is half the value.
 - ❌ Asking 5+ questions in one round. Cognitive overload kills useful answers.
@@ -294,6 +332,8 @@ Sequencing principles:
 | Recommendation labeling | ✅ | — |
 | Final decision (Phase 5) | — | ✅ |
 | Whether captured requirements are right | drafted automatically | ✅ user confirms |
+| Plan self-review (placeholder / consistency / scope / ambiguity) | ✅ | — |
+| Whether the written plan file is correct | drafted automatically | ✅ user confirms |
 | Whether to drop into "Iterate" loop | — | ✅ |
 | Whether multi-topic should be wrapped vs split | — | ✅ |
 
@@ -398,8 +438,14 @@ Before Phase 5 (decision):
 - [ ] Multi-topic detection performed
 - [ ] Requirements captured and confirmed by user
 - [ ] At least 3 options drafted (each with pros / cons / complexity)
+- [ ] Each option states its module boundaries / interface / dependencies (not just file scope)
 - [ ] Tradeoff matrix populated with concrete values
 - [ ] Recommendation given with rationale
+- [ ] No implementation action taken yet (hard gate held)
+
+Before handoff (Phase 6, when a file was written):
+- [ ] Plan self-review done (placeholder / consistency / scope / ambiguity)
+- [ ] User reviewed and approved the written plan file
 
 ## Skill integrations
 
