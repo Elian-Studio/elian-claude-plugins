@@ -30,6 +30,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - `generate-teammate` remains handoff-only on Codex because the runtime cannot reproduce the plugin-side teammate-spawn flow exactly.
 - `manage-skills` and `verify-implementation` remain prompt-level orchestration equivalents rather than byte-for-byte skill/runtime matches.
 
+### 2.17.0 — 2026-06-23
+
+#### Added
+- **`/brainstorm` gained four design-discipline gates**, borrowing the back-half rigor of [obra/superpowers](https://github.com/obra/superpowers)' `brainstorming` skill without adopting its always-on auto-invocation posture (the skill stays `disable-model-invocation: true`, opt-in, and keeps its MVP/Exceptions philosophy):
+  - **Implementation Hard Gate** — a callout after the Workflow diagram plus a Standing Rule and two Forbidden items: no code, scaffolding, mutating command, or implementation-skill invocation (`/implement`, `/generate-teammate`) until the Phase 5 decision is approved, regardless of perceived simplicity. Reflected in the Phase-5 line of the workflow diagram.
+  - **Plan self-review** — a Phase 6 sub-step that re-reads the written plan/doc artifact for placeholders, internal contradictions, scope, and ambiguity and fixes them inline. Explicitly distinct from the end-of-skill process **Reflection** (which critiques the brainstorm, not the file).
+  - **Written-plan review gate** — after self-review, the user reviews the written `.claude/plans/{id}.md` before any downstream handoff; change requests loop back through self-review. `--output none` skips both file-gated steps. Added to the **Manual decision gating** table.
+  - **Design-quality guidance** — a fourth Phase 3 drafting principle: each option names its module boundaries, the interface/contract each unit exposes, and its dependencies (*what it does / how it's used / what it depends on*), not just file scope. Mirrored in the **Pre-flight checklist**.
+  - `scripts/validate_skill.py` continues to PASS (all 10 required sections intact); `SKILL.md` is 466/500 lines. The Codex companion (`codex/skills/brainstorm`) is a symlink, so it inherits these changes automatically — no separate prompt edit and no parity-doc change.
+
+#### Notes
+- Bumped the `elian-store` plugin version (`2.16.0` → `2.17.0`, minor — new backward-compatible behavior gates inside an existing skill; no parameter, output mode, or invocation contract changed). The marketplace metadata version stays at `2.8.2` (no catalog-structure change).
+
 ### 2.16.0 — 2026-06-19
 
 #### Changed
