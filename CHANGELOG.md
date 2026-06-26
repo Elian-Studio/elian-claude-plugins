@@ -8,6 +8,24 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ---
 
+## elian-store Plugin
+
+### [2.23.0] — 2026-06-26
+
+#### Added
+- New skill **`update-design`**: design-change propagation orchestrator. When
+  `design-feature` docs already exist and something changes (meeting feedback,
+  review findings, requirement revision), runs an impact matrix across all
+  generated documents (`design.md`, `ddl.sql`, `architecture.md`,
+  `design-spec.md`, `prd.md`, `api-spec.md`, `qa-checklist.md`), confirms
+  scope with the user, and updates only the affected files sequentially.
+  Reads `references/prd-guide.md` and `references/architecture-guide.md`
+  before editing those documents. Delegates 3+ pending decisions to
+  `/decision-dashboard`. Pair with `/design-feature` (creates docs) and
+  `/intake-spec` (re-capture requirements if they changed dramatically).
+
+---
+
 ## Marketplace (`elian`)
 
 ### Unreleased
