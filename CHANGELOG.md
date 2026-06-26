@@ -30,6 +30,22 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - `generate-teammate` remains handoff-only on Codex because the runtime cannot reproduce the plugin-side teammate-spawn flow exactly.
 - `manage-skills` and `verify-implementation` remain prompt-level orchestration equivalents rather than byte-for-byte skill/runtime matches.
 
+### 2.20.0 — 2026-06-26
+
+#### Added
+
+- **`design-feature/references/prd-guide.md`** — PRD authoring guide ported from the local `create-prd` skill. Specifies the 12-section mandatory structure, technical term blacklist (Aggregate/Entity/Mapper/JSON/XOR/…), mandatory Given-When-Then AC table format for every §6 requirement, and three post-generation consistency checks (tech term grep, AC coverage, OOS consistency).
+- **`design-feature/references/architecture-guide.md`** — Architecture document guide ported from local `manage-architecture-doc`. Defines the 4-section mandatory structure (Overall / Backend / Frontend / Infrastructure), AS-IS/Δ/TO-BE skeleton with one-liner rules for unchanged layers, Mermaid aggregate color convention (`aggTag`, `aggRule`, `aggBulk`, `aggSpec`, `aggRabbit`), and five post-generation validation commands.
+- **`design-feature/references/design-spec-guide.md`** — New document type: FE design spec (`design-spec.md`). Covers 8-section structure (IA, per-screen detail, user journeys, entity state diagrams, terminology), Mermaid requirements (`stateDiagram-v2` for entity lifecycle, `flowchart` for user journeys), and a pre-handoff checklist.
+
+#### Changed
+
+- **`design-feature/references/doc-types.md`** — Added `design-spec.md` as a Phase 4 document type with generation conditions and guide reference. Generation decision table expanded from 6 to 7 columns.
+- **`design-feature/SKILL.md`** — Three improvements:
+  1. **Phase 0.4 auto-restart detection**: when `--start-from` is not supplied, scans `claudedocs/<label>/` and suggests the correct restart point (index.html → re-render; prd.md → Phase 5; design.md → Phase 4; nothing → Phase 1).
+  2. **Phase 4 gate**: changed from a binary confirm to a 4-option selector (A: full set / B: core / C: PRD only / D: stop). `design-spec.md` generation is gated on FE screen changes per the decision table.
+  3. **Phase 5.3 report**: upgraded from a 3-line file list to a structured completion report with artifact inventory table, stakeholder access matrix, and next-steps section.
+
 ### 2.19.0 — 2026-06-26
 
 #### Added
