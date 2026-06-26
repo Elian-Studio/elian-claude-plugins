@@ -111,6 +111,8 @@ Path: [plugins/elian-store/](plugins/elian-store/)
 
 | Skill | Purpose | Invocation |
 |---|---|---|
+| [intake-spec](plugins/elian-store/skills/intake-spec/) | Provider-agnostic requirements front door. Works without any issue tracker; optionally links to GitHub, GitLab, or JIRA. Produces `spec.json` for `/design-feature`. | `/elian-store:intake-spec` |
+| [design-feature](plugins/elian-store/skills/design-feature/) | Self-contained design orchestrator. Generates design.md, architecture, PRD, API spec, QA checklist, and a Mermaid-capable roadmap hub (index.html) through five gated phases. | `/elian-store:design-feature` |
 | [brainstorm](plugins/elian-store/skills/brainstorm/) | Clarify fuzzy thoughts and surface criteria before committing to a direction. | `/elian-store:brainstorm` |
 | [decision-dashboard](plugins/elian-store/skills/decision-dashboard/) | Turn 3+ blocking decisions into a printable HTML + downstream JSON artifact. | `/elian-store:decision-dashboard` |
 | [ai-assisted-feature-development](plugins/elian-store/skills/ai-assisted-feature-development/) | Structure AI-assisted feature work through framing, specs, tests, context, tasks, review, and archive. | `/elian-store:ai-assisted-feature-development` |

@@ -40,6 +40,7 @@ FOREACH_RE = re.compile(
     re.DOTALL,
 )
 PLACEHOLDER_RE = re.compile(r"\{\{\{?([\w.]+)\}?\}\}")
+_MERMAID_RE = re.compile(r"^```mermaid\s*\n([\s\S]+?)\n```\s*$")
 
 
 def get_value(scope_stack: list, key: str):
@@ -110,7 +111,13 @@ def _render_with_scope(template: str, scope_stack: list) -> str:
             return ""
         if not isinstance(value, str):
             value = json.dumps(value, ensure_ascii=False)
-        return value if is_raw else html.escape(value, quote=False)
+        if is_raw:
+            return value
+        # Mermaid fenced blocks render as <div class="mermaid"> without escaping the diagram code
+        m = _MERMAID_RE.match(value.strip())
+        if m:
+            return f'<div class="mermaid">{html.escape(m.group(1))}</div>'
+        return html.escape(value, quote=False)
 
     return PLACEHOLDER_RE.sub(sub, template)
 
