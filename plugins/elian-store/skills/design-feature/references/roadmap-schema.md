@@ -1,7 +1,7 @@
 # roadmap.json Schema Reference
 
 `design-feature` Phase 5 writes `roadmap.json`. `create-document` then renders
-it as `index.html` via `--template roadmap`.
+it via `build_roadmap.py` → `index.html`.
 
 ---
 
