@@ -30,6 +30,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - `generate-teammate` remains handoff-only on Codex because the runtime cannot reproduce the plugin-side teammate-spawn flow exactly.
 - `manage-skills` and `verify-implementation` remain prompt-level orchestration equivalents rather than byte-for-byte skill/runtime matches.
 
+### 2.19.0 — 2026-06-26
+
+#### Added
+
+- **`/intake-spec`** (`skills/intake-spec/`) — provider-agnostic requirements front door. Replaces the JIRA-specific local `intake-issue` for contexts without an issue tracker. Auto-detects authenticated providers via `scripts/detect_provider.sh` (GitLab/glab → GitHub/gh → JIRA env → none). Works entirely from free-text requirements when no issue tracker is available. Produces `claudedocs/plans/<label>/spec.json` and hands off to `/design-feature`.
+- **`/design-feature`** (`skills/design-feature/`) — self-contained design orchestrator. Takes a `spec.json` or inline requirements and generates a full design document set (design.md, ddl.sql, architecture.md, prd.md, api-spec.md, qa-checklist.md) through five gated phases. Requires Mermaid diagrams for state machines and cross-service flows. Renders a Mermaid-capable roadmap hub (`index.html`) via `create-document`'s `build_roadmap.py`. Supports `--start-from phaseN` for resuming mid-pipeline.
+- **`create-document/scripts/build_roadmap.py`** — standalone roadmap renderer bundled in `create-document`. Validates `roadmap.json` against `roadmap.schema.json`, renders a self-contained `index.html` with the interactive vertical timeline, task drawer, and **Mermaid diagram support** in task `desc` fields (`` ```mermaid `` blocks render as live diagrams via the Mermaid.js CDN). Ported and extended from the local `design-issue/scripts/build_index.py`.
+- **`create-document/schemas/roadmap.schema.json`** — JSON schema for `roadmap.json`. Validates label, title, phases/tasks (status enum, optional fields), docs, and stakeholders.
+- **`create-document/scripts/render.py`** — added Mermaid block detection to `{{key}}` substitution. String values matching the `` ```mermaid\n...\n``` `` pattern now render as `<div class="mermaid">...</div>` instead of HTML-escaped text, enabling Mermaid diagrams in any template that uses the FOREACH engine.
+
 ### 2.18.0 — 2026-06-23
 
 #### Added
