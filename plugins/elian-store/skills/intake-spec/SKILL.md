@@ -86,6 +86,8 @@ Questions to work through (stop when you have enough):
 3. What must explicitly NOT be included (scope boundary)?
 4. Are there performance, security, or integration constraints?
 5. Who are the primary users / stakeholders of this feature?
+6. For the most important requirement, what would "done" look like — what must
+   be true for QA to sign it off? (Given / When / Then format preferred)
 
 Read the codebase when you can answer a question yourself — do not ask the
 user for information that grep or Read can find.
@@ -116,12 +118,17 @@ Write to: `claudedocs/plans/<label>/spec.json`
   "outOfScope": [
     "Payments are out of scope for this iteration"
   ],
+  "acceptanceCriteria": [
+    "Given <precondition>, when <action>, then <expected outcome>"
+  ],
   "context": "Relevant codebase findings: service X does Y, table Z exists"
 }
 ```
 
-All fields except `issueUrl` are required. `requirements` must have at least
-one item. `outOfScope` can be empty (`[]`) if nothing was explicitly excluded.
+All fields except `issueUrl` and `acceptanceCriteria` are required.
+`requirements` must have at least one item. `outOfScope` can be empty (`[]`).
+`acceptanceCriteria` can be empty (`[]`) when AC was not established during
+the interview — design-feature will derive them during Phase 4.
 
 Show the spec to the user. Offer to edit before proceeding.
 

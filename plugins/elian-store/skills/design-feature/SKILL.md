@@ -141,7 +141,7 @@ Do not describe diagrams in text when a diagram communicates them better.
 Include column comments explaining business meaning, not just field names.
 Mark enum values with their allowed transitions.
 
-**architecture.md**
+**architecture.md** — Read `references/architecture-guide.md` before writing.
 
 Structure as AS-IS / Δ / TO-BE for each section. Use Mermaid `flowchart LR`
 for system topology and `sequenceDiagram` for cross-service interactions.
