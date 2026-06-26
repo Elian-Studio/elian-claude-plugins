@@ -55,14 +55,37 @@ explaining business meaning, constraints, and enum values.
 
 ## Phase 4 — Stakeholder Documents (generate based on need)
 
+### design-spec.md
+
+**Readers**: Designers, frontend engineers  
+**Content**: Screen list, information architecture, route map, per-screen
+detail (layout + state diagram + interactions + mapped AC), common components,
+user journeys (Mermaid flowchart per PRD scenario), entity state diagrams,
+terminology table, open UX questions.
+
+**Required Mermaid blocks**:
+- `stateDiagram-v2` — for any entity with UI-visible lifecycle states
+- `flowchart` — for screen flow (§2) and each user journey (§5)
+
+**Generate when**: The feature changes any user-facing screen (including UI-only
+changes). Skip for pure backend refactors, batch jobs, or migration-only changes.
+
+**Guide**: `references/design-spec-guide.md`
+
+---
+
 ### prd.md
 
 **Readers**: Product managers, leadership  
-**Content**: Problem statement, user stories, acceptance criteria, success
-metrics, out-of-scope items. Written in user language (not code terms).
+**Content**: Problem statement, user stories, acceptance criteria (Given-When-Then
+table per requirement), success metrics, out-of-scope items. Written in user
+language — no technical terms. Follow the 12-section structure in
+`references/prd-guide.md`.
 
 **Generate when**: The feature has product / business significance — new user
 capability, policy change, or measurable metric change.
+
+**Guide**: `references/prd-guide.md`
 
 ---
 
@@ -81,7 +104,7 @@ change their contract.
 
 **Readers**: QA engineers, developers doing self-review  
 **Content**: Given-When-Then acceptance test cases derived from the spec's
-requirements and acceptance criteria.
+requirements and the acceptance criteria in prd.md.
 
 **Generate when**: Always, unless the change is a one-line fix with no
 behaviour surface.
@@ -90,13 +113,13 @@ behaviour surface.
 
 ## Generation decision table
 
-| Condition | design.md | ddl.sql | architecture.md | prd.md | api-spec.md | qa-checklist.md |
-|-----------|:---------:|:-------:|:---------------:|:------:|:-----------:|:---------------:|
-| New feature with DB | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| New feature, no DB  | ✅ | — | ✅ | ✅ | ✅ | ✅ |
-| UI-only change      | — | — | ✅ | ✅ | — | ✅ |
-| Internal refactor   | ✅ | — | ✅ | — | — | ✅ |
-| Bug fix             | — | — | — | — | — | ✅ |
+| Condition | design.md | ddl.sql | architecture.md | design-spec.md | prd.md | api-spec.md | qa-checklist.md |
+|-----------|:---------:|:-------:|:---------------:|:--------------:|:------:|:-----------:|:---------------:|
+| New feature with DB | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| New feature, no DB  | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ |
+| UI-only change      | — | — | ✅ | ✅ | ✅ | — | ✅ |
+| Internal refactor   | ✅ | — | ✅ | — | — | — | ✅ |
+| Bug fix             | — | — | — | — | — | — | ✅ |
 
 When in doubt, generate. A document that turns out to be unnecessary is cheaper
 than a missing one discovered mid-implementation.

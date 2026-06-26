@@ -32,6 +32,9 @@ Resume any time with `--start-from phaseN`.
 
 - `references/doc-types.md` — which documents to generate and when
 - `references/roadmap-schema.md` — roadmap.json format for Phase 5
+- `references/prd-guide.md` — PRD 12-section structure, tech term blacklist, AC format, validation
+- `references/architecture-guide.md` — 4-section structure, AS-IS/Δ/TO-BE rules, Mermaid conventions, validation
+- `references/design-spec-guide.md` — FE design spec 8-section structure
 
 ---
 
@@ -55,6 +58,21 @@ in-memory spec with `label`, `title`, and `requirements` only.
 If `--start-from phaseN` is supplied, jump to that phase. All prior phases are
 treated as complete. If `--stop-after phaseN` is supplied, stop after that
 phase and report what is remaining.
+
+### 0.4 Auto-detect restart point
+
+If `--start-from` was **not** supplied, scan `claudedocs/<label>/` and suggest
+the appropriate start point based on what already exists:
+
+| File present | Suggested action |
+|-------------|-----------------|
+| `index.html` | Pipeline complete — offer Phase 5 re-render only |
+| `prd.md` | Phase 4 done — jump to Phase 5 (roadmap hub) |
+| `design.md` | Phase 3 done — jump to Phase 4 (stakeholder docs) |
+| nothing / spec.json only | Start from Phase 1 |
+
+Show the detected start point and ask the user to confirm before jumping.
+If the user supplied `--start-from`, skip this detection entirely.
 
 ---
 
@@ -144,27 +162,58 @@ Read `references/doc-types.md` for the generation decision table.
 
 ```
 claudedocs/<label>/
-  prd.md
-  api-spec.md     (if new endpoints)
+  design-spec.md  (if FE screens change)
+  prd.md          (if product significance)
+  api-spec.md     (if new/changed endpoints)
   qa-checklist.md
 ```
+
+### Gate — choose document set
+
+Before generating, ask the user:
+
+> **Which document set?**
+> A) Full — design-spec + prd + api-spec + qa-checklist
+> B) Core — prd + api-spec
+> C) PRD only
+> D) Stop here
+
+Include `design-spec.md` in option A only when the feature changes FE screens
+(check `references/doc-types.md` generation table).
+
+─ **Wait for user choice before generating anything.** ─
 
 ### Generation rules
 
 Spawn parallel subagents (one per document) when generating 2+ documents.
 Each subagent reads the Phase 3 documents as source material.
 
-**prd.md** — written in user language, no code terms. Must include:
-problem statement, user stories, acceptance criteria, success metrics,
-out-of-scope section.
+**design-spec.md** — Read `references/design-spec-guide.md` before writing.
+8-section structure covering IA, per-screen detail, user journeys, state
+diagrams, and terminology.
 
-**api-spec.md** — one section per endpoint: method + path, request schema,
+**prd.md** — Read `references/prd-guide.md` before writing. 12-section
+structure, user language only (no tech terms). Every §6 requirement must have
+a Given-When-Then AC table.
+
+**api-spec.md** — One section per endpoint: method + path, request schema,
 response schema (200, 4xx, 5xx), auth requirement.
 
 **qa-checklist.md** — Given-When-Then format. Derive cases from the spec's
 `requirements` and the acceptance criteria in prd.md.
 
-─ **Gate** — list generated documents and sizes. ─
+### Post-generation validation
+
+After writing prd.md, run the consistency checks from `references/prd-guide.md`:
+
+```bash
+grep -nE "Aggregate|Entity|Mapper|XOR|DDL|Endpoint" claudedocs/<label>/prd.md
+grep -c "AC[0-9]" claudedocs/<label>/qa-checklist.md
+```
+
+Fix before proceeding to Phase 5.
+
+─ **Gate** — list generated documents and line counts. ─
 
 ---
 
@@ -199,8 +248,37 @@ If the script exits non-zero, show the error and stop.
 
 ### 5.3 Report
 
-List all generated files with their paths. Suggest opening `index.html` in
-a browser for the full hub view.
+Print a structured completion report:
+
+```markdown
+## <label> — Design Complete
+
+### Artifacts
+| Document | Path | Key metrics |
+|----------|------|-------------|
+| design.md | claudedocs/<label>/design.md | N Mermaid diagrams, M decisions |
+| architecture.md | claudedocs/<label>/architecture.md | N sections, M diagrams |
+| prd.md | claudedocs/<label>/prd.md | N AC, M scenarios |
+| design-spec.md | claudedocs/<label>/design-spec.md | N screens, M journeys |
+| api-spec.md | claudedocs/<label>/api-spec.md | N endpoints |
+| qa-checklist.md | claudedocs/<label>/qa-checklist.md | N test cases |
+| index.html | claudedocs/<label>/index.html | roadmap hub |
+
+(omit rows for documents that were not generated)
+
+### Stakeholder access
+| Role | Documents to read |
+|------|-------------------|
+| PM | prd.md |
+| Designer | design-spec.md + prd.md §5–6 |
+| FE engineer | design-spec.md + api-spec.md |
+| BE engineer | design.md + ddl.sql + api-spec.md |
+| QA | prd.md §6 + qa-checklist.md |
+
+### Next steps
+- Roadmap hub: claudedocs/<label>/index.html
+- Commit and open PR: /finish-branch
+```
 
 ---
 
