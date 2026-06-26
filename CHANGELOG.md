@@ -30,6 +30,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - `generate-teammate` remains handoff-only on Codex because the runtime cannot reproduce the plugin-side teammate-spawn flow exactly.
 - `manage-skills` and `verify-implementation` remain prompt-level orchestration equivalents rather than byte-for-byte skill/runtime matches.
 
+### 2.21.0 — 2026-06-26
+
+#### Added
+
+- **`design-feature/references/roadmap-task-guide.md`** — task writing guide ported from local MPT-9419 project learnings. Covers: behaviour-first title principle, `desc`/`criteria`/`subs` section roles, before/after examples (real alimtalk notification task), title checklist (class names / file paths / vague verbs to avoid), and Mermaid `sequenceDiagram` usage in `desc` with role-naming rules.
+
+#### Changed
+
+- **`design-feature/SKILL.md`** — Phase 5.1 now references `references/roadmap-task-guide.md` before writing task objects; References section updated.
+- **`design-feature/references/roadmap-schema.md`** — Fixed stale reference: `--template roadmap` → `build_roadmap.py`.
+
 ### 2.20.0 — 2026-06-26
 
 #### Added

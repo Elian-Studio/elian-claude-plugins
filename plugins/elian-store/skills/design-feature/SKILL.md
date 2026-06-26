@@ -32,6 +32,7 @@ Resume any time with `--start-from phaseN`.
 
 - `references/doc-types.md` — which documents to generate and when
 - `references/roadmap-schema.md` — roadmap.json format for Phase 5
+- `references/roadmap-task-guide.md` — task title / desc / criteria / subs writing rules
 - `references/prd-guide.md` — PRD 12-section structure, tech term blacklist, AC format, validation
 - `references/architecture-guide.md` — 4-section structure, AS-IS/Δ/TO-BE rules, Mermaid conventions, validation
 - `references/design-spec-guide.md` — FE design spec 8-section structure
@@ -221,7 +222,8 @@ Fix before proceeding to Phase 5.
 
 ### 5.1 Write roadmap.json
 
-Read `references/roadmap-schema.md` for the schema.
+Read `references/roadmap-schema.md` for the schema and
+`references/roadmap-task-guide.md` before writing task objects.
 
 Create `claudedocs/<label>/roadmap.json` reflecting:
 - phases derived from the design pipeline (Design, Implementation, QA…)
