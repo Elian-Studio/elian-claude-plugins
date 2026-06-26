@@ -30,6 +30,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - `generate-teammate` remains handoff-only on Codex because the runtime cannot reproduce the plugin-side teammate-spawn flow exactly.
 - `manage-skills` and `verify-implementation` remain prompt-level orchestration equivalents rather than byte-for-byte skill/runtime matches.
 
+### 2.22.0 — 2026-06-26
+
+#### Fixed
+
+- **`intake-spec/scripts/detect_provider.sh`** — git remote origin is now checked first (before installed CLI tools). Prevents incorrectly returning `gitlab` when `glab` is authenticated but the current repo is GitHub.
+- **`intake-spec/SKILL.md`** — Phase B adds question 6 (done condition / AC). Phase C `spec.json` schema adds optional `acceptanceCriteria` field so downstream `design-feature` Phase 4 has a seed for G-W-T tables.
+- **`design-feature/SKILL.md`** — Phase 3 `architecture.md` now explicitly references `references/architecture-guide.md` before writing, matching the same pattern already applied to `prd.md` and `design-spec.md`.
+
 ### 2.21.0 — 2026-06-26
 
 #### Added
