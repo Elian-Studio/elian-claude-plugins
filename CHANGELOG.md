@@ -10,6 +10,25 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## elian-store Plugin
 
+### [2.24.0] — 2026-07-01
+
+#### Added
+- New skill **`kanban-board`**: generates a self-contained, interactive HTML
+  Kanban board (draggable columns/cards, card detail panel with assignee,
+  due date, labels, checklist, comments, and linked files, search/filters,
+  and a cobalt/sage/grape theme switcher) from the project's own local task
+  data — a `/intake-spec` `spec.json`, a `/design-feature` roadmap or PRD, a
+  `.claude/plans/` file, or tasks described directly in chat. No
+  GitHub/GitLab/Jira integration by design; the board is a single offline
+  HTML file with no server, and in-board edits persist via `localStorage`
+  plus an Export/Import JSON control for committing snapshots back to the
+  repo. Re-running the skill merges in new cards from the source without
+  overwriting prior in-board edits. Ships `scripts/build_board.py` (stdlib
+  Python, validates list/member/label cross-references before rendering)
+  and `assets/kanban-board-template.html` (vanilla JS/CSS, no framework or
+  build step). Visual/interaction design based on a user-supplied Claude
+  Design reference ("Kanflow").
+
 ### [2.23.0] — 2026-06-26
 
 #### Added

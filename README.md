@@ -134,6 +134,8 @@ Path: [plugins/elian-store/](plugins/elian-store/)
 | [verify-before-claiming](plugins/elian-store/skills/verify-before-claiming/) | Claim-time honesty gate — require fresh verification evidence before any pass/fixed/done claim. | `/elian-store:verify-before-claiming` |
 | [respond-to-review](plugins/elian-store/skills/respond-to-review/) | Consumer side of review — verify feedback before implementing, no performative agreement, push back with reasoning. | `/elian-store:respond-to-review` |
 | [finish-branch](plugins/elian-store/skills/finish-branch/) | Decide how to finish a branch (merge / push+PR / keep / discard) with worktree-safe cleanup; delegates the release flow to `/ship`. | `/elian-store:finish-branch` |
+| [update-design](plugins/elian-store/skills/update-design/) | Design-change propagation orchestrator — runs an impact matrix across existing `/design-feature` docs and updates only the affected ones. | `/elian-store:update-design` |
+| [kanban-board](plugins/elian-store/skills/kanban-board/) | Generate a self-contained, interactive HTML Kanban board (drag-drop, card detail panel, filters, themes) from local task data — no GitHub/GitLab/Jira integration; edits persist via localStorage plus Export/Import JSON. | `/elian-store:kanban-board` |
 
 ### Codex Companion Tree
 
