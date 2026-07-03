@@ -10,6 +10,25 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## elian-store Plugin
 
+### [2.25.0] — 2026-07-03
+
+#### Added
+- New skill **`functional-spec`**: bridges an approved wireframe/mockup to a
+  **code-grounded implementation contract** before any code is written — the
+  layer that was missing between `/design-ui` (design-only, no code) and
+  `/implement`. For each screen it (1) grounds every wireframe element in the
+  real codebase (existing components to reuse resolved to actual file paths,
+  real endpoints/fields, new-vs-existing components), (2) produces a numbered
+  **기능 분해 표** with real-server-round-trip done-criteria, (3) writes a
+  component contract (신규/재사용 + data flow), (4) records BE dependency and
+  numbered open questions, and (5) renders a per-screen `.md`, a
+  wireframe↔spec split **`-connected.html`** view (hovering either side
+  highlights the matching element), and an `index.html` hub. Reads code
+  heavily; writes no product code. Positioned after `/design-ui` or
+  `/design-feature` mockups and before `/implement`.
+- `design-ui` (Phase 5) and `design-feature` (Phase 5 report) now point
+  downstream to `/functional-spec` before `/implement`.
+
 ### [2.24.0] — 2026-07-01
 
 #### Added

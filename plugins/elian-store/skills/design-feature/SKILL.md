@@ -279,6 +279,8 @@ Print a structured completion report:
 
 ### Next steps
 - Roadmap hub: claudedocs/<label>/index.html
+- If screens change: /functional-spec <label> — bind each wireframe element to
+  real components + APIs (code-grounded contract) before /implement.
 - Commit and open PR: /finish-branch
 ```
 
