@@ -1,217 +1,234 @@
 ---
 name: functional-spec
 description: >
-  Bridge a wireframe/mockup to code-grounded implementation intent BEFORE
-  writing code. For each screen, decomposes every wireframe element into (a)
-  what it does (function, states, done-criteria) and (b) the real components,
-  composables, and API/data sources that implement it — every reuse claim
-  resolved to an actual file path, every data source to a real endpoint/field.
-  Produces a per-screen functional spec (.md), a wireframe↔spec split "connected"
-  HTML view, and an index hub. Reads the codebase heavily; writes no product code.
+  Bridge one or more wireframes to code-grounded implementation intent BEFORE
+  writing code. FIRST designs a shared component catalog across ALL wireframes
+  (so recurring UI — rows, cards, nav, buttons — is designed once, not per
+  screen), THEN decomposes each screen's elements into function + states +
+  done-criteria and a component contract that reuses the shared catalog or adds
+  screen-specific components. Every claim is grounded: on an existing codebase to
+  a real file:line, on a greenfield product to the designed API/entities. Emits a
+  component-design catalog, a per-screen functional spec (.md), a robust
+  wireframe↔spec "connected" HTML view, and a hub. Writes no product code.
 
-  Use when a wireframe or mockup exists (from /design-ui, /design-feature
-  mockups, or hand-built) and you need to nail down function + component
-  contracts before /implement. Trigger phrases: "write the functional spec",
-  "connect wireframe to spec", "component contract for this screen", "기능명세",
-  "/functional-spec".
+  Use when wireframes/mockups exist (from /design-ui, /design-feature mockups, or
+  hand-built) and you need function + component design before /implement. Trigger
+  phrases: "write the functional spec", "component design from these wireframes",
+  "connect wireframe to spec", "기능명세", "컴포넌트 설계", "/functional-spec".
 when_to_use: >
-  A wireframe/mockup for one or more screens already exists and the next step is
-  to define — grounded in the real codebase — what each element does and which
-  existing components to reuse vs which new ones to create, before implementation
-  starts. Sits after /design-ui or /design-feature mockups and before /implement.
-  Skip when there is no wireframe yet (run /design-ui first), or for a pure
-  backend change with no screen surface.
+  Wireframes for one or more screens exist and the next step is to design the
+  shared component set and per-screen function/component contracts before
+  implementation. Works on an existing codebase (grounds reuse to file:line) or a
+  greenfield product (grounds to the designed API/entities). Sits after /design-ui
+  or /design-feature mockups and before /implement. Skip when no wireframe exists
+  yet (run /design-ui first) or for a pure backend change with no screen surface.
 argument-hint: "<label> [screen...] [--out <dir>] [--from <mockups-dir>]"
 allowed-tools: Read, Grep, Glob, Write, Edit, Bash(mkdir *), Bash(ls *), Bash(open *), AskUserQuestion
 disable-model-invocation: false
 ---
 
-# /functional-spec — Wireframe → Code-Grounded Spec Bridge
+# /functional-spec — Wireframes → Component Design + Code-Grounded Spec
 
-Turn an approved wireframe into an implementation contract. The output answers,
-for every element on the screen: **what does it do**, and **what real code
-implements it** (reuse this existing file / create this new one / call this real
-endpoint). This is the layer that makes `/implement` unambiguous.
+Turn approved wireframes into an implementation contract. It answers, across the
+whole screen set: **which components exist** (designed once, shared), and for
+every element on every screen: **what it does** and **what implements it** (reuse
+this shared/existing component, add this new one, call this real endpoint). This
+is the layer that makes `/implement` unambiguous and stops duplicate component work.
 
-This skill **reads code to ground its claims but writes no product code.** Its
-job is a specification, not an implementation.
+This skill **grounds its claims but writes no product code.** It is a specification.
+
+## Two grounding modes
+
+- **Existing codebase** — grep the real repo; every reuse claim resolves to a real
+  `file:line`, every data source to a real endpoint/field.
+- **Greenfield** (no code yet) — there is nothing to grep, so ground against the
+  **design docs** (`api-spec.md`, `ddl.sql`, `design.md`): every data source cites
+  a designed endpoint/entity; every component is new, designed in the target
+  stack's conventions. Greenfield is a first-class mode, not an error.
 
 ## Where this fits in the workflow
 
 ```text
-/design-ui or /design-feature (mockups/)   → wireframe exists
-  -> /functional-spec                        ← YOU ARE HERE
-     P1 Codebase grounding
-     P2 Functional decomposition
-     P3 Component contract
-     P4 BE dependency + open questions
+/design-ui or /design-feature (mockups/)        → wireframes exist
+  -> /functional-spec                             ← YOU ARE HERE
+     P0 Resolve inputs + grounding mode
+     P1 Grounding (codebase OR design-doc)         once
+     P2 Component Design (cross-wireframe catalog)  once  ← designs shared components
+     P3 Functional decomposition                    per screen
+     P4 Component contract (reuses P2 catalog)       per screen
+     P5 BE/API dependency + open questions           per screen
      Gate
-     P5 Render (.md + connected.html + index.html)
+     P6 Render (catalog + per-screen .md + connected.html + hub)
   -> /implement
 ```
 
-- **Upstream**: an approved wireframe/mockup + `spec.json` / `design-spec.md`.
-- **This skill**: per-screen function + component contract, bound to real code.
+- **Upstream**: approved wireframes/mockups + `spec.json` / design docs.
+- **This skill**: a shared component catalog + per-screen function/component contracts.
 - **Downstream**: `/implement` builds from the contract; open questions gate it.
 
 ## References
 
-- `references/functional-spec-guide.md` — the 5-section `.md` structure + golden example
-- `references/connected-template.html` — the wireframe↔spec split-view shell
+- `references/component-design-template.md` — the cross-wireframe component catalog (P2)
+- `references/functional-spec-guide.md` — the per-screen 5-section `.md` structure + example
+- `references/connected-template.html` — the robust, isolated, responsive wireframe↔spec view
 - `references/tokens.css` — shared visual tokens for the connected view
 
 ---
 
-## Phase 0 — Resolve inputs
+## Phase 0 — Resolve inputs + grounding mode
 
-1. Parse `<label>` (e.g. `MPT-9457`). If absent, ask once.
+1. Parse `<label>`. If absent, ask once.
 2. Resolve the mockup source: `--from <dir>`, else `claudedocs/<label>/mockups/`,
-   else ask for the wireframe path. Every screen must have a concrete wireframe
-   file — this skill does not invent screens.
-3. Load context if present: `spec.json`, `design-spec.md`, `api-spec.md`,
-   `decisions*.json`. These constrain the spec; they do not replace codebase
-   grounding.
-4. **Resolve the codebase root** — Phase 1 greps *real* code, so pin which repo
-   to grep before touching it. Resolution order:
-   1. `spec.json` `context` field, which often names the repo/path
-      (e.g. MPT-9457's says `front-doctor CRM: src/views/crm/...`).
-   2. else infer from the git remote / current working directory.
-   3. If **0 or >1** plausible roots exist (e.g. several checkouts of the same
-      repo on disk), **ask the user once** to confirm the root. Do not guess a copy.
-   Record the confirmed absolute root; **all Phase 1 grounding runs against it.**
-5. **Resolve output dir** — default to a **sibling of the mockups dir**:
-   `<mockups-parent>/functional-specs/` (in MPT-9457:
-   `docs/domains/crm/<label>/functional-specs/` next to `.../mockups/`). This is
-   what makes the connected view's `../mockups/tokens.css` link resolve. `--out`
-   overrides. Only fall back to `claudedocs/<label>/functional-specs/` when the
-   mockups live outside the repo.
-6. Determine the screen list: explicit `[screen...]` args, else one per mockup
-   file. Confirm the screen list **and the resolved codebase root** with the user
-   before proceeding.
+   else ask. Every screen must have a concrete wireframe file — never invent screens.
+3. Load context if present: `spec.json`, `design-spec.md`, `api-spec.md`, `ddl.sql`,
+   `design.md`, `decisions*.json`.
+4. **Determine the grounding mode + root:**
+   - Look for a product codebase: `spec.json` `context` (often names the repo/path),
+     else git remote / cwd.
+   - If a real repo exists → **codebase mode**; pin the absolute root (if 0 or >1
+     plausible roots, ask once — never guess a copy).
+   - If there is no product code yet (greenfield) → **greenfield mode**; the
+     grounding source is the design docs. State this explicitly; do not loop asking.
+5. **Resolve output dir** — default to a **sibling of the mockups dir**
+   (`<mockups-parent>/functional-specs/`), so the connected view's
+   `../mockups/tokens.css` link resolves. `--out` overrides.
+6. Confirm the screen list **and grounding mode/root** with the user before proceeding.
 
 ---
 
-## Phase 1 — Codebase grounding (the differentiator)
+## Phase 1 — Grounding (once)
 
-This phase is what separates a functional spec from a design spec. **Do not
-guess.** For each screen, inventory the real code that the wireframe elements map to:
+Inventory what the wireframe elements map to, across all screens.
 
-- **Existing components** — Grep/Glob for tables, modals, inputs, selects,
-  pagination, badges the wireframe shows (e.g. base `M*` components, `spec/`
-  components). Record the exact file path.
-- **Composables / services** — find the data-loading and state patterns already
-  used by sibling screens; prefer reusing them over inventing new ones.
-- **Endpoints & fields** — trace the real API the screen needs. Confirm the
-  actual endpoint path and the actual response fields (VO/DTO). Read the
-  controller/service/mapper to verify a field exists before claiming it.
+- **Codebase mode**: Grep/Glob for existing components, composables/services, and
+  the real endpoints/fields. Every reuse claim → verified `file:line`; every data
+  source → real endpoint/field at `file:line`. A bare path is not enough.
+- **Greenfield mode**: read `api-spec.md` / `ddl.sql` / `design.md`; map each
+  element's data need to a **designed** endpoint + field. No code to reuse → every
+  component will be new (designed in P2).
 
-Grounding rule: **every reuse claim must resolve to a verified `file:line`, and
-every data source to a real endpoint/field cited at `file:line`.** A bare path is
-not enough — Read/grep to the exact line that defines the component, method
-signature, or field, and cite it (e.g. `PatientService.ts:28`,
-`IHospitalPatient.ts:180`). Anything you cannot pin to a line does not become an
-assumption — it becomes an open question in Phase 4.
-
-State what you searched and what you found. If the codebase contradicts the
-wireframe (element implies data that no endpoint returns, or the file sits
-somewhere other than assumed — e.g. `HospitalPatientList.vue` under
-`views/hospital/` not `views/crm/`), surface it — that is the highest-value
-output of this phase.
+Anything you cannot pin (to a `file:line` or a designed endpoint) becomes an open
+question in P5 — never a silent assumption. Surface contradictions (element implies
+data no endpoint returns; a fabricated mockup value like a hardcoded price/percent
+with no source) — that is the highest-value output.
 
 ---
 
-## Phase 2 — Functional decomposition
+## Phase 2 — Component Design (cross-wireframe, ONCE)  ← the anti-duplication phase
 
-For each screen, build the **기능 분해 표 (functional decomposition table)**.
-One row per wireframe element:
+**Read every wireframe together** before writing any per-screen spec. Extract the
+recurring UI and design a **shared component catalog** so a row / card / badge /
+nav / button is designed once, not re-invented per screen.
+
+Produce `component-design.md` (rendered to HTML in P6). Contents:
+
+- **Component inventory** — each recurring element as a named component
+  (`FoodRow`, `ExpiryBadge`, `BottomNav`, `PrimaryButton`, `RecipeHeroCard`…).
+- **Usage matrix** — component × screen table showing where each is used. Anything
+  used on ≥2 screens is **shared** (designed once); single-use ones are
+  screen-specific (still listed, owned by their screen).
+- **Contract per shared component** — target file path (stack conventions), props,
+  variants/states, and in codebase mode the existing component it maps to (`file:line`).
+- **Design-system note** — shared tokens (color/spacing/typography) the components use.
+
+This catalog is the source of truth P4 references. Do not let per-screen work
+re-declare a shared component.
+
+─ **Gate** — show the usage matrix + shared-component list; confirm before per-screen work. ─
+
+---
+
+## Phase 3 — Functional decomposition (per screen)
+
+For each screen, build the **기능 분해 표**. One numbered row per wireframe element:
 
 | Column | Content |
 |--------|---------|
-| 요소 (element) | The wireframe element (search bar, row checkbox, pagination…) |
-| 기능 (function) | What it does on interaction |
-| 데이터 소스·BE 의존 | Real endpoint / VO field, or `UI-only` with justification |
+| 요소 | The wireframe element |
+| 기능 | What it does on interaction |
+| 데이터 소스·BE 의존 | Real/designed endpoint + field, or `UI-only` with justification |
 | 상태 | empty / loading / error / selected / disabled behaviour |
 | 상호작용·연동 | What it triggers, where it hands off |
-| 완료 판정 (done) | Concrete, **real-server-round-trip** pass condition (no hardcoded shells) |
+| 완료 판정 | Concrete **real-server-round-trip** pass condition (no hardcoded shells) |
 
-Number each element — the number is the anchor that ties the wireframe marker to
-the spec row in the connected view (Phase 5).
-
----
-
-## Phase 3 — Component contract
-
-Split into **신규 (new)** and **재사용 (reuse)**, then a data-flow block.
-
-**신규** — for each new file: target directory (following the project's existing
-layout, not a new convention), role, props, emits/exposed API, owned state.
-Justify each new component — if an existing one covers it, reuse instead (YAGNI).
-
-**재사용** — for each reused component: **exact existing path** and the usage
-contract (which props/slots/emits, and any constraint, e.g. "use slot not
-built-in select-mode because pagination breaks it").
-
-**데이터 흐름** — a short tree/diagram: view → composable → service → endpoint →
-selection/handoff. Include any downstream handoff contract (e.g. the object
-shape passed to the next screen) and the minimal change needed to enable it.
+Number each element — the number anchors the wireframe marker to the spec row in
+the connected view (P6).
 
 ---
 
-## Phase 4 — BE dependency + open questions
+## Phase 4 — Component contract (per screen, references the P2 catalog)
 
-- **신규 (new BE)** — the real change: which VO field, which mapper/query, which
-  table. State the honesty line: "신규 테이블 N개" / "신규 집계 N건". Prefer the
-  smallest change that satisfies the wireframe.
-- **기존 (BE unchanged)** — fields already provided, with their source.
-- **UI-only justification** — why selection state / label mapping needs no server
-  round-trip.
-- **미결 질문 (open questions)** — every unverified assumption from Phase 1 and
-  every real decision the wireframe leaves open. Each becomes a gate before
-  `/implement`. Number them.
+For each screen, map its elements to components — **reuse the catalog, don't
+re-design shared ones**:
+
+- **재사용 (from catalog / existing)** — name the shared component (link
+  `component-design.md`), or in codebase mode the existing `file:line`. State the
+  props/variant used here.
+- **신규 (screen-specific only)** — components genuinely unique to this screen
+  (target path, props, emits, state). If it turns out to recur, promote it to the
+  P2 catalog instead of duplicating.
+- **데이터 흐름** — screen → hook/composable → api client → endpoint → handoff.
+
+---
+
+## Phase 5 — BE/API dependency + open questions (per screen)
+
+- **신규 (new BE/endpoint)** — the real change (field/query/table or, greenfield,
+  the designed endpoint that must exist). Honesty line: "신규 테이블 N개".
+- **기존 (unchanged)** — data already provided, with its source.
+- **UI-only justification** — why some state needs no server round-trip.
+- **미결 질문** — every unpinned assumption + every decision the wireframe/PRD leaves
+  open (incl. fabricated mockup values with no data source). Numbered; each gates `/implement`.
 
 ---
 
 ## Gate — confirm before render
 
-Show, per screen: element count, how many are reuse vs new component vs new BE,
-and the open-question count. Wait for the user to confirm before rendering.
+Show, per screen: element count, reuse-from-catalog vs new-screen-specific vs new-BE,
+open-question count. Wait for confirmation before rendering.
 
 ---
 
-## Phase 5 — Render
+## Phase 6 — Render
 
-For each screen write:
+1. **`component-design.md`** (+ HTML in the hub) — the P2 catalog.
+2. **`<screen>.md`** — the 5-section per-screen spec (① 개요 ② 기능 분해 표
+   ③ 컴포넌트 계약[재사용 catalog + 신규] ④ BE/API 의존 ⑤ 미결 질문). See guide.
+3. **`<screen>-connected.html`** — from `references/connected-template.html`. Left =
+   the wireframe with numbered `data-n` markers; right = the ② table with matching
+   `data-n`; **below the split, a rendered §③ component contract** section (links
+   the catalog). Hovering either side highlights the pair.
+   - **Robust table (critical):** the connected view links the wireframe's
+     `tokens.css` to render the left pane, so its global classes (`.row`, `.card`,
+     `.tag`…) WILL leak. The template must therefore use **namespaced classes
+     (`.fs-*`) + a scoped reset** (`.fs-spec :where(table,tr,td,th){display:revert}`)
+     so no wireframe CSS can collapse the table, and be **responsive** (the split
+     stacks and the table reflows on narrow widths). Never rely on generic class
+     names for the spec pane.
+   - **Repeated-row rule:** per-row-repeating elements get their `data-n` marker on
+     the **first row only** + a caption. Keep `data-n` 1:1 with the ② rows.
+4. **`index.html`** — a hub linking `component-design`, and each screen's `.md` +
+   `-connected.html`, with a one-line status per screen.
 
-1. **`<screen>.md`** — the full 5-section spec (① 화면 개요 ② 기능 분해 표
-   ③ 컴포넌트 계약 ④ BE 의존/신규 ⑤ 미결 질문). Follow
-   `references/functional-spec-guide.md`.
-2. **`<screen>-connected.html`** — the wireframe↔spec split view from
-   `references/connected-template.html`. Left = the actual wireframe with numbered
-   `data-n` markers on each element; right = the decomposition table with matching
-   `data-n`. Hovering either side highlights the pair. Tag each element 기존 /
-   신규 BE / UI. Link `tokens.css` (co-located or the wireframe's own).
-   - **Repeated-row rule**: for a table/list, elements that repeat per row
-     (row checkbox, name cell, action icons…) get their `data-n` marker on the
-     **first row only**, plus a caption like "6–14는 행마다 반복 (첫 행에만 번호)".
-     Header-level and page-level elements (search, filter, select-all, pager) are
-     numbered once. Keep the `data-n` numbers one-to-one with the ② table rows —
-     a drifted or duplicated number is a broken anchor.
-3. **`index.html`** — a hub linking every screen's `.md` and `-connected.html`,
-   with a one-line status per screen (element count, new-BE count, open questions).
-
-Then report the output paths and the aggregate open-question list — those are the
-gates the user must clear before `/implement`.
+Design docs referenced by the hub (`design.md`, `ddl.sql`, `prd.md`, etc.) should be
+rendered to HTML (via `create-document` / `document-writer`) so they open readable,
+not as raw `.md`. Then report output paths + the aggregate open-question list.
 
 ---
 
 ## Standing rules
 
-- Never write product code (views, components, controllers, migrations). Spec only.
-- No unverified claim. A reuse path that does not resolve, or a field that does
-  not exist, is a bug — verify with Read/Grep/`ls`, or demote it to an open question.
-- Reuse-first: propose a new component only after confirming no existing one fits.
-- Prefer the smallest BE change. Count new tables/aggregates honestly.
+- Never write product code. Spec only.
+- **Design shared components ONCE (P2).** A component used on ≥2 screens is designed
+  in the catalog; per-screen specs reference it. Re-inventing it per screen is the
+  duplicate-work failure this skill exists to prevent.
+- No unverified claim. Codebase mode: resolve to `file:line`. Greenfield: cite a
+  designed endpoint/entity. Otherwise it is an open question, not an assumption.
+- Never fabricate: a mockup's hardcoded value (price, %, name) with no data source is
+  an open question, not a spec value.
 - Done-criteria are real-server-round-trip conditions, never "renders a shell".
-- The connected view's `data-n` numbers must match one-to-one between the
-  wireframe markers and the spec rows — a drifted number is a broken anchor.
+- The connected view's spec table must survive any linked wireframe CSS
+  (namespaced `.fs-*` + scoped reset) and be responsive — a project-specific patch
+  is not acceptable; fix the template.
+- `data-n` numbers match one-to-one between wireframe markers and spec rows.
 - If no wireframe exists for a requested screen, stop and point to `/design-ui`.

@@ -5,95 +5,135 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><!-- SCREEN --> — 와이어프레임 ↔ 기능명세 연결</title>
 <!--
-  connected-template.html — /functional-spec Phase 5 wireframe↔spec split view.
+  connected-template.html — functional-spec Phase 6 wireframe↔spec view.
 
-  How to use:
-  - Left .wire  = paste the ACTUAL wireframe markup for this screen (from the mockup).
-    On every element that maps to a spec row, add class="anchor" data-n="N" and a
-    visible <span class="mk" data-n="N">N</span> marker. Use class="anchor newbe" +
-    <span class="mk newbe"> for new-BE elements (green).
-  - Right .spec = the ② functional decomposition table. Each <tr class="row" data-n="N">
-    must reuse the SAME N as its wireframe element. Add class="newbe" for new-BE rows.
-  - The numbers N are the contract: hovering either side highlights the matching pair.
-    A drifted N is a broken anchor — keep them one-to-one with the .md ② table.
-  - tokens.css: link the wireframe's own tokens (e.g. ../mockups/tokens.css) or this
-    skill's references/tokens.css copied alongside the output.
+  ISOLATION CONTRACT (why this template looks the way it does):
+  The left pane renders the real wireframe, which needs the wireframe's own
+  tokens.css. That stylesheet is GLOBAL — its generic classes (.row, .card,
+  .tag, .num…) WILL leak into this document. So the right/spec pane must NEVER
+  use generic class names and must defend the table:
+    - every spec-side class is namespaced `.fs-*`
+    - a scoped reset forces table display: `.fs-spec :where(table,tr,td,th){display:revert}`
+    - the layout is responsive: the split stacks and the table scrolls on narrow widths
+  Do NOT rename `.fs-*` back to generic names, and do NOT "fix" a broken table by
+  patching the project's tokens.css — the fix lives here, project-independently.
+
+  HOW TO FILL:
+  - Left `.fs-wire`: paste the ACTUAL wireframe markup. On each mapped element add
+    class="fs-anchor" data-n="N" and a marker <span class="fs-mk" data-n="N">N</span>
+    (use `.fs-mk.newbe` + `.fs-anchor.newbe` for new-BE elements). Keep the wireframe's
+    OWN classes on those elements too (they style the mockup); `.fs-anchor` only adds
+    the hover outline.
+  - Right `.fs-spec`: the ② decomposition table. Each <tr class="fs-row" data-n="N">
+    reuses the SAME N. `.fs-row.newbe` for new-BE rows.
+  - Bottom `.fs-components`: render §③ Component contract (reuse-from-catalog + new).
+  - tokens.css: link the wireframe's own (e.g. ../mockups/tokens.css).
 -->
 <link rel="stylesheet" href="../mockups/tokens.css">
 <style>
+  /* ---- spec-side, fully namespaced + self-contained ---- */
   body{margin:0;font:14px/1.6 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;background:#eef0f4;color:#1a1d24;}
-  .top{padding:16px 24px;background:#fff;border-bottom:1px solid var(--line);}
-  .top h1{font-size:18px;margin:0 0 4px;}
-  .top p{margin:0;font-size:12.5px;color:var(--muted);}
-  .split{display:grid;grid-template-columns:1.15fr 1fr;gap:0;align-items:start;}
-  .wire{position:sticky;top:0;align-self:start;max-height:100vh;overflow:auto;border-right:1px solid var(--line);background:#f4f6f9;}
-  .spec{padding:18px 20px 80px;overflow:auto;}
-  /* number markers on the wireframe side */
-  .mk{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;padding:0 4px;
+  .fs-top{padding:16px 24px;background:#fff;border-bottom:1px solid #e3e6ec;}
+  .fs-top h1{font-size:18px;margin:0 0 4px;}
+  .fs-top p{margin:0;font-size:12.5px;color:#6b7280;}
+  .fs-split{display:grid;grid-template-columns:1.15fr 1fr;gap:0;align-items:start;}
+  .fs-wire{position:sticky;top:0;align-self:start;max-height:100vh;overflow:auto;border-right:1px solid #e3e6ec;background:#f4f6f9;padding:16px 0;}
+  .fs-wire .stage{display:flex;justify-content:center;}
+  .fs-spec{padding:18px 20px 40px;overflow:auto;}
+  .fs-spec h2{font-size:15px;margin:0 0 12px;padding-bottom:8px;border-bottom:2px solid #e3e6ec;}
+  /* markers / anchors (namespaced so wireframe CSS can't touch them) */
+  .fs-mk{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;padding:0 4px;
      background:#e8590c;color:#fff;font-size:11px;font-weight:800;border-radius:10px;vertical-align:middle;
      margin:0 4px;box-shadow:0 0 0 2px #fff;cursor:pointer;position:relative;z-index:2;font-family:ui-monospace,monospace;}
-  .mk.newbe{background:#2f9e63;}
-  .anchor{position:relative;outline-offset:2px;transition:.12s;border-radius:6px;}
-  .anchor.hot{outline:2px dashed #e8590c;background:#fff4ec;}
-  .anchor.hot.newbe{outline-color:#2f9e63;background:#eafaf0;}
-  /* spec table */
-  .spec h2{font-size:15px;margin:0 0 12px;padding-bottom:8px;border-bottom:2px solid var(--line);}
-  table{border-collapse:collapse;width:100%;font-size:12.5px;}
-  th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top;}
-  th{background:var(--bg);font-weight:700;position:sticky;top:0;}
-  tr.row{cursor:pointer;}
-  tr.row:hover,tr.row.hot{background:#fff4ec;}
-  tr.row.newbe:hover,tr.row.newbe.hot{background:#eafaf0;}
-  .num{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;padding:0 4px;background:#e8590c;color:#fff;font-size:11px;font-weight:800;border-radius:10px;font-family:ui-monospace,monospace;}
-  .num.newbe{background:#2f9e63;}
-  .tag{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:6px;}
-  .tag.ok{background:#eafaf0;color:#2f9e63;} .tag.new{background:#fdeee2;color:#e8590c;} .tag.ui{background:#eef1f6;color:#5b6472;}
-  .legend{font-size:12px;color:var(--muted);margin:0 0 14px;}
-  .legend b{color:#1a1d24;}
+  .fs-mk.newbe{background:#2f9e63;}
+  .fs-anchor{position:relative;outline-offset:2px;transition:.12s;border-radius:6px;}
+  .fs-anchor.hot{outline:2px dashed #e8590c;background:#fff4ec;}
+  .fs-anchor.hot.newbe{outline-color:#2f9e63;background:#eafaf0;}
+  /* ---- the spec table: scoped reset defeats any leaked wireframe rule ---- */
+  .fs-tablewrap{overflow-x:auto;}
+  .fs-spec :where(table,thead,tbody,tr,td,th){all:revert;margin:0;}
+  .fs-spec table{border-collapse:collapse;width:100%;min-width:620px;font-size:12.5px;}
+  .fs-spec th,.fs-spec td{border:1px solid #e3e6ec;padding:7px 9px;text-align:left;vertical-align:top;}
+  .fs-spec th{background:#f7f8fa;font-weight:700;position:sticky;top:0;}
+  tr.fs-row{cursor:pointer;}
+  tr.fs-row:hover,tr.fs-row.hot{background:#fff4ec;}
+  tr.fs-row.newbe:hover,tr.fs-row.newbe.hot{background:#eafaf0;}
+  .fs-num{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;padding:0 4px;background:#e8590c;color:#fff;font-size:11px;font-weight:800;border-radius:10px;font-family:ui-monospace,monospace;}
+  .fs-num.newbe{background:#2f9e63;}
+  .fs-tag{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:6px;}
+  .fs-tag.ok{background:#eafaf0;color:#2f9e63;} .fs-tag.new{background:#fdeee2;color:#e8590c;} .fs-tag.ui{background:#eef1f6;color:#5b6472;}
+  .fs-legend{font-size:12px;color:#6b7280;margin:0 0 14px;}
+  .fs-legend b{color:#1a1d24;}
+  .fs-cap{font-size:11px;color:#6b7280;margin:4px 0 0 14px;}
+  /* ---- §③ component contract section (full width, below the split) ---- */
+  .fs-components{padding:22px 24px 70px;background:#fff;border-top:1px solid #e3e6ec;}
+  .fs-components h2{font-size:16px;margin:0 0 4px;}
+  .fs-components .sub{font-size:12.5px;color:#6b7280;margin:0 0 14px;}
+  .fs-components table{border-collapse:collapse;width:100%;font-size:12.5px;margin-bottom:18px;}
+  .fs-components th,.fs-components td{border:1px solid #e3e6ec;padding:7px 9px;text-align:left;vertical-align:top;}
+  .fs-components th{background:#f7f8fa;font-weight:700;}
+  .fs-components code{background:#f3f4f6;padding:1px 5px;border-radius:4px;font-size:11.5px;}
+  .fs-flow{background:#fbfcf9;border-left:3px solid #2f9e63;padding:10px 14px;border-radius:0 8px 8px 0;font-family:ui-monospace,monospace;font-size:12px;white-space:pre-wrap;}
+  /* ---- responsive: stack the split, let the table scroll ---- */
+  @media (max-width:900px){
+    .fs-split{grid-template-columns:1fr;}
+    .fs-wire{position:static;max-height:none;border-right:0;border-bottom:1px solid #e3e6ec;}
+  }
 </style>
 </head>
 <body>
-<div class="top">
+<div class="fs-top">
   <h1><!-- SCREEN --> — 와이어프레임 ↔ 기능명세 연결</h1>
-  <p>좌: 실제 와이어프레임(<code><!-- mockup path --></code>) · 우: 기능명세 표.
-     <b>같은 번호 = 같은 요소.</b> 행/마커에 커서를 올리면 서로 강조됩니다.
-     <span class="tag new">주황</span> 일반 · <span class="tag ok">초록</span> 신규 BE.</p>
+  <p>좌: 실제 와이어프레임(<code><!-- mockup path --></code>) · 우: 기능명세 ② 표 · 아래: ③ 컴포넌트 계약.
+     <b>같은 번호 = 같은 요소.</b> 커서를 올리면 서로 강조됩니다.
+     <span class="fs-tag ok">기존/UI</span> · <span class="fs-tag new">신규 BE</span>.
+     공유 컴포넌트는 <a href="component-design.html">component-design</a> 참조.</p>
 </div>
-<div class="split">
-  <!-- ================= LEFT: real wireframe + numbered markers ================= -->
-  <div class="wire">
-    <!-- Paste the actual wireframe markup here.
-         Wrap each mapped element:  class="anchor" data-n="N"  and place
-         <span class="mk" data-n="N">N</span> next to it. Use .newbe for new-BE elements. -->
+
+<div class="fs-split">
+  <!-- ============ LEFT: real wireframe + numbered markers (.fs-anchor/.fs-mk) ============ -->
+  <div class="fs-wire">
+    <!-- Paste the actual wireframe markup here. Example element:
+         <div class="food fs-anchor" data-n="6"><span class="fs-mk" data-n="6">6</span><span>🥬</span>시금치</div> -->
   </div>
 
-  <!-- ================= RIGHT: functional decomposition (same numbers) ================= -->
-  <div class="spec">
+  <!-- ============ RIGHT: ② functional decomposition (same numbers) ============ -->
+  <div class="fs-spec">
     <h2>기능 분해 — 완료 판정은 실서버 왕복 기준</h2>
-    <p class="legend"><span class="tag ok">기존</span> 이미 있는 데이터/기능 ·
-       <span class="tag new">신규 BE</span> 새 집계 · <span class="tag ui">UI</span> 클라 상태</p>
-    <table>
-      <thead><tr><th style="width:26px">#</th><th>요소</th><th>기능(동작)</th><th>데이터·완료 판정</th><th style="width:44px">구분</th></tr></thead>
-      <tbody>
-        <!-- One <tr class="row" data-n="N"> per element. Example:
-        <tr class="row" data-n="1"><td><span class="num">1</span></td><td>키워드 검색</td>
-          <td>이름·연락처·차트번호로 서버 재조회</td>
-          <td><code>GET /patient</code> search.keyword → 서버 필터 rows</td>
-          <td><span class="tag ok">기존</span></td></tr>
-        <tr class="row newbe" data-n="11"><td><span class="num newbe">11</span></td><td>방문 횟수</td>
-          <td>완료 진료 건수 표시</td>
-          <td><b>신규</b> consult_v2 COUNT → visitCount:int</td>
-          <td><span class="tag new">신규 BE</span></td></tr>
-        -->
-      </tbody>
-    </table>
-    <p class="legend" style="margin-top:14px"><!-- one-line summary: N elements, M new BE --></p>
+    <p class="fs-legend"><span class="fs-tag ok">기존</span> 이미 설계된 엔드포인트 ·
+       <span class="fs-tag new">신규 BE</span> 새 엔드포인트 필요 · <span class="fs-tag ui">UI</span> 클라 내비/상태</p>
+    <div class="fs-tablewrap">
+      <table>
+        <thead><tr><th style="width:26px">#</th><th>요소</th><th>기능(동작)</th><th>데이터·완료 판정</th><th style="width:52px">구분</th></tr></thead>
+        <tbody>
+          <!-- One <tr class="fs-row" data-n="N"> per element. Example:
+          <tr class="fs-row" data-n="1"><td><span class="fs-num">1</span></td><td>키워드 검색</td>
+            <td>서버 재조회</td><td><code>GET /x</code> …</td><td><span class="fs-tag ok">기존</span></td></tr>
+          -->
+        </tbody>
+      </table>
+    </div>
+    <p class="fs-legend" style="margin-top:14px"><!-- one-line summary --></p>
   </div>
 </div>
+
+<!-- ============ BELOW: ③ Component contract (references the shared catalog) ============ -->
+<div class="fs-components">
+  <h2>③ 컴포넌트 계약</h2>
+  <p class="sub">공유 컴포넌트는 <a href="component-design.html">component-design</a>에서 한 번 설계됨 — 여기서는 참조. 신규는 이 화면 전용.</p>
+  <!-- 재사용 (from catalog / existing):
+  <table><thead><tr><th>컴포넌트</th><th>출처</th><th>이 화면 사용</th></tr></thead>
+    <tbody><tr><td><code>FoodRow</code></td><td>catalog (공유)</td><td>임박 재료 행</td></tr></tbody></table>
+  신규 (this screen only):
+  <table><thead><tr><th>컴포넌트/파일</th><th>역할</th><th>props</th><th>상태</th></tr></thead><tbody>…</tbody></table>
+  데이터 흐름: -->
+  <div class="fs-flow"><!-- Screen → hook → api → endpoint --></div>
+</div>
+
 <script>
   function hot(n,on){
     document.querySelectorAll('[data-n="'+n+'"]').forEach(el=>{
-      if(el.classList.contains('anchor')||el.classList.contains('row')) el.classList.toggle('hot',on);
+      if(el.classList.contains('fs-anchor')||el.classList.contains('fs-row')) el.classList.toggle('hot',on);
     });
   }
   document.querySelectorAll('[data-n]').forEach(el=>{

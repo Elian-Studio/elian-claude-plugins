@@ -10,6 +10,29 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## elian-store Plugin
 
+### [2.26.0] — 2026-07-03
+
+#### Changed
+- **`functional-spec`** gained a cross-wireframe **Component Design phase** (Phase 2):
+  before any per-screen spec, it now surveys *all* wireframes together and designs a
+  **shared component catalog** (usage matrix + shared vs screen-specific), so recurring
+  UI (rows, cards, nav, buttons) is designed once and each screen's §③ references it —
+  eliminating the duplicate component work that per-screen-only design produced.
+  **Greenfield** is now a first-class grounding mode (ground to the designed
+  API/entities when there is no codebase to grep). New reference:
+  `references/component-design-template.md`.
+- **`functional-spec` connected view** rebuilt to be project-independent and robust:
+  the wireframe's linked `tokens.css` no longer breaks the spec table (namespaced
+  `.fs-*` classes + a scoped `:where(table,tr,td,th)` reset), the layout is responsive
+  (split stacks, table scrolls on narrow widths), and the page now renders the **§③
+  component contract** inline (not just the ② decomposition). Fixes a real collision
+  where a wireframe `.row{display:flex}` collapsed the table.
+
+#### Added
+- `tools/dev-install.sh` — installs the working-tree `elian-store` into the local
+  plugin cache so the **whole pipeline** runs as real installed skills for end-to-end
+  testing (no merge/PR needed); `--revert` to undo.
+
 ### [2.25.0] — 2026-07-03
 
 #### Added

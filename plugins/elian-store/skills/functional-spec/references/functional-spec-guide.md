@@ -1,12 +1,25 @@
 # Functional Spec Guide
 
-Reference for `/functional-spec` Phase 5. Read this before writing `<screen>.md`.
+Reference for `/functional-spec` Phase 6 per-screen `.md`. Read after
+`component-design-template.md` (the shared catalog is designed first, in Phase 2).
 
 A functional spec is **not** a design spec. `design-spec.md` (from `/design-feature`)
 describes screens in design language and deliberately bans code terms. A functional
-spec does the opposite: it binds every wireframe element to **real code** — existing
-components to reuse (with paths), new components to create, and the real endpoints/
-fields behind each element. It is the contract `/implement` builds from.
+spec does the opposite: it binds every wireframe element to code — components to
+reuse (from the **shared catalog** or an existing file), new screen-specific
+components, and the endpoint/field behind each element. It is the contract
+`/implement` builds from.
+
+**Grounding mode.** On an existing codebase, cite a real `file:line` for every
+reuse and data source. On a **greenfield** product (no code yet), cite a
+**designed** endpoint/entity from `api-spec.md` / `ddl.sql` / `design.md` instead —
+every component is new (designed in the Phase 2 catalog). Never fabricate: a
+mockup's hardcoded value (price, %, name) with no data source is an open question,
+not a spec value.
+
+**Shared components are NOT re-declared here.** §③ references the Phase 2
+`component-design.md` catalog for anything used on ≥2 screens; this file only adds
+components genuinely unique to this screen.
 
 ---
 
@@ -36,13 +49,15 @@ One numbered row per wireframe element. The number is the connected-view anchor.
 ## ③ 컴포넌트 계약
 Front-end rules first (e.g. "기존 view 미수정, 신규 view로 분리, base 컴포넌트 미수정").
 
-### 신규
-| 컴포넌트/파일 | 배치(신규) | 역할 | props | emit/노출 | 상태 |
-Each new file justified — reuse an existing one if it fits.
+### 재사용 (catalog / existing)
+| 컴포넌트 | 출처 | 이 화면 사용(props/variant) |
+Shared components from `component-design.md` (name + "catalog"), or on a codebase
+an existing component at its exact `file:line`. Do NOT re-design a shared component here.
 
-### 재사용(기존 파일 경로 명시)
-| 컴포넌트 | 경로 | 사용 계약 |
-Exact existing path + how it's used and any constraint.
+### 신규 (this screen only)
+| 컴포넌트/파일 | 배치(신규) | 역할 | props | emit/노출 | 상태 |
+Only components unique to this screen. If one turns out to recur, promote it to the
+Phase 2 catalog instead of duplicating.
 
 ### 데이터 흐름
 A short tree: view → composable → service → endpoint → selection/handoff. Include
@@ -98,10 +113,11 @@ From a real issue (`MPT-9457` 환자 목록 V2). Note how every claim is grounde
 
 Before handing off to `/implement`:
 
-- [ ] Every ② row has a real data source cited at `file:line` (endpoint+field) or a justified `UI-only`.
+- [ ] Every ② row has a data source: codebase → `file:line`; greenfield → a designed endpoint+field; or a justified `UI-only`.
 - [ ] Every ② 완료 판정 is a real-server condition, not "renders".
-- [ ] Every ③ 재사용 entry cites the exact `file:line` (verified with Read/grep), not just a path.
-- [ ] Every ③ 신규 component is justified (no existing one fits).
-- [ ] ④ counts new tables/aggregates honestly.
-- [ ] ⑤ lists every unverified assumption — none silently promoted to fact.
-- [ ] Connected-view `data-n` numbers match ② row numbers one-to-one.
+- [ ] No fabricated value: any mockup hardcode (price/%/name) with no source is in ⑤, not treated as real.
+- [ ] Every ③ 재사용 entry names a catalog component or an existing `file:line` — shared components are NOT re-declared here.
+- [ ] Every ③ 신규 component is genuinely screen-specific (recurring ones live in the catalog).
+- [ ] ④ counts new tables/endpoints honestly.
+- [ ] ⑤ lists every unpinned assumption — none silently promoted to fact.
+- [ ] The connected view includes the §③ component section, its table survives the wireframe's linked CSS (`.fs-*` + scoped reset), and `data-n` matches ② rows one-to-one.
