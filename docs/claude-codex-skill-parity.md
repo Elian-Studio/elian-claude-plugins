@@ -1,7 +1,7 @@
 # Claude / Codex Skill Parity Review
 
 Date: 2026-06-02
-Last updated: 2026-06-12 (migrated 13 commands from Codex prompts to shared Codex *skills* via `tools/generate.py`; only `generate-teammate` and `persona-review` stay prompts — their core is Claude subagent dispatch, which Codex cannot reproduce; `document-writer` and `harness-manager` remain Claude-only. Codex catalog: 2 prompts + 13 shared skills. 2026-06-12: added `pr-review` as a third Claude-only skill — parallel multi-subagent review panel the Codex runtime cannot reproduce. 2026-06-23: added three superpowers-derived skills — `verify-before-claiming` and `respond-to-review` as shared Codex skills, and `finish-branch` as a fourth Claude-only skill (native worktree tooling). Codex catalog: 2 prompts + 15 shared skills.)
+Last updated: 2026-06-12 (migrated 13 commands from Codex prompts to shared Codex *skills* via `tools/generate.py`; only `generate-teammate` and `persona-review` stay prompts — their core is Claude subagent dispatch, which Codex cannot reproduce; `document-writer` and `harness-manager` remain Claude-only. Codex catalog: 2 prompts + 13 shared skills. 2026-06-12: added `pr-review` as a third Claude-only skill — parallel multi-subagent review panel the Codex runtime cannot reproduce. 2026-06-23: added three superpowers-derived skills — `verify-before-claiming` and `respond-to-review` as shared Codex skills, and `finish-branch` as a fourth Claude-only skill (native worktree tooling). Codex catalog: 2 prompts + 15 shared skills. 2026-07-03: added `functional-spec` as a shared Codex skill (wireframe→code-grounded spec bridge; doc-generation + codebase-reading, fully Codex-reproducible — symlinked, no Claude-only blocker). Codex catalog: 2 prompts + 16 shared skills.)
 
 ## Goal
 

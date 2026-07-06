@@ -181,10 +181,15 @@ Use [templates/DESIGN.md](templates/DESIGN.md) for DESIGN.md. It should capture 
 End with:
 
 ```text
-Design ready at <out>/. Open visual.html in a browser. Next: frontend implementation.
+Design ready at <out>/. Open visual.html in a browser.
+Next: /functional-spec <label> --from <out>  (bind each element to real components + APIs), then /implement.
 ```
 
 Run `open <out>/visual.html` only after user approval.
+
+Downstream: before implementation, run `/functional-spec` to turn this wireframe
+into a code-grounded contract (per-element function + reuse/new component +
+real endpoint), so `/implement` has an unambiguous starting point.
 
 ## Standing rules
 
