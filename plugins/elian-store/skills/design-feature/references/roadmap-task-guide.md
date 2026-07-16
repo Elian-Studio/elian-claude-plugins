@@ -117,6 +117,67 @@ Each sub item is one action. Do not bundle multiple changes into one item.
 
 ---
 
+## features — Capability Checklist (Reviewer/QA)
+
+`features[]` is a **product-facing** checklist, separate from `criteria`/`subs`.
+It answers one question: "is this screen functionally complete?" The audience is
+a PM or QA skimming a screen, not an implementer. Each `t` must read as a
+capability the reader can verify at a glance — never an implementation task.
+`sub[]` bullets are the concrete, enumerable behaviours of that capability.
+
+Do not pad. `features[]` is for screens/tasks complex enough to warrant a
+functional breakdown; skip it for small, well-understood tasks (same rule as
+`criteria`/`subs` — do not fill the template just because it exists).
+
+**Bad — implementation tasks disguised as features:**
+
+```json
+"features": [
+  { "name": "LoginController", "items": [
+    { "t": "POST /api/login 핸들러 추가", "done": true, "sub": ["@Valid 적용", "JWT 발급"] }
+  ]}
+]
+```
+
+This is a `subs` list wearing a `features` costume — it names endpoints and
+annotations, not what a user can do.
+
+**Good — capabilities a reviewer can verify:**
+
+```json
+"features": [
+  { "name": "로그인", "items": [
+    { "t": "이메일과 비밀번호로 로그인할 수 있다", "done": true, "sub": ["형식 오류 시 인라인 메시지 표시", "5회 실패 시 잠금"] },
+    { "t": "비밀번호 재설정 링크를 이메일로 받는다", "done": false }
+  ]},
+  { "name": "세션", "items": [
+    { "t": "자동 로그인이 유지된다", "done": false, "sub": ["30일 만료", "로그아웃 시 즉시 해제"] }
+  ]}
+]
+```
+
+**Why:** a reviewer opening the drawer sees ✓/◐ per capability and knows
+exactly what still fails, without reading code or the implementer's `subs`.
+
+---
+
+## dropped + reason — Recording a Descope Decision
+
+Set `status: "dropped"` when there is an **explicit decision not to build** a
+task/screen — not merely "not started yet." A `todo` task looks unstarted; a
+`dropped` task reads as "decided against," excluded from the progress %.
+
+Always pair it with `reason`, naming the decision date/source when known:
+
+```json
+{ "title": "SSO 연동", "status": "dropped", "reason": "2026-07-03 점검 결정: 3rd-party 우선순위 낮음, 구현 제외" }
+```
+
+Use `hold` (not `dropped`) when the work is merely paused and expected to
+resume.
+
+---
+
 ## title Checklist
 
 If any of the following appear in a task `title`, rewrite it:
@@ -171,5 +232,7 @@ highlight guarantees or exceptional behaviour.
 | How does it work? | `desc` — Mermaid `sequenceDiagram` |
 | What counts as done? | `criteria` — behaviour headline + `→` hint |
 | What are the implementation steps? | `subs` — verb + object, one per item |
+| What can a user actually do here? | `features` — grouped capability checklist (reviewer/QA) |
 | What does this block or depend on? | `deps` |
 | Related documents? | `links` |
+| Decided against building this? | `status: "dropped"` + `reason` |

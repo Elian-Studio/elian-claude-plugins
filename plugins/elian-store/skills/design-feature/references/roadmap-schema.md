@@ -38,7 +38,8 @@ it via `build_roadmap.py` → `index.html`.
 ```json
 {
   "title":    "Task title",              // required
-  "status":   "todo|doing|done",         // required
+  "status":   "todo|doing|done|dropped", // required
+  "reason":   "2026-07-03 점검 결정: 구현 제외", // optional — why dropped
   "hold":     false,                     // optional — exclude from progress %
   "owner":    "BE engineer",             // optional
   "period":   "2026-06-26 – 2026-06-28", // optional
@@ -58,6 +59,14 @@ it via `build_roadmap.py` → `index.html`.
   "subs": [
     { "text": "Subtask", "done": false }
   ],
+  "features": [
+    {
+      "name": "Feature group",
+      "items": [
+        { "t": "User-facing capability", "done": true, "sub": ["Concrete behaviour 1", "Concrete behaviour 2"] }
+      ]
+    }
+  ],
   "deps": [
     { "tag": "blocker|dep", "text": "Depends on X" }
   ],
@@ -68,6 +77,44 @@ it via `build_roadmap.py` → `index.html`.
     { "who": "Daniel", "date": "2026-06-26", "text": "Decision note" }
   ]
 }
+```
+
+### features[] — product-facing checklist
+
+Optional. A grouped "what can a user actually do on this screen" checklist,
+kept separate from `criteria`/`subs` (which track implementation). Rendered in
+the drawer under **실제 기능** with ✓ (done) / ◐ (not done) icons, and the
+task's board row shows a compact `기능 done/total` counter so functional
+completeness is visible without opening the drawer. Use it for a screen or
+menu complex enough to warrant a functional breakdown; skip it for small,
+well-understood tasks.
+
+```json
+"features": [
+  {
+    "name": "인증",                       // group name (required)
+    "items": [                            // required, ≥ 1 item
+      {
+        "t":    "이메일로 로그인할 수 있다",   // required — capability, behaviour-first
+        "done": true,                     // required
+        "sub":  ["형식 검증", "실패 메시지"]  // optional — concrete behaviours
+      }
+    ]
+  }
+]
+```
+
+### dropped status + reason
+
+`status: "dropped"` records an explicit decision **not** to build a
+task/screen (descoped), instead of leaving it as `todo` forever. Dropped tasks
+render with a **폐기** badge and are excluded from the progress % denominator
+(like `hold`). `reason` is **required** for dropped tasks — record why,
+ideally naming the decision date / source. `hold: true` combined with
+`status: "dropped"` is a validation error — set exactly one.
+
+```json
+{ "title": "SSO 연동", "status": "dropped", "reason": "2026-07-03 점검 결정: 구현 제외" }
 ```
 
 ### Mermaid in desc
