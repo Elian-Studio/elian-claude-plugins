@@ -18,10 +18,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
   user do on this screen" checklist (✓/◐ per capability), rendered under **실제
   기능** and kept deliberately separate from the implementation-tracking
   `criteria`/`subs` (different audience: PM/QA verifying functional completeness
-  vs. an implementer's checklist). (2) Task `status` gains a **`dropped`** value
-  plus an optional **`reason`** field to record an explicit descope decision,
+  vs. an implementer's checklist); the task's board row also shows a compact
+  `기능 done/total` counter so completeness is scannable without opening the
+  drawer. (2) Task `status` gains a **`dropped`** value
+  plus a required **`reason`** field to record an explicit descope decision,
   instead of leaving descoped work as `todo` forever; dropped tasks show a
-  **폐기** badge and are excluded from the progress % denominator (like `hold`).
+  **폐기** badge and are excluded from the progress % denominator (like `hold`;
+  combining `hold` with `dropped` is a validation error). `links[]`/`docs[]`
+  URLs with `javascript:`/`data:`-style schemes are neutralized at render time.
   (3) Phase 5 guidance now instructs auto-linking a screen task to its
   `functional-spec` document via the existing `links[]` field. All three are
   optional and backward compatible — roadmaps without them render unchanged.

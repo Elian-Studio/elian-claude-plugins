@@ -268,9 +268,11 @@ Use `status: "dropped"` + `reason` to record a screen/task you explicitly
 decided not to build (rather than leaving it as `todo`).
 
 When a task represents a screen/menu that has a corresponding functional-spec
-document — a `functional-specs/<screen>.html` from the sibling `functional-spec`
-skill, or any doc already in this feature's `docs[]` — add a `links[]` entry on
-that task pointing to it, e.g. `{"label": "기능 명세", "url": "functional-specs/<screen>.html"}`.
+document — a `functional-specs/<screen>-connected.html` from the sibling
+`functional-spec` skill, or any doc already in this feature's `docs[]` — add a
+`links[]` entry on that task pointing to it, e.g.
+`{"label": "Functional spec", "url": "functional-specs/<screen>-connected.html"}`.
+Check the actual emitted filename before linking — do not guess.
 A reviewer opening the screen's task drawer can then jump straight to its spec
 instead of hunting through `docs[]`. Reuse the existing `links[]` field — no new
 schema.

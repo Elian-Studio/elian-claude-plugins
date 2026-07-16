@@ -5,7 +5,8 @@ Called by design-feature Phase 5. Validates roadmap.json against
 roadmap.schema.json, then renders a single-file HTML hub with:
   - summary bar (progress %)
   - vertical timeline (phases → task cards)
-  - click-to-open task drawer (criteria, subs, deps, links, activity)
+  - click-to-open task drawer (criteria, subs, features, deps, links, activity;
+    reason shown in meta for dropped tasks)
   - Mermaid diagram support in task desc (```mermaid blocks)
   - generated document cards + stakeholder matrix
 
@@ -19,6 +20,7 @@ Usage:
 import argparse
 import html
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -34,6 +36,28 @@ PALETTE = ["#6366f1", "#8b5cf6", "#ec4899", "#3b82f6",
 
 def esc(s):
     return html.escape(str(s if s is not None else ""), quote=True)
+
+
+BAD_URL_SCHEME = re.compile(r"^\s*(javascript|data|vbscript|file):", re.IGNORECASE)
+
+
+def safe_url(u):
+    u = str(u or "#")
+    return "#" if BAD_URL_SCHEME.match(u) else u
+
+
+def validate_task_rules(data):
+    """Cross-field rules the flat schema subset cannot express."""
+    errors = []
+    for pi, p in enumerate(data.get("phases") or []):
+        for ti, t in enumerate(p.get("tasks") or []):
+            loc = f"phases[{pi}].tasks[{ti}]"
+            if t.get("status") == "dropped":
+                if not str(t.get("reason") or "").strip():
+                    errors.append(f"{loc}: status 'dropped' requires a non-empty 'reason'")
+                if t.get("hold"):
+                    errors.append(f"{loc}: 'hold' and status 'dropped' are mutually exclusive — set one")
+    return errors
 
 
 def phase_stats(tasks):
@@ -60,7 +84,7 @@ def overall_stats(phases):
 
 
 def render_doc_card(d):
-    href = d.get("href", "#")
+    href = safe_url(d.get("href", "#"))
     layer = f'<span class="lyr">{esc(d["layer"])}</span>' if d.get("layer") else ""
     reader = f'<div class="rdr">읽는 사람: {esc(d["reader"])}</div>' if d.get("reader") else ""
     return (f'<a class="doc" href="{esc(href)}">'
@@ -160,6 +184,7 @@ h1{font-size:28px;font-weight:700;margin:0 0 8px;letter-spacing:-.015em}
 .bdg.todo{background:#eef0f3;color:#828a96}
 .bdg.held{background:#fbf2df;color:#9a6b1e}
 .bdg.dropped{background:#fbeae8;color:#a4352c}
+.fct{font-size:11.5px;font-weight:600;color:#6b7280;background:#f1f3f5;border-radius:7px;padding:3px 9px;white-space:nowrap;flex:none}
 .chev{color:#c4c9d0;font-size:17px;line-height:1;flex:none}
 .empty{padding:26px;text-align:center;color:#9095a0;font-size:13.5px}
 .overlay{position:fixed;inset:0;background:rgba(20,24,29,.34);z-index:40;animation:fadeIn .18s ease}
@@ -185,6 +210,7 @@ h1{font-size:28px;font-weight:700;margin:0 0 8px;letter-spacing:-.015em}
 .sbtn.on.done{background:#e8f6ee;color:#15924f;border-color:#15924f33}
 .sbtn.on.doing{background:#e9f1fe;color:#1f6fe0;border-color:#1f6fe033}
 .sbtn.on.todo{background:#eef0f3;color:#828a96;border-color:#828a9633}
+.sbtn.on.dropped{background:#fbeae8;color:#a4352c;border-color:#a4352c33;cursor:default}
 .meta{display:flex;flex-direction:column;gap:13px;margin-bottom:24px;padding-bottom:22px;border-bottom:1px solid #eef0f3}
 .mr{display:flex;align-items:center;gap:14px}
 .mr .k{font-size:13px;color:#9095a0;width:64px;flex:none}
@@ -254,10 +280,8 @@ h1{font-size:28px;font-weight:700;margin:0 0 8px;letter-spacing:-.015em}
 JS = r"""
 const DATA = __DATA_JSON__;
 const PALETTE = ["#6366f1","#8b5cf6","#ec4899","#3b82f6","#f59e0b","#14b8a6","#10b981","#0ea5e9"];
-const BADGE = { done:{label:'완료',bg:'#e8f6ee',fg:'#15924f'},
-                doing:{label:'진행중',bg:'#e9f1fe',fg:'#1f6fe0'},
-                todo:{label:'대기',bg:'#eef0f3',fg:'#828a96'},
-                dropped:{label:'폐기',bg:'#fbeae8',fg:'#a4352c'} };
+const BADGE = { done:{label:'완료'}, doing:{label:'진행중'},
+                todo:{label:'대기'}, dropped:{label:'폐기'} };
 const NEXT = { todo:'doing', doing:'done', done:'todo' };
 let sel = null;
 
@@ -346,7 +370,7 @@ function renderFocus(){
   const focusEl = document.getElementById('focus');
   const blockers = [], nexts = [];
   DATA.phases.forEach(p => p.tasks.forEach(t => {
-    if(t.hold) return;
+    if(t.hold || t.status==='dropped') return;
     if((t.deps||[]).some(d=>d.tag==='blocker')) blockers.push(t.title);
     if(t.status==='doing') nexts.push(t.title);
   }));
@@ -365,10 +389,12 @@ function renderBoard(){
     const held = (s.held ? ` · 보류 ${s.held}` : '') + (s.dropped ? ` · 폐기 ${s.dropped}` : '');
     const tasks = (p.tasks||[]).map((t,ti)=>{
       const period = t.period ? `<span class="per">${esc(t.period)}</span>` : '';
+      const fitems = (t.features||[]).flatMap(g=>g.items||[]);
+      const fchip = fitems.length ? `<span class="fct">기능 ${fitems.filter(f=>f.done).length}/${fitems.length}</span>` : '';
       return `<div class="task" data-open="${pi}.${ti}">
         <div data-check="${pi}.${ti}" style="--c:${color}">${chk(t.status, t.hold, color)}</div>
         <span class="txt ${t.hold?'':''}${t.status==='done'?'done':''}">${esc(t.title)}</span>
-        <span class="sp"></span>${period}${badge(t.status, t.hold)}
+        <span class="sp"></span>${period}${fchip}${badge(t.status, t.hold)}
         <span class="chev">›</span></div>`;
     }).join('');
     return `<div class="row">
@@ -392,8 +418,10 @@ function renderDrawer(){
   (t.labels||[]).forEach(l=>tags.push(`<span class="lab">${esc(l)}</span>`));
   const tagsRow = tags.length ? `<div class="tags">${tags.join('')}</div>` : '';
 
-  const sbtns = ['todo','doing','done'].map(st=>
-    `<div class="sbtn ${t.status===st?'on '+st:''}" data-status="${st}">${BADGE[st].label}</div>`).join('');
+  const sbtns = (t.status==='dropped' && !t.hold)
+    ? `<div class="sbtn on dropped">${BADGE.dropped.label}</div>`
+    : ['todo','doing','done'].map(st=>
+      `<div class="sbtn ${t.status===st?'on '+st:''}" data-status="${st}">${BADGE[st].label}</div>`).join('');
 
   const meta = [];
   if(t.owner) meta.push(`<div class="mr"><span class="k">담당자</span><span class="mv">${esc(t.owner)}</span></div>`);
@@ -427,7 +455,7 @@ function renderDrawer(){
 
   const links = (t.links||[]);
   const linkBlock = links.length ? `<div class="dsec"><div class="k">연결된 항목</div>
-    ${links.map(l=>`<a class="lnk" href="${esc(l.url||'#')}" target="_blank" rel="noopener">
+    ${links.map(l=>`<a class="lnk" href="${esc(/^\s*(javascript|data|vbscript|file):/i.test(l.url||'')?'#':(l.url||'#'))}" target="_blank" rel="noopener">
       <span class="lb2">${esc(l.label||l.url||'')}</span><span class="ar">↗</span></a>`).join('')}</div>` : '';
 
   const act = (t.activity||[]);
@@ -530,6 +558,8 @@ def main(argv=None):
     if not args.skip_validate and SCHEMA_PATH.exists():
         schema = json.loads(SCHEMA_PATH.read_text(encoding="utf-8"))
         errors = validate(schema, data)
+        if not errors:  # cross-field rules assume shape-valid data
+            errors = validate_task_rules(data)
         if errors:
             print(f"✗ schema invalid ({len(errors)} errors):", file=sys.stderr)
             for e in errors:

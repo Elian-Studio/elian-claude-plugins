@@ -83,9 +83,11 @@ it via `build_roadmap.py` → `index.html`.
 
 Optional. A grouped "what can a user actually do on this screen" checklist,
 kept separate from `criteria`/`subs` (which track implementation). Rendered in
-the drawer under **실제 기능** with ✓ (done) / ◐ (not done) icons. Use it for a
-screen or menu complex enough to warrant a functional breakdown; skip it for
-small, well-understood tasks.
+the drawer under **실제 기능** with ✓ (done) / ◐ (not done) icons, and the
+task's board row shows a compact `기능 done/total` counter so functional
+completeness is visible without opening the drawer. Use it for a screen or
+menu complex enough to warrant a functional breakdown; skip it for small,
+well-understood tasks.
 
 ```json
 "features": [
@@ -107,8 +109,9 @@ small, well-understood tasks.
 `status: "dropped"` records an explicit decision **not** to build a
 task/screen (descoped), instead of leaving it as `todo` forever. Dropped tasks
 render with a **폐기** badge and are excluded from the progress % denominator
-(like `hold`). Add `reason` to record why — ideally naming the decision date /
-source.
+(like `hold`). `reason` is **required** for dropped tasks — record why,
+ideally naming the decision date / source. `hold: true` combined with
+`status: "dropped"` is a validation error — set exactly one.
 
 ```json
 { "title": "SSO 연동", "status": "dropped", "reason": "2026-07-03 점검 결정: 구현 제외" }
