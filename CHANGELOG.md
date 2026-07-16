@@ -10,6 +10,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## elian-store Plugin
 
+### [2.27.0] — 2026-07-16
+
+#### Added
+- **`erd-preview`** — a "Lineage Explorer" skill. Given a table schema plus **real
+  rows** (introspected from a live read-only DB, or supplied via DDL / design docs /
+  pasted query results), it fills a validated self-contained HTML template where
+  clicking one record highlights only that record's lineage: upstream FK ancestors
+  ("sources") and downstream descendants ("impacts"), dimming the rest. Follows both
+  **hard foreign keys** (solid lines) and user-declared **soft references** (dashed
+  lines — value-level joins that are not schema FKs, e.g. a non-PK business-key
+  match), summarizes sources/impacts in a side panel, and ships a Figma-style
+  zoom/pan viewer for large schemas. A bundled `scripts/validate.py` checks
+  referential integrity, cardinality, LAYERS coverage, and left→right layer ordering
+  (parsing the JS literals with Node). Standalone — no external skill dependency.
+
 ### [2.26.0] — 2026-07-03
 
 #### Changed
