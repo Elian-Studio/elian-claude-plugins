@@ -137,6 +137,7 @@ Path: [plugins/elian-store/](plugins/elian-store/)
 | [finish-branch](plugins/elian-store/skills/finish-branch/) | Decide how to finish a branch (merge / push+PR / keep / discard) with worktree-safe cleanup; delegates the release flow to `/ship`. | `/elian-store:finish-branch` |
 | [update-design](plugins/elian-store/skills/update-design/) | Design-change propagation orchestrator — runs an impact matrix across existing `/design-feature` docs and updates only the affected ones. | `/elian-store:update-design` |
 | [kanban-board](plugins/elian-store/skills/kanban-board/) | Generate a self-contained, interactive HTML Kanban board (drag-drop, card detail panel, filters, themes) from local task data — no GitHub/GitLab/Jira integration; edits persist via localStorage plus Export/Import JSON. | `/elian-store:kanban-board` |
+| [erd-preview](plugins/elian-store/skills/erd-preview/) | Turn a schema + real rows into a single self-contained "Lineage Explorer" HTML: click a record to trace its lineage (upstream FK ancestors → downstream impacts), with hard-FK (solid) vs soft-reference (dashed) links, an ancestors/impacts summary panel, and a Figma-style zoom/pan viewer. Fills a validated template from a live read-only DB, DDL, design docs, or pasted query results. | `/elian-store:erd-preview` |
 
 ### Codex Companion Tree
 
