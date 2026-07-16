@@ -37,22 +37,26 @@ def esc(s):
 
 
 def phase_stats(tasks):
-    active = [t for t in tasks if not t.get("hold")]
+    active = [t for t in tasks if not t.get("hold") and t.get("status") != "dropped"]
     done = sum(1 for t in active if t.get("status") == "done")
     doing = sum(1 for t in active if t.get("status") == "doing")
     total = len(active)
+    dropped = sum(1 for t in tasks if t.get("status") == "dropped" and not t.get("hold"))
     return {"done": done, "doing": doing, "total": total,
-            "held": len(tasks) - len(active),
+            "held": sum(1 for t in tasks if t.get("hold")),
+            "dropped": dropped,
             "pct": round(done / total * 100) if total else 0}
 
 
 def overall_stats(phases):
-    d = g = tot = held = 0
+    d = g = tot = held = dropped = 0
     for p in phases:
         s = phase_stats(p.get("tasks", []))
-        d += s["done"]; g += s["doing"]; tot += s["total"]; held += s["held"]
+        d += s["done"]; g += s["doing"]; tot += s["total"]
+        held += s["held"]; dropped += s["dropped"]
     return {"done": d, "doing": g, "todo": tot - d - g, "total": tot,
-            "held": held, "pct": round(d / tot * 100) if tot else 0}
+            "held": held, "dropped": dropped,
+            "pct": round(d / tot * 100) if tot else 0}
 
 
 def render_doc_card(d):
@@ -144,6 +148,8 @@ h1{font-size:28px;font-weight:700;margin:0 0 8px;letter-spacing:-.015em}
 .chk.doing span{font-size:16px;font-weight:800;line-height:1;margin-top:-1px}
 .chk.todo{background:#fff;border:1.5px solid #d3d7dd}
 .chk.held{background:#fff;border:1.5px dashed #d8b878}
+.chk.dropped{background:#fbeae8;border:1.5px solid #a4352c}
+.chk.dropped span{color:#a4352c;font-size:11px;font-weight:800;line-height:1}
 .txt{font-size:13.5px;line-height:1.5;color:#363c44}
 .txt.done{color:#a7adb6;text-decoration:line-through;text-decoration-color:#ccd2d9}
 .sp{flex:1}
@@ -153,6 +159,7 @@ h1{font-size:28px;font-weight:700;margin:0 0 8px;letter-spacing:-.015em}
 .bdg.doing{background:#e9f1fe;color:#1f6fe0}
 .bdg.todo{background:#eef0f3;color:#828a96}
 .bdg.held{background:#fbf2df;color:#9a6b1e}
+.bdg.dropped{background:#fbeae8;color:#a4352c}
 .chev{color:#c4c9d0;font-size:17px;line-height:1;flex:none}
 .empty{padding:26px;text-align:center;color:#9095a0;font-size:13.5px}
 .overlay{position:fixed;inset:0;background:rgba(20,24,29,.34);z-index:40;animation:fadeIn .18s ease}
@@ -195,6 +202,15 @@ h1{font-size:28px;font-weight:700;margin:0 0 8px;letter-spacing:-.015em}
 .ck .b.off{background:#fff;border:1.5px solid #d3d7dd}
 .ck .t{font-size:13.5px;line-height:1.5;color:#363c44}
 .ck .t.on{color:#a7adb6;text-decoration:line-through;text-decoration-color:#ccd2d9}
+.fgrp{margin-bottom:14px}
+.fgh{font-size:12px;font-weight:600;letter-spacing:.02em;color:#9095a0;margin-bottom:7px}
+.frow{display:flex;align-items:flex-start;gap:10px;padding:5px 0}
+.frow .fic{font-size:13px;line-height:1.5;flex:none;margin-top:1px;color:#9095a0}
+.frow .fic.on{color:#15924f}
+.frow .fbd{min-width:0}
+.frow .ft{font-size:13.5px;line-height:1.5;color:#363c44}
+.fsub{margin:4px 0 0;padding-left:16px;list-style:disc}
+.fsub li{font-size:12.5px;line-height:1.55;color:#828a96;margin:1px 0}
 .dep{display:flex;align-items:flex-start;gap:10px;background:#fbfbfc;border:1px solid #eef0f3;border-radius:9px;padding:10px 12px;margin-bottom:8px}
 .dep .tg{font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;white-space:nowrap;flex:none}
 .dep .tg.blocker{background:#fbeae8;color:#a4352c}.dep .tg.dep{background:#fbf2df;color:#9a6b1e}
@@ -240,26 +256,30 @@ const DATA = __DATA_JSON__;
 const PALETTE = ["#6366f1","#8b5cf6","#ec4899","#3b82f6","#f59e0b","#14b8a6","#10b981","#0ea5e9"];
 const BADGE = { done:{label:'완료',bg:'#e8f6ee',fg:'#15924f'},
                 doing:{label:'진행중',bg:'#e9f1fe',fg:'#1f6fe0'},
-                todo:{label:'대기',bg:'#eef0f3',fg:'#828a96'} };
+                todo:{label:'대기',bg:'#eef0f3',fg:'#828a96'},
+                dropped:{label:'폐기',bg:'#fbeae8',fg:'#a4352c'} };
 const NEXT = { todo:'doing', doing:'done', done:'todo' };
 let sel = null;
 
 function esc(s){ return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function colorOf(p,i){ return p.color || PALETTE[i % PALETTE.length]; }
 function pstats(p){
-  const active = p.tasks.filter(t=>!t.hold);
+  const active = p.tasks.filter(t=>!t.hold && t.status!=='dropped');
   const done = active.filter(t=>t.status==='done').length;
   const doing = active.filter(t=>t.status==='doing').length;
   const total = active.length;
-  return { done, doing, total, held: p.tasks.length-active.length, pct: total?Math.round(done/total*100):0 };
+  const held = p.tasks.filter(t=>t.hold).length;
+  const dropped = p.tasks.filter(t=>t.status==='dropped' && !t.hold).length;
+  return { done, doing, total, held, dropped, pct: total?Math.round(done/total*100):0 };
 }
 function overall(){
-  let d=0,g=0,tot=0,held=0;
-  DATA.phases.forEach(p=>{ const s=pstats(p); d+=s.done; g+=s.doing; tot+=s.total; held+=s.held; });
-  return { done:d, doing:g, todo:tot-d-g, total:tot, held, pct: tot?Math.round(d/tot*100):0 };
+  let d=0,g=0,tot=0,held=0,dropped=0;
+  DATA.phases.forEach(p=>{ const s=pstats(p); d+=s.done; g+=s.doing; tot+=s.total; held+=s.held; dropped+=s.dropped; });
+  return { done:d, doing:g, todo:tot-d-g, total:tot, held, dropped, pct: tot?Math.round(d/tot*100):0 };
 }
 function chk(status, hold, color){
   if(hold) return `<div class="chk held"></div>`;
+  if(status==='dropped') return `<div class="chk dropped"><span>✕</span></div>`;
   if(status==='done') return `<div class="chk done" style="background:${color}"><span>✓</span></div>`;
   if(status==='doing') return `<div class="chk doing" style="color:${color}"><span>•</span></div>`;
   return `<div class="chk todo"></div>`;
@@ -289,9 +309,23 @@ function checklist(items, color, kind){
   }).join('');
 }
 
+function featureView(groups){
+  return groups.map(g=>{
+    const rows = (g.items||[]).map(it=>{
+      const on = !!it.done;
+      const subs = (it.sub||[]).length
+        ? `<ul class="fsub">${it.sub.map(s=>`<li>${esc(s)}</li>`).join('')}</ul>` : '';
+      return `<div class="frow"><span class="fic ${on?'on':''}">${on?'✓':'◐'}</span>
+        <div class="fbd"><span class="ft">${esc(it.t)}</span>${subs}</div></div>`;
+    }).join('');
+    return `<div class="fgrp"><div class="fgh">${esc(g.name||'')}</div>${rows}</div>`;
+  }).join('');
+}
+
 function renderSummary(){
   const m = overall();
   const heldChip = m.held ? `<div class="chip"><i style="background:#d8b878"></i><span class="lb">보류</span><span class="n">${m.held}</span></div>` : '';
+  const droppedChip = m.dropped ? `<div class="chip"><i style="background:#a4352c"></i><span class="lb">폐기</span><span class="n">${m.dropped}</span></div>` : '';
   const start = DATA.startDate ? `<div class="chip"><span class="lb">시작</span><span class="n" style="font-size:13px">${esc(DATA.startDate)}</span></div>` : '';
   document.getElementById('summary').innerHTML = `
     <div class="summary">
@@ -303,7 +337,7 @@ function renderSummary(){
         <div class="chip"><i style="background:#15924f"></i><span class="lb">완료</span><span class="n">${m.done}</span></div>
         <div class="chip"><i style="background:#1f6fe0"></i><span class="lb">진행중</span><span class="n">${m.doing}</span></div>
         <div class="chip"><i style="background:#9aa1ac"></i><span class="lb">대기</span><span class="n">${m.todo}</span></div>
-        ${heldChip}${start}
+        ${heldChip}${droppedChip}${start}
       </div>
     </div>`;
 }
@@ -328,7 +362,7 @@ function renderBoard(){
   document.getElementById('board').innerHTML = DATA.phases.map((p,pi)=>{
     const color = colorOf(p, pi);
     const s = pstats(p);
-    const held = s.held ? ` · 보류 ${s.held}` : '';
+    const held = (s.held ? ` · 보류 ${s.held}` : '') + (s.dropped ? ` · 폐기 ${s.dropped}` : '');
     const tasks = (p.tasks||[]).map((t,ti)=>{
       const period = t.period ? `<span class="per">${esc(t.period)}</span>` : '';
       return `<div class="task" data-open="${pi}.${ti}">
@@ -365,6 +399,7 @@ function renderDrawer(){
   if(t.owner) meta.push(`<div class="mr"><span class="k">담당자</span><span class="mv">${esc(t.owner)}</span></div>`);
   if(t.period) meta.push(`<div class="mr"><span class="k">기간</span><span class="mv">${esc(t.period)}</span></div>`);
   if(t.estimate) meta.push(`<div class="mr"><span class="k">예상 공수</span><span class="mv">${esc(t.estimate)}</span></div>`);
+  if(t.reason) meta.push(`<div class="mr"><span class="k">사유</span><span class="mv">${esc(t.reason)}</span></div>`);
   const metaBlock = meta.length ? `<div class="meta">${meta.join('')}</div>` : '';
 
   const descBlock = t.desc ? `<div class="dsec"><div class="k">설명</div>${paras(t.desc)}</div>` : '';
@@ -378,6 +413,12 @@ function renderDrawer(){
   const subBlock = subs.length ? `<div class="dsec">
     <div class="kh"><span class="k">세부 작업</span><span class="c">${subs.filter(s=>s.done).length}/${subs.length}</span></div>
     ${checklist(subs, color, 'sub')}</div>` : '';
+
+  const feats = (t.features||[]);
+  const featItems = feats.flatMap(g=>g.items||[]);
+  const featBlock = feats.length ? `<div class="dsec">
+    <div class="kh"><span class="k">실제 기능</span><span class="c">${featItems.filter(f=>f.done).length}/${featItems.length}</span></div>
+    ${featureView(feats)}</div>` : '';
 
   const deps = (t.deps||[]);
   const depBlock = deps.length ? `<div class="dsec"><div class="k">의존성 · 블로커</div>
@@ -402,7 +443,7 @@ function renderDrawer(){
       <div class="dbody">
         ${tagsRow}<h2>${esc(t.title||'')}</h2>
         <div class="sbtns">${sbtns}</div>
-        ${metaBlock}${descBlock}${critBlock}${subBlock}${depBlock}${linkBlock}${actBlock}
+        ${metaBlock}${descBlock}${critBlock}${subBlock}${featBlock}${depBlock}${linkBlock}${actBlock}
       </div>
     </div>`;
   // Re-initialize Mermaid for newly injected diagrams
@@ -423,7 +464,7 @@ document.addEventListener('click', e=>{
   }
   const cyc = e.target.closest('[data-check]');
   if(cyc){ const [pi,ti]=cyc.dataset.check.split('.').map(Number); const t=DATA.phases[pi].tasks[ti];
-    if(!t.hold){ t.status = NEXT[t.status]; render(); } return; }
+    if(!t.hold && NEXT[t.status]){ t.status = NEXT[t.status]; render(); } return; }
   const open = e.target.closest('[data-open]');
   if(open){ const [pi,ti]=open.dataset.open.split('.').map(Number); sel={pi,ti}; renderDrawer(); return; }
 });

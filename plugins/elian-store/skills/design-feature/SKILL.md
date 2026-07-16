@@ -261,6 +261,20 @@ Create `claudedocs/<label>/roadmap.json` reflecting:
 Include Mermaid blocks in task `desc` where useful — e.g., a state diagram
 in the "Domain design" task, a sequence diagram in the "API spec" task.
 
+For a complex screen/menu task, optionally add a `features[]` product-facing
+capability checklist (grouped ✓/◐ list, separate from `criteria`/`subs`) — see
+`references/roadmap-task-guide.md`. Skip it for small, well-understood tasks.
+Use `status: "dropped"` + `reason` to record a screen/task you explicitly
+decided not to build (rather than leaving it as `todo`).
+
+When a task represents a screen/menu that has a corresponding functional-spec
+document — a `functional-specs/<screen>.html` from the sibling `functional-spec`
+skill, or any doc already in this feature's `docs[]` — add a `links[]` entry on
+that task pointing to it, e.g. `{"label": "기능 명세", "url": "functional-specs/<screen>.html"}`.
+A reviewer opening the screen's task drawer can then jump straight to its spec
+instead of hunting through `docs[]`. Reuse the existing `links[]` field — no new
+schema.
+
 ### 5.2 Render index.html
 
 Locate `create-document` and call `build_roadmap.py` (which validates and renders):
