@@ -120,7 +120,8 @@ Read `references/doc-types.md` to decide which documents to generate.
 ```
 claudedocs/<label>/
   design.md
-  ddl.sql         (if DB changes)
+  ddl.sql          (if DB changes)
+  erd-preview.html (optional — offered only when ddl.sql is produced)
   architecture.md
 ```
 
@@ -141,6 +142,29 @@ Do not describe diagrams in text when a diagram communicates them better.
 Include column comments explaining business meaning, not just field names.
 Mark enum values with their allowed transitions.
 
+**erd-preview.html** (optional — offer only when `ddl.sql` was produced)
+
+When the design introduces or changes tables, offer to also emit an interactive
+**ERD lineage explorer** via the sibling `erd-preview` skill: click a record to
+trace its lineage across hard FKs and soft references, over real or
+representative data. This makes the schema reviewable with actual rows, not just
+the static Mermaid `classDiagram` in `design.md`.
+
+- **Source**: the `ddl.sql` just written (tables, columns, FKs).
+- **Data**: if the feature touches an existing DB the user can reach, sample real
+  rows scoped by a tenant key so FK closure holds; otherwise fill representative
+  FK-connected sample rows (3–5 per table) so every FK value has its referenced
+  row present.
+- **Soft references** (non-schema value joins) are not in the DDL — confirm them
+  with the user before drawing.
+- Follow `/elian-store:erd-preview`: fill its template's five structures
+  (`SCHEMA`/`RELS`/`DATA`/`LAYERS`/`KLABEL`), run its `scripts/validate.py` until
+  it PASSes, and write the single self-contained HTML to
+  `claudedocs/<label>/erd-preview.html`.
+
+Do not generate it silently — offer it at the Phase 3 gate and generate on
+confirmation.
+
 **architecture.md** — Read `references/architecture-guide.md` before writing.
 
 Structure as AS-IS / Δ / TO-BE for each section. Use Mermaid `flowchart LR`
@@ -151,7 +175,10 @@ for system topology and `sequenceDiagram` for cross-service interactions.
 For features touching ≥ 3 files or services, use a subagent per document to
 avoid context pollution. For small features, write inline.
 
-─ **Gate** — show document list + a one-paragraph summary of each. ─
+─ **Gate** — show document list + a one-paragraph summary of each. When `ddl.sql`
+was produced, also ask: *"Generate an interactive ERD lineage explorer
+(`erd-preview.html`) from the DDL?"* and produce it (per the erd-preview step
+above) only on confirmation. ─
 
 ---
 
