@@ -36,6 +36,19 @@ explaining business meaning, constraints, and enum values.
 
 ---
 
+### erd-preview.html
+
+**Readers**: All engineers, reviewers, onboarding  
+**Content**: Interactive single-file ERD **lineage explorer** built from `ddl.sql`
+via the sibling `erd-preview` skill — click a record to trace its lineage across
+hard FKs and soft references over real or representative data, with a zoom/pan
+viewer. Complements `design.md`'s static Mermaid diagram with actual rows.
+
+**Required**: Optional — offered at the Phase 3 gate **only when `ddl.sql` was
+produced**, generated on user confirmation.
+
+---
+
 ### architecture.md
 
 **Readers**: All engineers  

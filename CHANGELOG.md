@@ -10,6 +10,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## elian-store Plugin
 
+### [2.28.0] — 2026-07-16
+
+#### Changed
+- **`design-feature`** Phase 3 now offers an optional **`erd-preview.html`** — when
+  the design produces a `ddl.sql`, the Phase 3 gate asks whether to also emit an
+  interactive ERD **lineage explorer** (via the sibling `erd-preview` skill) built
+  from that DDL, so the schema is reviewable with real/representative rows and
+  click-to-trace lineage, not just the static Mermaid `classDiagram`. Gated —
+  generated only on confirmation, only when `ddl.sql` exists. `references/doc-types.md`
+  updated to document the new optional Phase 3 artifact.
+
 ### [2.27.0] — 2026-07-16
 
 #### Added
