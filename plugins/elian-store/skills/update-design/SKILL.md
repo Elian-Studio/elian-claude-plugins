@@ -6,8 +6,9 @@ description: >
   meeting feedback, code review findings, requirement additions — this skill
   analyses which documents are affected and updates only those, leaving the
   rest untouched. Runs an impact matrix, confirms scope with the user, then
-  updates documents sequentially (PRD → schema → design → architecture →
-  API spec → QA checklist) and verifies consistency.
+  updates documents sequentially (spec.json → PRD → tech spec → schema →
+  design → architecture → API spec → QA checklist → roadmap) and verifies
+  consistency.
 
   Use when design docs already exist and must be brought in sync with new
   decisions. Trigger phrases: "update the design", "reflect this change in
@@ -65,14 +66,19 @@ Show the user a table of what exists:
 
 | Document | Path | Present |
 |----------|------|---------|
+| spec.json | `claudedocs/<label>/spec.json` | ✅ / ❌ |
 | design.md | `claudedocs/<label>/design.md` | ✅ / ❌ |
 | ddl.sql | `claudedocs/<label>/ddl.sql` | ✅ / ❌ |
 | architecture.md | `claudedocs/<label>/architecture.md` | ✅ / ❌ |
 | design-spec.md | `claudedocs/<label>/design-spec.md` | ✅ / ❌ |
 | prd.md | `claudedocs/<label>/prd.md` | ✅ / ❌ |
+| tech-spec.md | `claudedocs/<label>/tech-spec.md` | ✅ / ❌ |
 | api-spec.md | `claudedocs/<label>/api-spec.md` | ✅ / ❌ |
 | qa-checklist.md | `claudedocs/<label>/qa-checklist.md` | ✅ / ❌ |
+| roadmap.json | `claudedocs/<label>/roadmap.json` | ✅ / ❌ |
 | index.html | `claudedocs/<label>/index.html` | ✅ / ❌ |
+| erd-preview.html | `claudedocs/<label>/erd-preview.html` | ✅ / ❌ |
+| functional-specs/ (directory) | `claudedocs/<label>/functional-specs/` | ✅ / ❌ |
 
 ### 0.3 No-documents guard
 
@@ -113,18 +119,32 @@ own impact scope.
 For each change item, run the following matrix against the documents that
 actually exist (skip rows for absent files):
 
-| Change type | design.md | ddl.sql | architecture.md | design-spec.md | prd.md | api-spec.md | qa-checklist.md |
-|-------------|:---------:|:-------:|:---------------:|:--------------:|:------:|:-----------:|:---------------:|
-| Requirement add/remove | ✅ | cond | ✅ | cond | ✅ | cond | ✅ |
-| Schema / table change | ✅ | ✅ | ✅ | — | — | cond | cond |
-| Flow / scenario change | ✅ | — | ✅ | cond | cond | cond | ✅ |
-| API contract change | cond | — | cond | — | cond | ✅ | ✅ |
-| Term / naming change | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Business rule change | ✅ | — | cond | — | ✅ | — | ✅ |
-| UX / screen change | — | — | cond | ✅ | cond | — | ✅ |
+| Change type | spec.json | design.md | ddl.sql | architecture.md | design-spec.md | prd.md | tech-spec.md | api-spec.md | qa-checklist.md | roadmap.json |
+|-------------|:---------:|:---------:|:-------:|:---------------:|:--------------:|:------:|:------------:|:-----------:|:---------------:|:------------:|
+| Requirement add/remove | ✅ | ✅ | cond | ✅ | cond | ✅ | ✅ | cond | ✅ | ✅ |
+| Schema / table change | — | ✅ | ✅ | ✅ | — | — | ✅ | cond | cond | cond |
+| Flow / scenario change | — | ✅ | — | ✅ | cond | cond | ✅ | cond | ✅ | cond |
+| API contract change | — | cond | — | cond | — | cond | ✅ | ✅ | ✅ | cond |
+| Term / naming change | cond | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | cond |
+| Business rule change | ✅ | ✅ | — | cond | — | ✅ | cond | — | ✅ | cond |
+| UX / screen change | — | — | — | cond | ✅ | cond | cond | — | ✅ | cond |
 
 **cond** = re-evaluate against the specific change; default to "no impact"
 unless the detail clearly touches that document.
+
+Two documents are not in the matrix because they are conditional on a single
+row each:
+
+- `erd-preview.html` — **cond** on "Schema / table change": regenerate only if
+  the file already exists (Phase 5 step 12). Never create it here.
+- `functional-specs/` — **cond** on "UX / screen change": a screen document is
+  only touched when that specific screen changed. Regenerate with
+  `/functional-spec`, do not hand-edit the connected HTML.
+
+`spec.json` is ✅ only where requirements themselves move — it stores
+`requirements[]` / `acceptanceCriteria[]` / `outOfScope[]` and nothing else.
+`roadmap.json` upgrades from **cond** to ✅ whenever the change adds work items
+or drops planned ones.
 
 Output a per-change verdict table:
 
@@ -184,14 +204,21 @@ On **D**: write the analysis to
 
 Update documents **one at a time in this order** (skip absent or excluded docs):
 
-1. **prd.md** — requirements level settles first; other docs follow
-2. **ddl.sql** — schema is the ground truth for design.md / architecture.md
-3. **design.md** — domain model, scenarios, decision log
-4. **architecture.md** — flows, system topology — read `references/architecture-guide.md` before editing
-5. **design-spec.md** — FE screens (if present and impacted)
-6. **api-spec.md** — endpoint contracts
-7. **qa-checklist.md** — Given-When-Then cases derived from updated AC
-8. **index.html** — re-render only if roadmap.json changed or structural changes in Phase 1–4
+1. **spec.json** — only when requirements or AC changed. Update
+   `requirements[]`, `acceptanceCriteria[]` and `outOfScope[]` so a later
+   `/design-feature` re-run does not regress to a stale spec — that regression
+   is the entire reason this step exists.
+2. **prd.md** — requirements level settles next; other docs follow
+3. **tech-spec.md** — developer-facing PRD; requirement → implementation mapping
+4. **ddl.sql** — schema is the ground truth for design.md / architecture.md
+5. **design.md** — domain model, scenarios, decision log
+6. **architecture.md** — flows, system topology — read `references/architecture-guide.md` before editing
+7. **design-spec.md** — FE screens (if present and impacted)
+8. **api-spec.md** — endpoint contracts
+9. **qa-checklist.md** — Given-When-Then cases derived from updated AC
+10. **roadmap.json** — added / removed work items and `status: "dropped"`
+11. **index.html** — re-render only if roadmap.json changed
+12. **erd-preview.html** — only if ddl.sql changed and the file already exists
 
 **Do not run updates in parallel.** Later documents reference earlier ones —
 parallel edits risk contradictions.
@@ -210,10 +237,48 @@ Read `references/prd-guide.md` before editing. If adding a requirement:
 add a new row in §6 with a Given-When-Then AC. If removing: strike or
 delete the row and note in the decision log.
 
+### tech-spec.md
+
+Read `../design-feature/references/tech-spec-guide.md` before editing. Every
+row of §2 (requirement → implementation mapping) must cite an `R#` / `AC#` ID
+that exists in the **updated** `prd.md` §6 — update prd.md first, then bring
+the mapping rows in line. Link to `design.md` / `ddl.sql` / `api-spec.md`
+instead of restating their content.
+
 ### architecture.md
 
 Read `references/architecture-guide.md` before editing. Keep the
 AS-IS / Δ / TO-BE structure. Update only the affected section(s).
+
+### roadmap.json
+
+Read `../design-feature/references/roadmap-task-guide.md` before editing.
+Add tasks for new work, and record work that was explicitly cancelled with
+`status: "dropped"` plus a `reason` — do not delete the task object, the
+dropped record is the audit trail.
+
+### index.html
+
+Re-render only when `roadmap.json` actually changed in step 10. Use the same
+invocation as `/design-feature` §5.2:
+
+```bash
+CD="${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/skills/create-document}"
+CD="${CD:-${CODEX_HOME:-$HOME/.codex}/skills/create-document}"
+python3 "${CD}/scripts/build_roadmap.py" \
+  claudedocs/<label>/roadmap.json \
+  --out claudedocs/<label>/index.html
+```
+
+If the script exits non-zero, show the error and stop.
+
+### erd-preview.html
+
+Only when `ddl.sql` changed **and** `claudedocs/<label>/erd-preview.html`
+already exists. Never regenerate silently — offer it:
+
+> "`ddl.sql` changed and `erd-preview.html` exists. Regenerate it with
+> `/elian-store:erd-preview`?"
 
 ### Post-edit check
 
@@ -245,6 +310,16 @@ grep -c "Given" claudedocs/<label>/qa-checklist.md 2>/dev/null
 
 # 4. Broken references inside updated docs
 grep -oE '\[.*\]\([^)]+\.(md|sql|html)\)' claudedocs/<label>/*.md 2>/dev/null
+
+# 5. tech-spec.md §2 AC IDs must all exist in prd.md — any output is a FAIL.
+#    Match the full `R#-AC#` ID, not a bare `AC#`: R1-AC1 and R2-AC1 both
+#    reduce to "AC1", so a bare match would let a wrong requirement prefix pass.
+comm -23 \
+  <(grep -oE '\bR[0-9]+-AC[0-9]+\b' claudedocs/<label>/tech-spec.md 2>/dev/null | sort -u) \
+  <(grep -oE '\bR[0-9]+-AC[0-9]+\b' claudedocs/<label>/prd.md 2>/dev/null | sort -u)
+
+# 6. roadmap.json is valid JSON
+python3 -c 'import json;json.load(open("claudedocs/<label>/roadmap.json"));print("roadmap.json OK")'
 ```
 
 Report:
@@ -258,6 +333,8 @@ Report:
 | DDL ↔ design.md | ✅ PASS |
 | AC coverage | ✅ PASS |
 | Internal links | ✅ PASS |
+| tech-spec AC IDs ⊆ prd AC IDs | ✅ PASS / ⚠ AC7 cited but missing from prd.md |
+| roadmap.json valid JSON | ✅ PASS |
 ```
 
 On any FAIL: fix it before Phase 7.
@@ -293,10 +370,17 @@ On any FAIL: fix it before Phase 7.
 Ask the user:
 
 > **Ready to commit?**
-> A) Yes — run `/commit` now (recommended)
+> A) Yes — commit the updated documents (recommended)
 > B) No — I need to review first
 
-On A: `Skill(skill="commit")`.
+On **A**: if a `/commit` skill is available in this session, hand off to it.
+It is not part of this plugin, so when it is missing do not fail — print the
+plain git steps for the changed files instead:
+
+```bash
+git add claudedocs/<label>/
+git commit -m "docs(<label>): propagate <one-line change summary>"
+```
 
 ---
 
@@ -318,4 +402,6 @@ On A: `Skill(skill="commit")`.
 | `/design-feature` | Creates the document set this skill updates |
 | `/intake-spec` | Re-run before `/design-feature` if requirements changed dramatically |
 | `/decision-dashboard` | Called from Phase 3 when 3+ decisions are pending |
-| `/commit` | Called from Phase 7 to stage and commit |
+| `/erd-preview` | Offered in Phase 5 step 12 when `ddl.sql` changed |
+| `/functional-spec` | Regenerates a `functional-specs/<screen>-connected.html` |
+| `/commit` | Optional, host-provided — Phase 7 falls back to plain git |

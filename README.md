@@ -86,7 +86,7 @@ cp codex/AGENTS.md ~/.codex/AGENTS.md
 cp codex/config.toml.example ~/.codex/config.toml
 ```
 
-Codex ships **13 shared skills** (`codex/skills/`, symlinked into the plugin tree so they never drift) plus **2 reference prompts** — `/generate-teammate` and `/persona-review`, which stay prompts because their core is Claude subagent dispatch that Codex cannot reproduce. (`document-writer`, `harness-manager`, and `pr-review` are Claude-only.) See [codex/README.md](codex/README.md).
+Codex ships **14 shared skills** (`codex/skills/`, symlinked into the plugin tree so they never drift) plus **2 reference prompts** — `/generate-teammate` and `/persona-review`, which stay prompts because their core is Claude subagent dispatch that Codex cannot reproduce. (`document-writer`, `harness-manager`, `pr-review`, and `finish-branch` are Claude-only; the design-pipeline skills are not ported yet.) See [codex/README.md](codex/README.md).
 
 ### Claude Workflows
 
@@ -112,10 +112,9 @@ Path: [plugins/elian-store/](plugins/elian-store/)
 | Skill | Purpose | Invocation |
 |---|---|---|
 | [intake-spec](plugins/elian-store/skills/intake-spec/) | Provider-agnostic requirements front door. Works without any issue tracker; optionally links to GitHub, GitLab, or JIRA. Produces `spec.json` for `/design-feature`. | `/elian-store:intake-spec` |
-| [design-feature](plugins/elian-store/skills/design-feature/) | Self-contained design orchestrator. Generates design.md, architecture, PRD, API spec, QA checklist, and a Mermaid-capable roadmap hub (index.html) through five gated phases. When a `ddl.sql` is produced, Phase 3 optionally emits an interactive `erd-preview.html` lineage explorer from it. Roadmap tasks support an optional product-facing `features[]` capability checklist and a `dropped` status (with `reason`) for recording descoped work. | `/elian-store:design-feature` |
+| [design-feature](plugins/elian-store/skills/design-feature/) | Self-contained design orchestrator. Generates design.md, architecture, a non-developer PRD **and its developer-facing `tech-spec.md` counterpart** (requirement → implementation mapping, AC-ID cross-checked against the PRD), API spec, QA checklist, and a Mermaid-capable roadmap hub (index.html) through five gated phases. When a `ddl.sql` is produced, Phase 3 optionally emits an interactive `erd-preview.html` lineage explorer from it. Roadmap tasks support an optional product-facing `features[]` capability checklist and a `dropped` status (with `reason`) for recording descoped work. | `/elian-store:design-feature` |
 | [brainstorm](plugins/elian-store/skills/brainstorm/) | Clarify fuzzy thoughts and surface criteria before committing to a direction. | `/elian-store:brainstorm` |
 | [decision-dashboard](plugins/elian-store/skills/decision-dashboard/) | Turn 3+ blocking decisions into a printable HTML + downstream JSON artifact. | `/elian-store:decision-dashboard` |
-| [ai-assisted-feature-development](plugins/elian-store/skills/ai-assisted-feature-development/) | Structure AI-assisted feature work through framing, specs, tests, context, tasks, review, and archive. | `/elian-store:ai-assisted-feature-development` |
 | [design-ui](plugins/elian-store/skills/design-ui/) | Produce UI/UX design artifacts through interview, references, wireframe, gate, visual, and delivery. | `/elian-store:design-ui` |
 | [functional-spec](plugins/elian-store/skills/functional-spec/) | Turn wireframes into a code-grounded implementation contract: first a cross-wireframe **shared component catalog** (design recurring UI once), then per-screen functional decomposition + component contract (reuse catalog/existing vs new; codebase `file:line` or greenfield designed-API grounding), plus a robust responsive wireframe↔spec "connected" HTML view. Sits after `/design-ui` mockups, before `/implement`. | `/elian-store:functional-spec` |
 | [implement](plugins/elian-store/skills/implement/) | Build new features through approval-gated TDD. | `/elian-store:implement` |
@@ -131,7 +130,6 @@ Path: [plugins/elian-store/](plugins/elian-store/)
 | [harness-manager](plugins/elian-store/skills/harness-manager/) | Detect and reconcile drift between the Codex and Claude Code global harnesses (rules, MCP, commands, skills). | `/elian-store:harness-manager` |
 | [pr-writer](plugins/elian-store/skills/pr-writer/) | Draft a review-friendly PR/MR title and body from the diff, commits, and stated intent (GitHub `gh` / GitLab `glab` aware). | `/elian-store:pr-writer` |
 | [pr-review](plugins/elian-store/skills/pr-review/) | Review an existing PR/MR through a panel of specialist + persona perspectives, synthesize one verdict, and post to the PR only on confirmation. | `/elian-store:pr-review` |
-| [skill-dispatcher](plugins/elian-store/skills/skill-dispatcher/) | Opt-in router that recommends the smallest relevant `elian-store` skill before work starts. | `/elian-store:skill-dispatcher` |
 | [verify-before-claiming](plugins/elian-store/skills/verify-before-claiming/) | Claim-time honesty gate — require fresh verification evidence before any pass/fixed/done claim. | `/elian-store:verify-before-claiming` |
 | [respond-to-review](plugins/elian-store/skills/respond-to-review/) | Consumer side of review — verify feedback before implementing, no performative agreement, push back with reasoning. | `/elian-store:respond-to-review` |
 | [finish-branch](plugins/elian-store/skills/finish-branch/) | Decide how to finish a branch (merge / push+PR / keep / discard) with worktree-safe cleanup; delegates the release flow to `/ship`. | `/elian-store:finish-branch` |
@@ -146,7 +144,7 @@ Path: [codex/](codex/)
 | File | Role |
 |---|---|
 | [codex/setup.sh](codex/setup.sh) | Installs `codex/skills/*` into `~/.codex/skills` as symlinks (idempotent). |
-| [codex/skills/](codex/skills/) | 13 shared skills — symlinks into `plugins/elian-store/skills/<name>/`, generated/lint-checked by `tools/generate.py`. |
+| [codex/skills/](codex/skills/) | 14 shared skills — symlinks into `plugins/elian-store/skills/<name>/`, generated/lint-checked by `tools/generate.py`. |
 | [codex/prompts/generate-teammate.md](codex/prompts/generate-teammate.md) | Reference prompt for `/generate-teammate` — subagent-core, stays a prompt. |
 | [codex/prompts/persona-review.md](codex/prompts/persona-review.md) | Reference prompt for `/persona-review` — subagent-core, stays a prompt. |
 | [codex/AGENTS.md](codex/AGENTS.md) | Codex project/global instruction template. |
@@ -154,8 +152,9 @@ Path: [codex/](codex/)
 
 Shared skills read one host-agnostic `SKILL.md` and cannot drift between the trees. Only the two
 subagent-core prompts (`generate-teammate`, `persona-review`) are independent files that must be
-kept in sync by hand; the three Claude-only skills (`document-writer`, `harness-manager`, `pr-review`)
-have no Codex counterpart at all. Parity status is tracked in [docs/claude-codex-skill-parity.md](docs/claude-codex-skill-parity.md).
+kept in sync by hand; the four Claude-only skills (`document-writer`, `harness-manager`, `pr-review`,
+`finish-branch`) have no Codex counterpart at all, and the design-pipeline skills (`intake-spec`,
+`design-feature`, `update-design`, `erd-preview`, `kanban-board`) are not ported yet. Parity status is tracked in [docs/claude-codex-skill-parity.md](docs/claude-codex-skill-parity.md).
 
 ### Claude Workflows
 

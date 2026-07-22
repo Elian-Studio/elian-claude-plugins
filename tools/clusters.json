@@ -27,7 +27,7 @@
     "elian-artifacts": {
       "displayName": "Elian Artifacts",
       "description": "Artifact generation and team orchestration: route to the right workflow, render schema-validated documents, build decision dashboards, spawn teammates, and brainstorm before committing.",
-      "skills": ["skill-dispatcher", "create-document", "decision-dashboard", "generate-teammate", "brainstorm"],
+      "skills": ["create-document", "decision-dashboard", "generate-teammate", "brainstorm"],
       "agents": "domain"
     },
     "elian-tdd": {
@@ -44,8 +44,8 @@
     },
     "elian-design": {
       "displayName": "Elian Design",
-      "description": "Design and authoring: UI/UX design artifacts, self-contained house-styled documents, and AI-assisted feature framing.",
-      "skills": ["design-ui", "document-writer", "ai-assisted-feature-development"]
+      "description": "Design and authoring: requirements intake, gated design-document generation, design-change propagation, UI/UX design artifacts, wireframe-to-code functional specs, schema lineage previews, local task boards, and self-contained house-styled documents.",
+      "skills": ["intake-spec", "design-feature", "update-design", "design-ui", "functional-spec", "erd-preview", "kanban-board", "document-writer"]
     },
     "elian-harness": {
       "displayName": "Elian Harness",

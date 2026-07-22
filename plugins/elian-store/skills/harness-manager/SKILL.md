@@ -5,8 +5,9 @@ description: >-
   behavioral rules (~/.claude/CLAUDE.md ↔ ~/.codex/AGENTS.md), MCP servers, custom
   commands/prompts, and skills that should behave consistently across both assistants.
   Runs scan → drift report (HTML) → user approval → backed-up edits. Reach for this whenever
-  the user says "하네스 동기화", "harness sync", "Codex랑 Claude Code 규칙 맞춰줘",
-  "AGENTS.md랑 CLAUDE.md 갈라진 거 확인", "MCP 양쪽 정합", "두 어시스턴트 설정/규칙 일치", or just
+  the user says "harness sync", "reconcile Codex and Claude Code rules", "check AGENTS.md vs
+  CLAUDE.md drift", "align MCP servers across both assistants", "make both assistants' settings
+  and rules match", or just
   edited one tool's global config and wants the other to match — even when they don't say the
   word "harness", if the concern is "the two tools disagree", this is the skill. It is NOT
   harness-legacy-scan (cruft audit) or harness-diet (cruft removal); those trim a single

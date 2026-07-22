@@ -1,125 +1,127 @@
-# 문서 유형별 청사진
+# Blueprints by document type
 
-스타일은 유형과 무관하게 항상 동일하다. **구조(섹션 배치)만** 유형에 맞춘다.
-아래는 출발점이며, 실제 내용에 맞게 더하고 빼라. 빈 섹션을 채우려 억지로 만들지 말 것.
-
----
-
-## 분석 · 리포트 · 요약
-
-분석/조사 결과를 공유하는 문서. "무엇을 발견했고, 그래서 무엇을 할 것인가"가 핵심.
-
-```
-제목 (--title) + 부제 + 메타(작성일, 유형=분석 리포트, 작성자)
-[--toc 권장]
-
-## 요약 (TL;DR)
-  - 결론과 핵심 권고를 3~5줄. 바쁜 독자가 여기만 봐도 되게.
-  - 수치가 있으면 KPI 타일로.
-
-## 배경 / 맥락
-  - 왜 이 분석을 했는가. 문제 상황.
-
-## 측정 / 발견
-  - 데이터·표·KPI. 객관적 사실 위주.
-  - 중요한 주의점은 콜아웃(`> [!WARNING]`)으로.
-
-## 분석 / 해석
-  - 원인, 패턴, 의미.
-
-## 권고 / 조치
-  - 우선순위 있는 액션. 번호 목록 또는 표(담당/기한).
-
-## (선택) 부록
-  - 원본 데이터는 <details> 접이식으로.
-```
+The style is identical regardless of type. Only the **structure (section layout)** follows the
+type. The blueprints below are a starting point — add and drop sections to fit the real content.
+Never invent filler to fill an empty section.
 
 ---
 
-## 기술 · 설계 문서
+## Analysis · report · summary
 
-시스템 동작·API·아키텍처를 설명. 코드 스니펫과 정확성이 생명.
+A document that shares the result of an analysis or investigation. The core is "what did we find,
+and therefore what will we do".
 
 ```
-제목 + 부제 + 메타(작성일, 유형=설계 문서, 관련 이슈)
-[--toc 권장]
+Title (--title) + subtitle + meta (date, Type=Analysis report, author)
+[--toc recommended]
 
-## 개요
-  - 무엇을, 왜. 한 문단으로 스코프 정의.
+## Summary (TL;DR)
+  - The conclusion and key recommendation in 3-5 lines. A busy reader should be able to stop here.
+  - If there are numbers, use KPI tiles.
 
-## 구성 요소 / 아키텍처
-  - 카드 그리드로 컴포넌트 나열, 또는 표로 책임 정리.
-  - 다이어그램이 필요하면 이미지(figure)나 텍스트 트리.
+## Background / context
+  - Why this analysis happened. The problem situation.
 
-## 동작 / 흐름
-  - 요청→응답 흐름. 단계 리스트(.steps)나 번호 목록.
+## Measurements / findings
+  - Data, tables, KPIs. Objective facts.
+  - Put important caveats in a callout (`> [!WARNING]`).
 
-## API / 인터페이스 (해당 시)
-  - 표: 메서드 | 경로 | 요청 | 응답 | 상태코드.
-  - 예시 요청/응답은 코드블록(json/bash).
+## Analysis / interpretation
+  - Causes, patterns, what it means.
 
-## 데이터 모델 (해당 시)
-  - 표 또는 코드블록(SQL/타입 정의).
+## Recommendations / actions
+  - Prioritized actions. A numbered list, or a table (owner / due date).
 
-## 결정 / 트레이드오프
-  - 왜 이렇게 했는가. AS-IS/TO-BE는 2단 비교(.cols2).
-
-## 주의사항 / 엣지케이스
-  - 콜아웃으로 강조.
+## (Optional) Appendix
+  - Raw data goes in a collapsible <details>.
 ```
 
 ---
 
-## 가이드 · 튜토리얼 · 설명서
+## Technical · design document
 
-읽는 사람이 따라 하도록 가르치는 문서. 순서와 명확성이 핵심.
-
-```
-제목 + 부제 + 메타(대상 독자, 소요 시간 등)
-[--toc 권장 — 길면]
-
-## 이 문서로 할 수 있는 것
-  - 완료 후 상태를 한두 줄로. (동기 부여)
-
-## 사전 준비
-  - 필요한 것 목록(버전, 권한, 도구).
-
-## 단계별 진행
-  - .steps 컴포넌트로 각 단계 = 동작 + 설명 + 명령어.
-  - 명령어는 코드블록. 결과 예시도 보여주면 좋다.
-  - 함정은 `> [!CAUTION]`, 요령은 `> [!TIP]`.
-
-## 확인 / 검증
-  - 잘 됐는지 확인하는 법.
-
-## 문제 해결 (FAQ)
-  - 표: 증상 | 원인 | 해결. 또는 <details> Q&A.
-
-## 다음 단계
-  - 관련 문서·심화 링크.
-```
-
----
-
-## 범용 (종류 안 가림)
-
-정해진 틀이 없을 때. 내용의 자연스러운 흐름을 따른다.
+Explains how a system behaves, its API, its architecture. Code snippets and accuracy are what matter.
 
 ```
-제목 + 부제 + 메타(작성일)
+Title + subtitle + meta (date, Type=Design document, related issue)
+[--toc recommended]
 
-## (내용에 맞는 섹션들)
-  - 가장 중요한 결론/요점을 위로.
-  - 병렬 항목은 카드, 수치는 KPI, 순서는 단계 리스트, 비교는 표/2단.
-  - 한 화면에 한 가지 생각. 섹션은 짧고 스캔 가능하게.
+## Overview
+  - What and why. Define the scope in one paragraph.
+
+## Components / architecture
+  - List components in a card grid, or lay out responsibilities in a table.
+  - If a diagram is needed, use an image (figure) or a text tree.
+
+## Behaviour / flow
+  - Request → response flow. A step list (.steps) or a numbered list.
+
+## API / interface (if applicable)
+  - Table: method | path | request | response | status codes.
+  - Example requests/responses in code blocks (json/bash).
+
+## Data model (if applicable)
+  - A table, or a code block (SQL / type definitions).
+
+## Decisions / trade-offs
+  - Why it was built this way. AS-IS/TO-BE goes in a two-column comparison (.cols2).
+
+## Caveats / edge cases
+  - Emphasize with callouts.
 ```
 
 ---
 
-## 공통 원칙
+## Guide · tutorial · manual
 
-- **제목은 `--title`, 본문 최상위는 H2.** 본문에 H1을 또 넣지 않는다.
-- **요약을 맨 위에.** 독자는 결론부터 원한다.
-- **스캔 가능하게.** 긴 단락보다 소제목·목록·표로 쪼갠다.
-- **단독 완결.** "방금", "위에서"처럼 대화에 의존하는 표현 금지.
-- **컴포넌트는 내용이 요구할 때만.** 장식을 위한 카드 그리드·KPI 남발 금지.
+A document that teaches the reader to follow along. Order and clarity are the whole point.
+
+```
+Title + subtitle + meta (audience, time required, ...)
+[--toc recommended — if long]
+
+## What you can do with this
+  - The end state in one or two lines. (Motivation.)
+
+## Prerequisites
+  - What is needed (versions, permissions, tools).
+
+## Step by step
+  - Use the .steps component: each step = action + explanation + command.
+  - Commands in code blocks. Showing example output helps.
+  - Pitfalls go in `> [!CAUTION]`, tricks in `> [!TIP]`.
+
+## Verification
+  - How to confirm it worked.
+
+## Troubleshooting (FAQ)
+  - Table: symptom | cause | fix. Or a <details> Q&A.
+
+## Next steps
+  - Related documents and deeper links.
+```
+
+---
+
+## General (no fixed type)
+
+When there is no set mold. Follow the natural flow of the content.
+
+```
+Title + subtitle + meta (date)
+
+## (Sections that fit the content)
+  - Put the most important conclusion/point at the top.
+  - Parallel items → cards, numbers → KPIs, sequences → step lists, comparisons → table or two columns.
+  - One idea per screen. Keep sections short and scannable.
+```
+
+---
+
+## Shared principles
+
+- **Title goes in `--title`; the body's top level is H2.** Do not add another H1 in the body.
+- **Summary first.** Readers want the conclusion up front.
+- **Make it scannable.** Prefer subheadings, lists, and tables over long paragraphs.
+- **Self-contained.** No conversation-dependent phrasing like "just now" or "above".
+- **Components only when the content demands them.** No decorative card grids or KPI spam.

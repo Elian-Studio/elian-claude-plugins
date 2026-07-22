@@ -14,7 +14,8 @@ description: >
   Use when wireframes/mockups exist (from /design-ui, /design-feature mockups, or
   hand-built) and you need function + component design before /implement. Trigger
   phrases: "write the functional spec", "component design from these wireframes",
-  "connect wireframe to spec", "기능명세", "컴포넌트 설계", "/functional-spec".
+  "connect wireframe to spec", "functional spec", "component design",
+  "/functional-spec".
 when_to_use: >
   Wireframes for one or more screens exist and the next step is to design the
   shared component set and per-screen function/component contracts before
@@ -140,16 +141,22 @@ re-declare a shared component.
 
 ## Phase 3 — Functional decomposition (per screen)
 
-For each screen, build the **기능 분해 표**. One numbered row per wireframe element:
+For each screen, build the function-decomposition table. One numbered row per
+wireframe element.
 
-| Column | Content |
-|--------|---------|
-| 요소 | The wireframe element |
-| 기능 | What it does on interaction |
-| 데이터 소스·BE 의존 | Real/designed endpoint + field, or `UI-only` with justification |
-| 상태 | empty / loading / error / selected / disabled behaviour |
-| 상호작용·연동 | What it triggers, where it hands off |
-| 완료 판정 | Concrete **real-server-round-trip** pass condition (no hardcoded shells) |
+The deliverable is written for Korean-speaking readers, so the section heading and
+the column headers below are **literal output labels** — emit them verbatim into
+`<screen>.md`; do not translate them. The right column says what to put under each.
+
+| Emit this literal header | Content |
+|--------------------------|---------|
+| `기능 분해 표` (section heading) | The table itself |
+| `요소` | The wireframe element |
+| `기능` | What it does on interaction |
+| `데이터 소스·BE 의존` | Real/designed endpoint + field, or `UI-only` with justification |
+| `상태` | empty / loading / error / selected / disabled behaviour |
+| `상호작용·연동` | What it triggers, where it hands off |
+| `완료 판정` | Concrete **real-server-round-trip** pass condition (no hardcoded shells) |
 
 Number each element — the number anchors the wireframe marker to the spec row in
 the connected view (P6).
@@ -159,26 +166,31 @@ the connected view (P6).
 ## Phase 4 — Component contract (per screen, references the P2 catalog)
 
 For each screen, map its elements to components — **reuse the catalog, don't
-re-design shared ones**:
+re-design shared ones**. The three subsection headings are **literal output labels**;
+emit them verbatim into `<screen>.md`:
 
-- **재사용 (from catalog / existing)** — name the shared component (link
+- **`재사용`** (reuse, from catalog / existing) — name the shared component (link
   `component-design.md`), or in codebase mode the existing `file:line`. State the
   props/variant used here.
-- **신규 (screen-specific only)** — components genuinely unique to this screen
+- **`신규`** (new, screen-specific only) — components genuinely unique to this screen
   (target path, props, emits, state). If it turns out to recur, promote it to the
   P2 catalog instead of duplicating.
-- **데이터 흐름** — screen → hook/composable → api client → endpoint → handoff.
+- **`데이터 흐름`** (data flow) — screen → hook/composable → api client → endpoint → handoff.
 
 ---
 
 ## Phase 5 — BE/API dependency + open questions (per screen)
 
-- **신규 (new BE/endpoint)** — the real change (field/query/table or, greenfield,
-  the designed endpoint that must exist). Honesty line: "신규 테이블 N개".
-- **기존 (unchanged)** — data already provided, with its source.
+Again, the subsection headings are **literal output labels** — emit them verbatim:
+
+- **`신규`** (new BE/endpoint) — the real change (field/query/table or, greenfield,
+  the designed endpoint that must exist). Close with the literal honesty line
+  `신규 테이블 N개` ("N new tables"), N being the real count.
+- **`기존`** (unchanged) — data already provided, with its source.
 - **UI-only justification** — why some state needs no server round-trip.
-- **미결 질문** — every unpinned assumption + every decision the wireframe/PRD leaves
-  open (incl. fabricated mockup values with no data source). Numbered; each gates `/implement`.
+- **`미결 질문`** (open questions) — every unpinned assumption + every decision the
+  wireframe/PRD leaves open (incl. fabricated mockup values with no data source).
+  Numbered; each gates `/implement`.
 
 ---
 
@@ -192,8 +204,11 @@ open-question count. Wait for confirmation before rendering.
 ## Phase 6 — Render
 
 1. **`component-design.md`** (+ HTML in the hub) — the P2 catalog.
-2. **`<screen>.md`** — the 5-section per-screen spec (① 개요 ② 기능 분해 표
-   ③ 컴포넌트 계약[재사용 catalog + 신규] ④ BE/API 의존 ⑤ 미결 질문). See guide.
+2. **`<screen>.md`** — the 5-section per-screen spec. The five section headings are
+   literal output labels, emitted verbatim: `① 개요` (overview), `② 기능 분해 표`
+   (function decomposition table), `③ 컴포넌트 계약` (component contract —
+   `재사용` from the catalog + `신규`), `④ BE/API 의존` (BE/API dependency),
+   `⑤ 미결 질문` (open questions). See guide.
 3. **`<screen>-connected.html`** — from `references/connected-template.html`. Left =
    the wireframe with numbered `data-n` markers; right = the ② table with matching
    `data-n`; **below the split, a rendered §③ component contract** section (links

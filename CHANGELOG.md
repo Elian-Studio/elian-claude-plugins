@@ -10,6 +10,111 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## elian-store Plugin
 
+### [3.0.0] — 2026-07-22
+
+Design-pipeline consistency pass plus a portfolio trim. **Breaking**: two skills are removed.
+
+#### Removed — BREAKING
+- **`ai-assisted-feature-development`** — its nine phases duplicated skills that
+  already exist: phases 1–5 are `intake-spec` + `design-feature`, phases 6–7 are
+  `implement`, phase 8 is `review`. It wrote artifacts to its own layout
+  (`references/artifact-structure.md`) rather than the shared
+  `claudedocs/<label>/` set, so nothing downstream could consume them, and
+  `disable-model-invocation: false` let it auto-trigger in competition with
+  `intake-spec`.
+  **Migration**: `/intake-spec` → `/design-feature` → `/implement` → `/review`.
+- **`skill-dispatcher`** — duplicated the host's built-in skill discovery and
+  each skill's own `when_to_use`. **Migration**: none needed; the host routes on
+  `description` / `when_to_use`.
+
+Both were removed from the Codex tree in the same change. Rationale and
+migration paths are recorded in `docs/claude-codex-skill-parity.md`
+("Retired Commands"). The catalog goes from 27 to 25 skills.
+
+#### Added
+- **`design-feature`** Phase 4 now generates **`tech-spec.md`**, the
+  developer-facing counterpart to `prd.md`. `references/prd-guide.md` bans
+  technical terms from the PRD body, which made `prd.md` explicitly a
+  non-developer document while the developer-facing content stayed scattered
+  across `design.md` / `architecture.md` / `api-spec.md` / `ddl.sql` with no
+  entry point — the PRD's own checklist said "enough for BE to derive a Tech
+  Spec", but no tech spec was ever produced.
+  New guide `references/tech-spec-guide.md` defines a 7-section structure whose
+  core is a **requirement → implementation mapping table** (every `prd.md` §6
+  AC → owning component / endpoint / table). It is a map, not a copy: anything
+  already in a Phase 3 document is linked, never restated. Technical terms are
+  allowed — the inverse of `prd-guide.md`.
+  The document-set gate becomes `A) Full — design-spec + prd + tech-spec +
+  api-spec + qa-checklist`, `B) Core — prd + tech-spec + api-spec`, `C) PRD
+  only`, `D) Stop here`.
+  Phase 4 validation gains an AC-ID cross-check (`comm` over
+  `R#-AC#` tokens) that fails on both a fabricated ID in `tech-spec.md` and an
+  unmapped AC in `prd.md`.
+
+#### Changed
+- **`intake-spec` / `design-feature`** — `spec.json` moves from
+  `claudedocs/plans/<label>/spec.json` to `claudedocs/<label>/spec.json`, so one
+  feature lives in one directory instead of splitting the spec away from the
+  documents generated from it. `design-feature` §0.2 still reads the legacy path
+  as a fallback and says so on stdout when it hits, so existing specs keep
+  working.
+- **`update-design`** — the impact matrix was still describing the v2.25
+  document set and knew nothing about the artifacts added in v2.26–v2.29.
+  The inventory, impact matrix, and update order now cover `spec.json`,
+  `tech-spec.md`, `roadmap.json`, `index.html`, `erd-preview.html`, and
+  `functional-specs/`. Notably:
+  - `spec.json` is updated first when requirements or AC change, so a later
+    `/design-feature` re-run no longer regresses to a stale spec.
+  - the `index.html` re-render step now carries the actual `build_roadmap.py`
+    invocation (the same `CD=` resolver `design-feature` §5.2 uses). Before, the
+    step said "re-render" with no command and could not be executed.
+  - `erd-preview.html` is offered for regeneration only when `ddl.sql` changed
+    **and** the file already exists — never created or regenerated silently.
+  - consistency verification gains a `tech-spec.md` ↔ `prd.md` AC-ID check and a
+    `roadmap.json` JSON-validity check.
+- **`update-design` / `finish-branch`** — `/commit` and `/ship` are not part of
+  this plugin; they are host-provided. Both skills now prefer them when present
+  and fall back to the plain git steps otherwise, instead of hard-calling a
+  skill that a plugin-only install does not have. `finish-branch` hands the PR
+  body to the bundled `/pr-writer` rather than pre-approving `gh` / `glab`.
+- **`document-writer`** — `SKILL.md` was entirely Korean, violating the
+  repository's English-only rule, and every `build_doc.py` invocation hardcoded
+  `~/.claude/skills/document-writer/scripts/build_doc.py`, a path that does not
+  exist for anyone who installs this as a plugin even though the script ships in
+  the bundle. Rewritten in English, and all invocations now use the
+  `${CLAUDE_SKILL_DIR:-${CLAUDE_PLUGIN_ROOT:+...}}` resolver its sibling skills
+  already use. A reference to a non-existent `document-generate` skill is gone;
+  the real boundary against `create-document` is kept.
+- **`document-writer/scripts/build_doc.py`** — the table-of-contents heading was
+  hardcoded to `목차` regardless of `--lang`. It now follows the flag: `목차`
+  for `ko` (still the default), `Contents` otherwise.
+- **`harness-manager`** — Korean trigger phrases removed from the frontmatter
+  description, which the repository rule explicitly forbids; English equivalents
+  put in their place.
+- **`functional-spec`** — instructions and trigger phrases translated to
+  English. Korean strings that are *literal output labels* of the generated spec
+  (`요소`, `기능 분해 표`, `재사용` / `신규`, …) are kept and now marked as such
+  in the surrounding English text — the same treatment `kanban-board` gives its
+  default board columns.
+
+#### Fixed
+- **`tools/generate.py`** — `discover_skills` treated any dot-directory under
+  `skills/` as a skill, so a stray `.cc-writes` scratch directory made manifest
+  validation fail with "skill '.claude' is not assigned to any plugin". It now
+  skips dot-directories as well as `_`-prefixed ones.
+- **`tools/clusters.json`** — `intake-spec`, `design-feature`, `update-design`,
+  `erd-preview`, and `kanban-board` had never been assigned to a cluster. They
+  now belong to `elian-design`, so `python3 tools/generate.py` validates again.
+  (The 5-plugin split remains staged-only and unpublished.)
+
+#### Notes
+- The design-pipeline skills (`intake-spec`, `design-feature`, `update-design`,
+  `erd-preview`, `kanban-board`) still have no `codex/skills/` counterpart. This
+  is pre-existing drift, now recorded as a documented exception in
+  `docs/claude-codex-skill-parity.md`: the artifact contract is still moving
+  (this release relocated `spec.json` and added `tech-spec.md`), and porting a
+  moving contract to a second tree doubles the churn. Port once it settles.
+
 ### [2.29.0] — 2026-07-16
 
 #### Changed

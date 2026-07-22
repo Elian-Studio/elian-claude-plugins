@@ -109,7 +109,7 @@ Before adding or materially changing a skill, answer:
 |---|---|---|
 | Intent shaping | `brainstorm` | Exists, but keep its core as thought clarification, not forced handoff. |
 | Decision artifact | `decision-dashboard` | Strong. Preserve narrow scope and downstream JSON. |
-| Feature planning | `ai-assisted-feature-development` | Strong structure. Keep as AI-assisted development orchestration, with execution boundary explicit. |
+| Feature planning | `intake-spec` + `design-feature` + `update-design` | Covered. `ai-assisted-feature-development` was retired in v3.0.0 — it ran a parallel 9-phase pipeline over the same lanes without sharing the `claudedocs/<label>/` artifact set. |
 | UI design | `design-ui` | Covered. Needs stronger browser-visible follow-up lane later. |
 | Implementation | `implement` | Covered. Should hand off to review/QA instead of absorbing release behavior. |
 | Bug fixing | `fix` | Covered. Keep root-cause-first and regression-test-first posture. |

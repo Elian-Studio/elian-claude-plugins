@@ -25,6 +25,11 @@ components genuinely unique to this screen.
 
 ## Mandatory 5-section structure
 
+Everything inside the fence below is the **literal skeleton of the generated artifact**. The
+deliverable is written for Korean-speaking readers, so its headings, field names, column headers,
+and the quoted example strings are output labels — emit them verbatim rather than translating
+them. The English text inside the fence is the instruction for what to write under each label.
+
 ```markdown
 # <Screen Name> V2 — 기능명세
 
@@ -81,7 +86,8 @@ gate before /implement. Tag `[BE]` / `[UX]` / `[정합]` as useful.
 
 ## Golden example (trimmed — real output shape)
 
-From a real issue (`MPT-9457` 환자 목록 V2). Note how every claim is grounded:
+Quoted verbatim from a real Korean deliverable (issue `MPT-9457`, patient list V2), so everything
+below is generated output, not instruction. Note how every claim is grounded:
 
 **② 기능 분해 표 (excerpt)**
 
@@ -111,13 +117,14 @@ From a real issue (`MPT-9457` 환자 목록 V2). Note how every claim is grounde
 
 ## Checklist
 
-Before handing off to `/implement`:
+Before handing off to `/implement`. Section and column names are quoted as the literal output
+labels they are:
 
-- [ ] Every ② row has a data source: codebase → `file:line`; greenfield → a designed endpoint+field; or a justified `UI-only`.
-- [ ] Every ② 완료 판정 is a real-server condition, not "renders".
-- [ ] No fabricated value: any mockup hardcode (price/%/name) with no source is in ⑤, not treated as real.
-- [ ] Every ③ 재사용 entry names a catalog component or an existing `file:line` — shared components are NOT re-declared here.
-- [ ] Every ③ 신규 component is genuinely screen-specific (recurring ones live in the catalog).
-- [ ] ④ counts new tables/endpoints honestly.
-- [ ] ⑤ lists every unpinned assumption — none silently promoted to fact.
+- [ ] Every `②` row has a data source: codebase → `file:line`; greenfield → a designed endpoint+field; or a justified `UI-only`.
+- [ ] Every `완료 판정` cell in `②` is a real-server condition, not "renders".
+- [ ] No fabricated value: any mockup hardcode (price/%/name) is in `⑤`, not treated as real.
+- [ ] Every `재사용` entry in `③` names a catalog component or an existing `file:line` — shared components are NOT re-declared here.
+- [ ] Every `신규` component in `③` is genuinely screen-specific (recurring ones live in the catalog).
+- [ ] `④` counts new tables/endpoints honestly.
+- [ ] `⑤` lists every unpinned assumption — none silently promoted to fact.
 - [ ] The connected view includes the §③ component section, its table survives the wireframe's linked CSS (`.fs-*` + scoped reset), and `data-n` matches ② rows one-to-one.

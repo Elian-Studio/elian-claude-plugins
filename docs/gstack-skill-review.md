@@ -39,7 +39,6 @@ The current bundle is structurally healthy: all frontmatter is expected to parse
 | Current skill | gstack nearest role | Fit | Gap |
 |---|---|---|---|
 | `brainstorm` | `/office-hours`, `/spec` | Good | Could more explicitly emit backlog-ready spec handoff |
-| `ai-assisted-feature-development` | `/spec`, plan reviews | Good | Broad scope; should remain planning/artifact focused, not implementation |
 | `design-ui` | `/design-consultation`, `/design-html` | Mostly good | Needs real browser/design QA follow-up lane |
 | `decision-dashboard` | plan review / decision artifact | Good | Strong artifact continuity; keep it narrow |
 | `implement` | implementation phase before `/review` | Good | Downstream `/ship` is referenced but not present |

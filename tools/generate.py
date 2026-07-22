@@ -47,7 +47,7 @@ def load_manifest():
 def discover_skills(skills_dir: Path):
     return sorted(
         p.name for p in skills_dir.iterdir()
-        if p.is_dir() and not p.name.startswith("_")
+        if p.is_dir() and not p.name.startswith(("_", "."))
     )
 
 

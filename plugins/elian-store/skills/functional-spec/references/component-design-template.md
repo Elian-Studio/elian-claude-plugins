@@ -52,8 +52,8 @@ the token file (`../mockups/tokens.css` or the project's design tokens). Keep th
 component set visually consistent by pulling from one token source.
 
 ## 5. Open component questions
-Ambiguities that affect the shared set (e.g. "is the home 임박 card the same component
-as shopping 지출 card, or two variants of one BigStatCard?"). Numbered; resolve before
+Ambiguities that affect the shared set (e.g. "is the home expiring-soon card the same
+component as the shopping spend card, or two variants of one BigStatCard?"). Numbered; resolve before
 /implement.
 ```
 

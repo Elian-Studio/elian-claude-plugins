@@ -52,7 +52,6 @@ cp codex/config.toml.example ~/.codex/config.toml
 After installation, use this command in Codex TUI:
 
 ```text
-/ai-assisted-feature-development <feature-name> [--risk low|medium|high] [--depth full|design-only|task-only|review-only] [--example login|payment|upload|search]
 /brainstorm <topic> [--depth shallow|deep] [--output plan|doc|none]
 /create-document --template <name> --data <json-path> --out <out-path> [--schema <name>] [--json]
 /decision-dashboard [issue-id] [--mode generate|finalize]
@@ -62,7 +61,6 @@ After installation, use this command in Codex TUI:
 /improve <issue-id> [--side back|front|both] [--step N] [--skip-docs]
 /manage-skills [skill-name | focus-area | question]
 /verify-implementation [optional verify skill name]
-/skill-dispatcher <request-or-goal> [--mode quick|full]
 /generate-teammate <project description or task requirements>
 /review <target> [--depth quick|deep] [--lenses security,performance,quality,design,adversarial]
 /persona-review <target> [--persona daniel|evans|dean|martin|all|comma-list|<path>] [--depth quick|deep|interview]

@@ -99,7 +99,7 @@ Once you have enough, confirm: *"Here is what I'm capturing — [summary]. Ready
 Generate the label if not supplied: prefer the issue key (e.g., `GH-42`,
 `GL-99`, `MPT-9419`), otherwise slugify the title (e.g., `feat-auth-redesign`).
 
-Write to: `claudedocs/plans/<label>/spec.json`
+Write to: `claudedocs/<label>/spec.json`
 
 ```json
 {
@@ -137,7 +137,7 @@ Show the spec to the user. Offer to edit before proceeding.
 Once the spec is confirmed:
 
 ```
-spec saved → claudedocs/plans/<label>/spec.json
+spec saved → claudedocs/<label>/spec.json
 
 Next step:
   /design-feature <label>

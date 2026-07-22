@@ -1,109 +1,126 @@
 ---
 name: document-writer
 description: >-
-  어떤 내용이든 고정된 하우스 스타일의 자기완결형 HTML 문서(필요 시 Markdown) 한 파일로 만들어 준다.
-  분석 결과·조사·리서치·리포트/보고서·기술 설계 설명·가이드/튜토리얼·회의 정리·요약 등 "남에게 보여주거나
-  보관할 문서"가 필요한 모든 경우에 사용한다. 사용자가 "문서로 정리해줘", "리포트/보고서 만들어줘",
-  "HTML로 뽑아줘", "깔끔하게 문서화해줘", "정리해서 파일로 남겨줘", "~ 요약/정리 문서", "이거 문서화"
-  라고 하거나, 방금 한 분석·조사·구현 결과를 공유 가능한 문서로 남기려 할 때 반드시 이 스킬을 쓴다.
-  코드 한 줄 메모가 아니라 읽을 사람이 있는 문서면 명시적으로 "문서"라는 단어가 없어도 적용한다.
-  (코드베이스에서 누락된 개발 문서를 자동 생성하는 일은 document-generate, 정해진 JSON을 스키마 기반
-  템플릿으로 렌더하는 일은 create-document 를 쓴다 — 이 스킬은 임의의 내용을 보기 좋은 문서로 만드는 범용 작성기다.)
+  Turn any content into a single self-contained HTML document (or Markdown when asked) in one
+  fixed house style. Use it whenever the result is "something a person will read or keep" —
+  analysis results, investigations, research, reports, technical design explanations,
+  guides/tutorials, meeting write-ups, summaries. Reach for it when the user says "turn this
+  into a document", "write it up as a report", "export as HTML", "document this", "make a
+  shareable write-up", "save this as a file", "summary document", or wants a just-finished
+  analysis, investigation, or implementation left behind as something shareable. It applies
+  even when the word "document" is never used — if there is a reader, it is a document, not a
+  code comment. (For rendering a fixed JSON payload through a schema-based template, use
+  create-document — that is the render engine other skills call internally. This skill is the
+  general-purpose author that turns arbitrary content into a well-presented document.)
 ---
 
 # Document Writer
 
-임의의 내용을 **고정된 하우스 스타일의 깔끔한 단일 HTML 문서**로 만드는 범용 작성기.
-모든 문서가 같은 톤(따뜻한 오프화이트 배경, 잉크 본문, 단일 블루 액센트)으로 통일되어
-"같은 사람이 만든 문서 모음"처럼 보이는 게 핵심 가치다.
+A general-purpose writer that turns arbitrary content into a **clean single HTML document in a
+fixed house style**. The core value is that every document comes out in the same tone (warm
+off-white background, ink body text, one blue accent), so a set of them reads like it was made
+by the same person.
 
-## 동작 원리
+## How it works
 
-내용은 **Markdown으로 쓰고**, 번들 스크립트 `scripts/build_doc.py` 가 고정 하우스 CSS를
-인라인한 **자기완결형 HTML 한 파일**로 변환한다. 외부 의존성 0 — 어디서나 열리고 그대로 공유·PDF화 가능.
+Write the content **as Markdown**, then the bundled script `scripts/build_doc.py` converts it
+into a **self-contained single HTML file** with the fixed house CSS inlined. Zero external
+dependencies — it opens anywhere and can be shared or printed to PDF as is.
 
-콜아웃·KPI 타일·카드·비교 그리드 같은 리치 컴포넌트는 Markdown 안에 **raw HTML 블록**으로
-끼워넣으면 된다. 변환기가 블록 단위 HTML을 그대로 통과시키므로, Markdown의 편함과 맞춤 레이아웃을
-동시에 얻는다. 시각 스타일은 전부 CSS 한 곳에 있으니 **인라인 style 이나 새 색/폰트를 만들지 말 것** —
-정해진 클래스만 조합하면 자동으로 톤이 맞는다.
+Rich components (callouts, KPI tiles, cards, comparison grids) go in as **raw HTML blocks**
+inside the Markdown. The converter passes block-level HTML through untouched, so you get
+Markdown's convenience and custom layout at the same time. All visual style lives in one CSS
+file, so **never write inline `style=` attributes or invent new colors/fonts** — combine the
+documented classes and the tone matches automatically.
 
-## 워크플로우
+## Workflow
 
-### 1. 포맷 결정
-- **기본은 HTML.** 별말 없으면 자기완결형 HTML 문서로 만든다.
-- 사용자가 "MD로", "마크다운으로"라고 하면 → 아래 [Markdown 전용](#markdown-전용-경로) 경로.
-- "PDF로"라고 하면 → HTML로 만든 뒤 브라우저 인쇄나 `make-pdf` 스킬을 안내(이 스킬은 HTML까지).
+### 1. Decide the format
+- **HTML by default.** Absent any instruction, produce a self-contained HTML document.
+- If the user asks for "MD" or "markdown" → take the [Markdown-only](#markdown-only-path) path.
+- If the user asks for "PDF" → build the HTML, then point them at browser printing or the
+  `make-pdf` skill (this skill stops at HTML).
 
-### 2. 문서 유형과 구조 잡기
-유형마다 잘 통하는 섹션 배치가 있다. `references/doc-types.md` 를 읽고 해당 청사진을 따른다
-(분석·리포트 / 기술·설계 / 가이드·튜토리얼 / 범용). 청사진은 출발점일 뿐, 내용에 맞게 조정한다.
-스타일은 유형과 무관하게 항상 동일하다 — 구조만 다르다.
+### 2. Pick the document type and structure
+Each type has a section layout that works well. Read `references/doc-types.md` and follow the
+matching blueprint (analysis/report / technical/design / guide/tutorial / general). The
+blueprint is a starting point — adjust it to the actual content. The style is identical
+regardless of type; only the structure differs.
 
-### 3. 내용을 Markdown으로 작성
-임시 `.md` 파일에 본문을 쓴다. 표준 Markdown(제목/목록/표/코드펜스/인용/링크/이미지)에
-GitHub식 콜아웃 `> [!NOTE]` `> [!TIP]` `> [!WARNING]` `> [!CAUTION]` `> [!IMPORTANT]` `> [!INFO]` 지원.
-리치 컴포넌트가 필요하면 `references/components.md` 의 클래스 카탈로그에서 복사해 raw HTML로 삽입한다.
+### 3. Write the content as Markdown
+Write the body into a temporary `.md` file. Standard Markdown (headings, lists, tables, code
+fences, blockquotes, links, images) plus GitHub-style callouts `> [!NOTE]` `> [!TIP]`
+`> [!WARNING]` `> [!CAUTION]` `> [!IMPORTANT]` `> [!INFO]`.
+For rich components, copy from the class catalog in `references/components.md` and paste it in
+as raw HTML.
 
-- 본문에 H1(`#`)을 넣지 말 것 — 제목은 `--title` 로 준다(스크립트가 헤더를 만든다).
-- 섹션은 H2(`##`), 하위는 H3(`###`).
-- 대화 맥락 의존 표현 금지("방금 본", "위에서 언급한"). 문서는 단독으로 읽혀야 한다.
-- 이모지는 콜아웃 아이콘 외엔 사용자가 요청할 때만.
+- Do not put an H1 (`#`) in the body — the title comes from `--title` (the script builds the header).
+- Sections are H2 (`##`), subsections H3 (`###`).
+- No conversation-dependent phrasing ("as we just saw", "mentioned above"). The document must
+  stand on its own.
+- No emoji beyond the callout icons unless the user asks for them.
 
-### 4. 빌드
+### 4. Build
 ```bash
-python3 ~/.claude/skills/document-writer/scripts/build_doc.py CONTENT.md \
-  --title "문서 제목" \
-  --subtitle "한 줄 부제 (선택)" \
-  --meta "작성일=2026-06-07" --meta "유형=분석 리포트" --meta "작성자=Daniel" \
+# SKILL_DIR = this skill's own directory on either host:
+SKILL_DIR="${CLAUDE_SKILL_DIR:-${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/skills/document-writer}}"
+SKILL_DIR="${SKILL_DIR:-${CODEX_HOME:-$HOME/.codex}/skills/document-writer}"
+python3 "${SKILL_DIR}/scripts/build_doc.py" CONTENT.md \
+  --title "Document title" \
+  --subtitle "One-line subtitle (optional)" \
+  --meta "Date=2026-06-07" --meta "Type=Analysis report" --meta "Author=Daniel" \
   --toc \
   --out claudedocs/payment-latency-report.html
 ```
-- `--meta "키=값"` 은 헤더의 태그 칩이 된다(반복 가능). 보통 작성일·유형 정도면 충분.
-- `--toc` 는 H2/H3로 자동 목차를 만든다. 섹션이 3개 이상이면 켜는 걸 권장, 짧은 문서는 생략.
-- `--out` 기본 위치는 **프로젝트의 `claudedocs/`** (CLAUDE.md 규약: 리포트·분석·요약은 거기에).
-  파일명은 내용을 알 수 있는 `kebab-case.html`. 사용자가 경로를 지정하면 그걸 따른다.
+- `--meta "key=value"` becomes a tag chip in the header (repeatable). Date and type are usually enough.
+- `--toc` builds a table of contents from the H2/H3 headings. Recommended for 3+ sections, skip it on short documents.
+- `--out` defaults to the project's **`claudedocs/`** (CLAUDE.md convention: reports, analyses,
+  and summaries live there). Use a descriptive `kebab-case.html` filename. If the user specifies
+  a path, follow it.
 
-### 5. 마무리
-- 임시 `.md` 는 정리한다(문서 소스를 따로 보관하라는 요청이 없는 한).
-- 사용자에게 **생성된 HTML의 경로**를 알려주고, 브라우저로 열어 확인하라고 안내한다.
-- 한 번에 끝내려 하지 말고, 내용 구조가 애매하면 먼저 짧게 확인한다.
+### 5. Wrap up
+- Clean up the temporary `.md` (unless the user asked to keep the document source).
+- Tell the user the **path of the generated HTML** and suggest opening it in a browser to check.
+- Don't force it into one shot — if the content structure is ambiguous, confirm briefly first.
 
-## 리치 컴포넌트
+## Rich components
 
-`references/components.md` 에 복사-붙여넣기 가능한 카탈로그가 있다:
-콜아웃 / 카드·카드그리드 / KPI 타일 / 2단 비교 / 단계 리스트 / 배지·태그 / 데이터 표.
-**규칙: 새 CSS·인라인 style 을 만들지 말고 문서화된 클래스만 조합한다.** 그래야 모든 문서가
-같은 톤으로 유지된다. 카탈로그에 없는 레이아웃이 정말 필요하면, 기존 색 변수(`var(--accent)` 등)를
-재사용하는 선에서만 최소한으로 확장한다.
+`references/components.md` holds a copy-paste catalog: callouts / cards and card grids / KPI
+tiles / two-column comparison / step lists / badges and tags / data tables.
+**Rule: do not write new CSS or inline styles — combine only the documented classes.** That is
+what keeps every document in the same tone. If a layout genuinely isn't in the catalog, extend
+minimally and only by reusing the existing color variables (`var(--accent)` and friends).
 
-## Markdown 전용 경로
+## Markdown-only path
 
-사용자가 MD를 원하면 스크립트 없이 `Write` 로 깔끔한 `.md` 를 바로 만든다.
-- H1 1개(제목) + 메타 줄(작성일/유형) + `---` 구분선 + H2 섹션 구성.
-- 표·코드블록(언어 명시)·콜아웃(`> [!NOTE]`)·접이식(`<details>`) 활용.
-- 절대 경로·맥락 의존 표현 금지. 이미지는 문서 옆 `images/` 상대 경로.
+If the user wants MD, skip the script and write a clean `.md` directly with `Write`.
+- One H1 (the title) + a meta line (date / type) + a `---` rule + H2 sections.
+- Use tables, code blocks (with a language), callouts (`> [!NOTE]`), and collapsible `<details>`.
+- No absolute paths, no context-dependent phrasing. Images go in an `images/` directory next to
+  the document, referenced relatively.
 
-## 품질 기준 (안티-슬롭)
+## Quality bar (anti-slop)
 
-이 스킬의 존재 이유는 "통일되고 정돈된 룩"이다. 다음을 지킨다:
-- 하우스 팔레트(따뜻한 그레이 + 단일 블루) 유지. 보라 그라데이션·형광색·랜덤 액센트 금지.
-- 폰트는 번들 스택(Pretendard/시스템) 그대로. Inter/Roboto/Arial 임의 추가 금지.
-- 카드 그리드 남발 금지 — 내용이 정말 병렬일 때만 그리드, 서술은 본문 단락으로.
-- KPI·배지는 숫자/상태가 실제로 있을 때만. 없는 지표를 채우려 만들지 말 것.
-- 표는 비교·목록 데이터에. 한 줄짜리는 그냥 문장으로.
+This skill exists to produce a consistent, tidy look. Hold that line:
+- Keep the house palette (warm grays + one blue). No purple gradients, neon, or random accents.
+- Keep the bundled font stack (Pretendard/system). Do not add Inter/Roboto/Arial.
+- Don't overuse card grids — grids are for genuinely parallel items; narrative goes in body paragraphs.
+- KPI tiles and badges only when a real number or status exists. Never invent a metric to fill one.
+- Tables are for comparison and list data. A single row is just a sentence.
 
-## build_doc.py 플래그 요약
+## build_doc.py flag summary
 
-| 플래그 | 의미 |
-|--------|------|
-| `CONTENT.md` (위치인자) | 본문 Markdown 파일 |
-| `--title` | 문서 제목. 없으면 본문 첫 `# H1` 을 제목으로 끌어올림 |
-| `--subtitle` | 제목 아래 한 줄 부제 |
-| `--meta "키=값"` | 헤더 태그 칩(반복). `--meta "값"` 은 값만 칩으로 |
-| `--toc` | H2/H3 자동 목차 삽입 |
-| `--out PATH` | 출력 경로(기본: 제목 슬러그.html, 권장: `claudedocs/...`) |
-| `--lang` | `<html lang>` 기본 `ko` |
-| `--body-html PATH` | Markdown 대신 raw HTML 본문 조각 사용(고급) |
-| `--selftest` | 변환기 자체 점검 후 종료 |
+| Flag | Meaning |
+|------|---------|
+| `CONTENT.md` (positional) | The body Markdown file |
+| `--title` | Document title. Without it, the body's first `# H1` is promoted to the title |
+| `--subtitle` | One-line subtitle under the title |
+| `--meta "key=value"` | Header tag chip (repeatable). `--meta "value"` renders the value alone as a chip |
+| `--toc` | Insert an automatic table of contents from H2/H3 |
+| `--out PATH` | Output path (default: title-slug.html, recommended: `claudedocs/...`) |
+| `--lang` | `<html lang>`, defaults to `ko` |
+| `--body-html PATH` | Use a raw HTML body fragment instead of Markdown (advanced) |
+| `--selftest` | Run the converter's self-check and exit |
 
-문제가 의심되면 먼저 `python3 scripts/build_doc.py --selftest` 로 변환기 상태를 확인한다.
+If something looks wrong, check the converter first with
+`python3 "${SKILL_DIR}/scripts/build_doc.py" --selftest`.
