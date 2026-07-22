@@ -26,6 +26,7 @@
 | `improve` | You are changing working behavior with explicit before/after evidence. | `/elian-store:improve` |
 | `review` | You need a read-only engineering review of code, diffs, or PRs. | `/elian-store:review` |
 | `verify-implementation` | You need to discover and run verify skills before shipping. | `/elian-store:verify-implementation` |
+| `spec-coverage` | Implementation is underway and you need to know which PRD acceptance criteria are actually backed by a passing test. | `/elian-store:spec-coverage` |
 | `manage-skills` | You need to detect or repair verify-skill drift after changes. | `/elian-store:manage-skills` |
 | `generate-teammate` | You need to decide direct, subagent, or team execution. | `/elian-store:generate-teammate` |
 | `create-document` | You need schema-validated HTML or Markdown artifacts. | `/elian-store:create-document` |

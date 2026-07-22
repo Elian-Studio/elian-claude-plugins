@@ -10,6 +10,131 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## elian-store Plugin
 
+### [3.1.0] — 2026-07-22
+
+Adds requirement coverage tracking. The pipeline could produce a PRD and design
+set, but nothing answered the question that matters during implementation:
+**is every acceptance criterion actually proven?**
+
+#### Added
+- **`spec-coverage`** — requirement-to-test traceability. It seeds a leaf-level
+  checklist from the design documents a feature already has, runs the project's
+  test suite, parses the JUnit XML, and decides each item from the result.
+
+  **Tests are the source of truth.** An acceptance criterion is `pass` only when
+  a passing test carries its `R#-AC#` ID in its display name
+  (`@DisplayName("R1-AC1 …")`, `it('R1-AC2 …')`). Any failing test carrying it →
+  `fail`; only skipped tests → `skipped`; **no test at all → `unchecked`**, which
+  is the "requirement not yet proven" signal and the reason the skill exists. The
+  headline number is `ac_proven / ac_total`.
+
+  Six categories are seeded, and the skill is explicit about which of them a
+  machine actually checked: acceptance criteria (from `tech-spec.md` §2 when
+  present — its rows already name the owning component / endpoint / table — else
+  `prd.md` §6), scenarios (`qa-checklist.md`, `prd.md` §5), and API endpoints
+  (`api-spec.md`) are decided by tests; state transitions (`design.md` §2) fall
+  back to manual evidence; schema checks (`ddl.sql`) and open decisions
+  (`design.md` §4) are manual only. Every rendered item is tagged
+  machine-verified or human-asserted so a reader can tell a test result from a
+  claim.
+
+  Outputs `claudedocs/<label>/spec-coverage.json` (source of truth) and
+  `spec-coverage.html` (view), in the same folder as the rest of the design set.
+  `check` runs the suite in the same invocation — it will not present a stale
+  JUnit XML from an earlier run as current evidence, the same discipline
+  `verify-before-claiming` enforces. If no XML is found at all it fails loudly
+  rather than reporting every criterion `unchecked`; "tests were not run" and "no
+  test covers this" are different facts.
+
+  Ported from the maintainer's personal global skill `verify-impl-status` rather
+  than written from scratch — the leaf-checklist model, HTML renderer, and patch
+  applier already worked. What changed: the checklist is now derived from the
+  design documents instead of a hand-written Python data file, and status comes
+  from test results instead of manual marking. The old `checklist-data.py`
+  `importlib` path was dropped outright (executing a user-authored Python module
+  out of `claudedocs/` is an arbitrary-code-execution path); its
+  `merge_existing` / `recount` logic was preserved, so user-entered status still
+  survives a regenerate. A bundled JUnit-XML fixture plus `scripts/validate.py`
+  cover all four verdicts, the no-XML error path, and manual-evidence survival.
+
+  The auto-render `PostToolUse` hook ships with the skill but is **not**
+  registered in `plugin.json` — a `matcher: Bash` hook would fire on every Bash
+  call for every user. `SKILL.md` documents opt-in via the project's own
+  settings.
+
+  **Five defects were found by adversarial review before this first shipped**,
+  all of the same class: a confidently wrong number. Each is fixed and has a
+  regression check in `scripts/validate.py` (12 checks total).
+  - A manual `pass` written through `apply.py` counted toward the headline the
+    renderer labels "AC proven by tests" — `{"R1-AC1":{"status":"pass"}}` could
+    produce `AC proven: 1/1` with no test in existence. `ac_proven` now counts
+    only items whose verdict came from a test; hand-asserted ACs are reported
+    separately as `ac_claimed_manual` and shown under the headline.
+  - A seed that missed an acceptance criterion silently shrank the denominator,
+    so 10 of 12 ACs read as `10/10`. `build_status.py` gained `--prd`
+    (repeatable): it extracts `R#-AC#` IDs from the PRD itself and exits 3 when
+    the seed misses or invents one. Both documented invocations now pass it.
+  - AC IDs were matched against `classname` as well as the test name, so every
+    testcase in a class named after an AC bound to it — an unrelated passing
+    helper could stand in as the proof after the real test was deleted. Binding
+    is now display-name only, matching the documented convention.
+  - A manual `skipped` waiver outranked every later test run, including a
+    currently failing one, so something red rendered as "deliberately skipped".
+    A waiver still survives a passing or skipped run; a failing test now wins.
+  - Unparseable JUnit XML was warned about and skipped, so a truncated report
+    from the run you just did, sitting beside an older parseable one, yielded
+    stale verdicts presented as current. Any parse error is now fatal.
+
+  `apply.py` also validates status against the allowlist before writing —
+  `recount()` tallies with `{s: 0 for s in STATUSES}`, so a typo like `"passed"`
+  did not raise, it dropped out of the counts and under-reported the totals.
+
+#### Changed
+- **`design-feature`** — Phase 5.1 adds a `spec-coverage.html` entry to
+  `roadmap.json`'s `docs[]` (existing schema, no new fields), and Phase 5.3
+  "Next steps" points at `/spec-coverage init <label>` for when implementation
+  begins.
+- **`update-design`** — `spec-coverage.json` joins the inventory, the impact
+  matrix (✅ where the AC set moves, `cond` for API/flow changes), and the
+  sequential update order at step 10. Re-seeding touches only the ACs a change
+  added or removed; recorded evidence on untouched items survives.
+- **`verify-implementation`** and **`verify-before-claiming`** — one boundary
+  line each. Three verify-shaped skills now coexist: `verify-implementation`
+  runs the project's `verify-*` rule skills, `verify-before-claiming` gates a
+  single claim at the moment it is made, and `spec-coverage` traces requirements
+  to the tests that prove them. The roadmap hub remains the plan/board view;
+  `spec-coverage.html` is the proof view.
+
+#### Fixed
+- **`tools/generate.py`** — `--bump` scaffolded its CHANGELOG stub in the middle
+  of the file. The anchor regex `^### \d+\.\d+\.\d+ ` did not match the
+  bracketed `### [3.0.0] — …` form recent entries use, so it skipped every one
+  of them and inserted before an older bare-form heading. It now matches both
+  and emits the bracketed form.
+- **`spec-coverage/scripts/collect_tests.py`** — an absolute `--results` glob
+  (CI artifact directory, out-of-tree build) crashed with an unhandled
+  `NotImplementedError` from `Path.glob`, which rejects non-relative patterns.
+  Absolute patterns are now anchored at the filesystem root.
+- **`TODOS.md`** — added, recording the deferred items this release produced:
+  the end-to-end smoke that has not run against a real test suite, the Codex
+  port of the design-pipeline skills, and the Korean console output in
+  `verify-implementation/scripts/check-skill-discovery.py`.
+
+#### Notes
+- `spec-coverage` is recorded as a fifth Claude-only skill in
+  `docs/claude-codex-skill-parity.md` — its contract is "run this project's test
+  suite now and decide from the result", which needs the bundled scripts to be
+  deterministic; a Codex prompt that guessed at status would defeat its purpose.
+- The same parity document had prose left stale by v3.0.0: it still counted
+  "six exceptions / four Claude-only", claimed 15 shared skills (14), and gave
+  `document-writer`'s Claude-only reason as `~/.claude/skills/...` hardcoding —
+  which v3.0.0 removed. Corrected; `document-writer` is now recorded as a
+  deferred port, not a platform limitation.
+- `docs/plugin-portfolio-hybrid-model.md` gains a *Requirement coverage*
+  lifecycle slot and a written Skill Intake Record for `spec-coverage` —
+  adding a skill one release after removing two warrants the checklist on the
+  record rather than assumed.
+
 ### [3.0.0] — 2026-07-22
 
 Design-pipeline consistency pass plus a portfolio trim. **Breaking**: two skills are removed.

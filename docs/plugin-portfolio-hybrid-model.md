@@ -74,7 +74,7 @@ codex/
 
 ## Split decision (2026-06-12)
 
-The dual-tool distribution work built a generator (`tools/generate.py`, manifest `tools/clusters.json`) that can render `elian-store`'s 16 skills into **five composition-respecting thematic plugins** (`elian-artifacts`, `elian-tdd`, `elian-review`, `elian-design`, `elian-harness`) plus a marketplace catalog. The split is **validated and staged in the gitignored `dist/`, but deliberately not published.**
+The dual-tool distribution work built a generator (`tools/generate.py`, manifest `tools/clusters.json`) that can render `elian-store`'s skills (16 at the time; 26 as of v3.1.0) into **five composition-respecting thematic plugins** (`elian-artifacts`, `elian-tdd`, `elian-review`, `elian-design`, `elian-harness`) plus a marketplace catalog. The split is **validated and staged in the gitignored `dist/`, but deliberately not published.**
 
 **Decision: keep `elian-store` as the single published plugin.** The split does not meet the bar in Operating Principle 1 — the five clusters share one audience, one permission profile, and one release cadence, so the bundle is not "harmful." Two further reasons:
 
@@ -117,6 +117,7 @@ Before adding or materially changing a skill, answer:
 | Document rendering | `create-document` | Covered as utility. Keep deterministic and schema/template oriented. |
 | Agent/team routing | `generate-teammate` | Covered for Claude. Codex parity should remain limited unless delegation tools exist. |
 | Verification orchestration | `verify-implementation` | Covered. Should not pretend to replace QA, review, or release readiness. |
+| Requirement coverage | `spec-coverage` | Added v3.1.0. Answers "is every PRD acceptance criterion backed by a passing test?" — distinct from `verify-implementation` (rule compliance) and `review` (engineering judgment). Keep tests as the source of truth; never let it report `pass` on a human assertion alone. |
 | Skill maintenance | `manage-skills` | Covered. Good place to add drift checks over time. |
 | Persona review | `persona-review` | Covered. Keep persona-specific review style, not a forced universal scorecard. |
 | Engineering review | `review` | Covered. Keep it read-only, findings-first, and separate from persona review, verification, browser QA, and ship. |
@@ -126,6 +127,28 @@ Before adding or materially changing a skill, answer:
 | Security review | Missing | Medium-priority gap after review and QA foundations. |
 | Benchmark/performance | Missing | Later gap unless a concrete regression workflow exists. |
 | Deploy/canary | Missing | Later gap unless deployment targets are known. |
+
+## Skill Intake Record — `spec-coverage` (v3.1.0)
+
+Added one release after v3.0.0 removed two skills, so the checklist above is
+answered here on the record rather than assumed.
+
+| Question | Answer |
+|---|---|
+| Triggering situation | Design docs exist, implementation is underway, and someone asks whether the PRD is actually satisfied. |
+| Lifecycle slot | Requirement coverage — a new slot, not a second occupant of an existing one. |
+| Overlap and justification | `verify-implementation` runs the project's `verify-*` rule skills; `verify-before-claiming` gates a single claim at the moment it is made; `review` is human-judgment engineering review; the roadmap hub (`index.html`) is a plan/board view. None of them trace a requirement to the test that proves it, and none can report an acceptance criterion that has no test at all. |
+| Artifact | `claudedocs/<label>/spec-coverage.json` (source of truth) + `spec-coverage.html` (view), in the same folder as the rest of the design set. |
+| Refuses to | Mark `pass` without a passing test; overwrite user-entered status on regenerate; edit the HTML directly; auto-commit from its hook; report every criterion `unchecked` when the test suite simply was not run (it fails loudly instead). |
+| Verification | `scripts/validate.py` against a bundled JUnit-XML fixture covering pass / fail / skipped / no-AC-ID and the no-XML-found error path. |
+| `disable-model-invocation` | `true` — it runs the test suite and writes files. |
+| Release surface | Plugin version, marketplace entry, both READMEs, CHANGELOG, `tools/clusters.json` (→ `elian-review`), and a Codex exception entry. |
+
+Origin: ported from the maintainer's personal global skill `verify-impl-status`
+rather than written from scratch — the leaf-checklist model, renderer, and patch
+applier already worked. What changed is where the checklist comes from (design
+documents instead of a hand-written Python data file) and what decides status
+(test results instead of manual marking).
 
 ## Roadmap
 
