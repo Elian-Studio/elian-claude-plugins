@@ -1,0 +1,34 @@
+{
+  "R1-AC1": {
+    "status": "pass",
+    "tests": [
+      "com.example.OrderTest#R1-AC1 an order is created twice with the same idempotency key",
+      "com.example.OrderTest#R1-AC1 an order is created with a valid cart"
+    ]
+  },
+  "R1-AC2": {
+    "status": "fail",
+    "tests": [
+      "com.example.OrderTest#R1-AC2 an order with quantity 0 is rejected"
+    ]
+  },
+  "R1-AC3": {
+    "status": "skipped",
+    "tests": [
+      "com.example.OrderTest#R1-AC3 a coupon is applied to the order total"
+    ]
+  },
+  "R2-AC1": {
+    "status": "fail",
+    "tests": [
+      "com.example.StockTest#R2-AC1 a stock warning is shown at the threshold",
+      "com.example.StockTest#R2-AC1 the order button is disabled when stock is 0"
+    ]
+  },
+  "R2-AC2": {
+    "status": "fail",
+    "tests": [
+      "com.example.StockTest#R2-AC2 stock is released when the order is cancelled"
+    ]
+  }
+}
