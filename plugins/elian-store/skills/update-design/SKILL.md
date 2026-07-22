@@ -75,6 +75,7 @@ Show the user a table of what exists:
 | tech-spec.md | `claudedocs/<label>/tech-spec.md` | ✅ / ❌ |
 | api-spec.md | `claudedocs/<label>/api-spec.md` | ✅ / ❌ |
 | qa-checklist.md | `claudedocs/<label>/qa-checklist.md` | ✅ / ❌ |
+| spec-coverage.json | `claudedocs/<label>/spec-coverage.json` | ✅ / ❌ |
 | roadmap.json | `claudedocs/<label>/roadmap.json` | ✅ / ❌ |
 | index.html | `claudedocs/<label>/index.html` | ✅ / ❌ |
 | erd-preview.html | `claudedocs/<label>/erd-preview.html` | ✅ / ❌ |
@@ -119,15 +120,15 @@ own impact scope.
 For each change item, run the following matrix against the documents that
 actually exist (skip rows for absent files):
 
-| Change type | spec.json | design.md | ddl.sql | architecture.md | design-spec.md | prd.md | tech-spec.md | api-spec.md | qa-checklist.md | roadmap.json |
-|-------------|:---------:|:---------:|:-------:|:---------------:|:--------------:|:------:|:------------:|:-----------:|:---------------:|:------------:|
-| Requirement add/remove | ✅ | ✅ | cond | ✅ | cond | ✅ | ✅ | cond | ✅ | ✅ |
-| Schema / table change | — | ✅ | ✅ | ✅ | — | — | ✅ | cond | cond | cond |
-| Flow / scenario change | — | ✅ | — | ✅ | cond | cond | ✅ | cond | ✅ | cond |
-| API contract change | — | cond | — | cond | — | cond | ✅ | ✅ | ✅ | cond |
-| Term / naming change | cond | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | cond |
-| Business rule change | ✅ | ✅ | — | cond | — | ✅ | cond | — | ✅ | cond |
-| UX / screen change | — | — | — | cond | ✅ | cond | cond | — | ✅ | cond |
+| Change type | spec.json | design.md | ddl.sql | architecture.md | design-spec.md | prd.md | tech-spec.md | api-spec.md | qa-checklist.md | spec-coverage.json | roadmap.json |
+|-------------|:---------:|:---------:|:-------:|:---------------:|:--------------:|:------:|:------------:|:-----------:|:---------------:|:------------------:|:------------:|
+| Requirement add/remove | ✅ | ✅ | cond | ✅ | cond | ✅ | ✅ | cond | ✅ | ✅ | ✅ |
+| Schema / table change | — | ✅ | ✅ | ✅ | — | — | ✅ | cond | cond | — | cond |
+| Flow / scenario change | — | ✅ | — | ✅ | cond | cond | ✅ | cond | ✅ | cond | cond |
+| API contract change | — | cond | — | cond | — | cond | ✅ | ✅ | ✅ | cond | cond |
+| Term / naming change | cond | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | — | cond |
+| Business rule change | ✅ | ✅ | — | cond | — | ✅ | cond | — | ✅ | ✅ | cond |
+| UX / screen change | — | — | — | cond | ✅ | cond | cond | — | ✅ | — | cond |
 
 **cond** = re-evaluate against the specific change; default to "no impact"
 unless the detail clearly touches that document.
@@ -136,7 +137,7 @@ Two documents are not in the matrix because they are conditional on a single
 row each:
 
 - `erd-preview.html` — **cond** on "Schema / table change": regenerate only if
-  the file already exists (Phase 5 step 12). Never create it here.
+  the file already exists (Phase 5 step 13). Never create it here.
 - `functional-specs/` — **cond** on "UX / screen change": a screen document is
   only touched when that specific screen changed. Regenerate with
   `/functional-spec`, do not hand-edit the connected HTML.
@@ -145,6 +146,10 @@ row each:
 `requirements[]` / `acceptanceCriteria[]` / `outOfScope[]` and nothing else.
 `roadmap.json` upgrades from **cond** to ✅ whenever the change adds work items
 or drops planned ones.
+`spec-coverage.json` follows the AC set, not the prose: ✅ when AC rows are added
+or removed, **cond** when an API or flow change only moves where an existing AC
+is proven. It exists only after `/spec-coverage init` — skip the column when the
+file is absent.
 
 Output a per-change verdict table:
 
@@ -216,9 +221,10 @@ Update documents **one at a time in this order** (skip absent or excluded docs):
 7. **design-spec.md** — FE screens (if present and impacted)
 8. **api-spec.md** — endpoint contracts
 9. **qa-checklist.md** — Given-When-Then cases derived from updated AC
-10. **roadmap.json** — added / removed work items and `status: "dropped"`
-11. **index.html** — re-render only if roadmap.json changed
-12. **erd-preview.html** — only if ddl.sql changed and the file already exists
+10. **spec-coverage.json** — re-seed the AC entries this change added or removed
+11. **roadmap.json** — added / removed work items and `status: "dropped"`
+12. **index.html** — re-render only if roadmap.json changed
+13. **erd-preview.html** — only if ddl.sql changed and the file already exists
 
 **Do not run updates in parallel.** Later documents reference earlier ones —
 parallel edits risk contradictions.
@@ -250,6 +256,13 @@ instead of restating their content.
 Read `references/architecture-guide.md` before editing. Keep the
 AS-IS / Δ / TO-BE structure. Update only the affected section(s).
 
+### spec-coverage.json
+
+Only when the file already exists — `/spec-coverage init <label>` creates it, this
+skill never does. Re-seed just the AC entries this change added or removed, and
+leave every untouched entry alone: recorded evidence must survive the update.
+Then re-render the view with `/spec-coverage render <label>`.
+
 ### roadmap.json
 
 Read `../design-feature/references/roadmap-task-guide.md` before editing.
@@ -259,7 +272,7 @@ dropped record is the audit trail.
 
 ### index.html
 
-Re-render only when `roadmap.json` actually changed in step 10. Use the same
+Re-render only when `roadmap.json` actually changed in step 11. Use the same
 invocation as `/design-feature` §5.2:
 
 ```bash
@@ -402,6 +415,7 @@ git commit -m "docs(<label>): propagate <one-line change summary>"
 | `/design-feature` | Creates the document set this skill updates |
 | `/intake-spec` | Re-run before `/design-feature` if requirements changed dramatically |
 | `/decision-dashboard` | Called from Phase 3 when 3+ decisions are pending |
-| `/erd-preview` | Offered in Phase 5 step 12 when `ddl.sql` changed |
+| `/spec-coverage` | Owns `spec-coverage.json` — re-seeded in Phase 5 step 10 when the AC set changed |
+| `/erd-preview` | Offered in Phase 5 step 13 when `ddl.sql` changed |
 | `/functional-spec` | Regenerates a `functional-specs/<screen>-connected.html` |
 | `/commit` | Optional, host-provided — Phase 7 falls back to plain git |

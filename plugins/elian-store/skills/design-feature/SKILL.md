@@ -277,6 +277,16 @@ Create `claudedocs/<label>/roadmap.json` reflecting:
 - `docs[]` linking to all generated HTML/MD files
 - `stakeholders[]` mapping roles to which documents they should read
 
+Also add a `docs[]` entry for `spec-coverage.html` so the hub links it once
+implementation starts. The file does not exist yet — the sibling `spec-coverage`
+skill writes it on the first `/spec-coverage init <label>` — but the entry belongs
+in the hub from the start. Use the existing schema fields, no new ones:
+
+```json
+{ "label": "Spec coverage", "href": "spec-coverage.html",
+  "layer": "Implementation", "reader": "Engineers, QA" }
+```
+
 Include Mermaid blocks in task `desc` where useful — e.g., a state diagram
 in the "Domain design" task, a sequence diagram in the "API spec" task.
 
@@ -344,6 +354,9 @@ Print a structured completion report:
 - Roadmap hub: claudedocs/<label>/index.html
 - If screens change: /functional-spec <label> — bind each wireframe element to
   real components + APIs (code-grounded contract) before /implement.
+- When implementation starts: /spec-coverage init <label> — seed the requirement
+  → test checklist from these docs, so every AC is tracked until a passing test
+  proves it.
 - Commit and open PR: /finish-branch
 ```
 

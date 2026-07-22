@@ -25,6 +25,7 @@ implement / fix / improve
 - **Upstream**: implementation exists and `manage-skills` has corrected drift if needed.
 - **This skill**: run all or selected `verify-*` skills and produce an integrated report.
 - **Downstream**: fix remaining failures, run browser QA when user-visible behavior changed, then ship.
+- **Not this skill**: requirement coverage. This skill checks rule compliance (i18n, api-contract, …); to see which PRD acceptance criteria are backed by a passing test use `/spec-coverage`.
 
 ## What's automated vs what needs your taste
 
