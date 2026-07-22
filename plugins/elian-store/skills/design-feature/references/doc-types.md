@@ -102,6 +102,29 @@ capability, policy change, or measurable metric change.
 
 ---
 
+### tech-spec.md
+
+**Readers**: Frontend engineers, backend engineers, QA, reviewers  
+**Content**: The developer-facing counterpart to `prd.md` and the entry point
+into the Phase 3 documents. Summary and scope, a requirement → implementation
+mapping table (every `prd.md` §6 AC → owning component / endpoint / table),
+domain and data deltas, changed API contracts, implementation order and
+dependencies, risks and rollback, test strategy. Technical terms are allowed —
+the opposite of `prd.md`. Content already written in `design.md`, `ddl.sql`,
+`architecture.md`, or `api-spec.md` is linked, never restated.
+
+**Generate when**: `prd.md` was generated and the feature will be implemented —
+i.e. whenever an engineer needs a single starting point. §2 maps `prd.md` §6 AC
+IDs, so this document requires `prd.md` to exist: without it there is nothing to
+trace and `design.md` + `architecture.md` already carry the engineering plan.
+For an internal refactor (no PRD), generate it only if the work spans enough
+components that the implementation order in §5 is worth writing down. Skip for
+bug fixes and documentation-only changes.
+
+**Guide**: `references/tech-spec-guide.md`
+
+---
+
 ### api-spec.md
 
 **Readers**: Frontend engineers, API consumers  
@@ -126,13 +149,13 @@ behaviour surface.
 
 ## Generation decision table
 
-| Condition | design.md | ddl.sql | architecture.md | design-spec.md | prd.md | api-spec.md | qa-checklist.md |
-|-----------|:---------:|:-------:|:---------------:|:--------------:|:------:|:-----------:|:---------------:|
-| New feature with DB | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| New feature, no DB  | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ |
-| UI-only change      | — | — | ✅ | ✅ | ✅ | — | ✅ |
-| Internal refactor   | ✅ | — | ✅ | — | — | — | ✅ |
-| Bug fix             | — | — | — | — | — | — | ✅ |
+| Condition | design.md | ddl.sql | architecture.md | design-spec.md | prd.md | tech-spec.md | api-spec.md | qa-checklist.md |
+|-----------|:---------:|:-------:|:---------------:|:--------------:|:------:|:------------:|:-----------:|:---------------:|
+| New feature with DB | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| New feature, no DB  | ✅ | — | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| UI-only change      | — | — | ✅ | ✅ | ✅ | ✅ | — | ✅ |
+| Internal refactor   | ✅ | — | ✅ | — | — | cond | — | ✅ |
+| Bug fix             | — | — | — | — | — | — | — | ✅ |
 
 When in doubt, generate. A document that turns out to be unnecessary is cheaper
 than a missing one discovered mid-implementation.

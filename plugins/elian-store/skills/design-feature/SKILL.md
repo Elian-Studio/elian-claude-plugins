@@ -47,7 +47,9 @@ Parse `<label>` from the argument. If absent, ask once.
 
 ### 0.2 Load spec.json
 
-Look for `claudedocs/plans/<label>/spec.json`.
+Look for `claudedocs/<label>/spec.json`. If it is missing, fall back to the
+legacy path `claudedocs/plans/<label>/spec.json` and, when that hits, print one
+line: *"Loaded spec from the legacy path — new specs are written to `claudedocs/<label>/`."*
 
 If found: read it and summarise in one sentence to confirm context.
 
@@ -192,6 +194,7 @@ Read `references/doc-types.md` for the generation decision table.
 claudedocs/<label>/
   design-spec.md  (if FE screens change)
   prd.md          (if product significance)
+  tech-spec.md    (developer-facing counterpart to prd.md)
   api-spec.md     (if new/changed endpoints)
   qa-checklist.md
 ```
@@ -201,8 +204,8 @@ claudedocs/<label>/
 Before generating, ask the user:
 
 > **Which document set?**
-> A) Full — design-spec + prd + api-spec + qa-checklist
-> B) Core — prd + api-spec
+> A) Full — design-spec + prd + tech-spec + api-spec + qa-checklist
+> B) Core — prd + tech-spec + api-spec
 > C) PRD only
 > D) Stop here
 
@@ -224,6 +227,11 @@ diagrams, and terminology.
 structure, user language only (no tech terms). Every §6 requirement must have
 a Given-When-Then AC table.
 
+**tech-spec.md** — Read `references/tech-spec-guide.md` before writing.
+7-section structure mapping every prd.md §6 AC to its owning component,
+endpoint, and table. Technical terms are allowed; restating Phase 3 documents
+is not — link to them.
+
 **api-spec.md** — One section per endpoint: method + path, request schema,
 response schema (200, 4xx, 5xx), auth requirement.
 
@@ -237,6 +245,17 @@ After writing prd.md, run the consistency checks from `references/prd-guide.md`:
 ```bash
 grep -nE "Aggregate|Entity|Mapper|XOR|DDL|Endpoint" claudedocs/<label>/prd.md
 grep -c "AC[0-9]" claudedocs/<label>/qa-checklist.md
+```
+
+When `tech-spec.md` was generated, also run the AC-ID cross-check from
+`references/tech-spec-guide.md` — no AC ID may appear in tech-spec.md §2 that is
+absent from prd.md, and no prd.md AC may be left unmapped:
+
+```bash
+comm -3 \
+  <(grep -oE '\bR[0-9]+-AC[0-9]+\b' claudedocs/<label>/tech-spec.md | sort -u) \
+  <(grep -oE '\bR[0-9]+-AC[0-9]+\b' claudedocs/<label>/prd.md      | sort -u)
+# Expected: no output
 ```
 
 Fix before proceeding to Phase 5.
@@ -257,6 +276,16 @@ Create `claudedocs/<label>/roadmap.json` reflecting:
 - tasks mapping to the documents and work items identified above
 - `docs[]` linking to all generated HTML/MD files
 - `stakeholders[]` mapping roles to which documents they should read
+
+Also add a `docs[]` entry for `spec-coverage.html` so the hub links it once
+implementation starts. The file does not exist yet — the sibling `spec-coverage`
+skill writes it on the first `/spec-coverage init <label>` — but the entry belongs
+in the hub from the start. Use the existing schema fields, no new ones:
+
+```json
+{ "label": "Spec coverage", "href": "spec-coverage.html",
+  "layer": "Implementation", "reader": "Engineers, QA" }
+```
 
 Include Mermaid blocks in task `desc` where useful — e.g., a state diagram
 in the "Domain design" task, a sequence diagram in the "API spec" task.
@@ -304,6 +333,7 @@ Print a structured completion report:
 | design.md | claudedocs/<label>/design.md | N Mermaid diagrams, M decisions |
 | architecture.md | claudedocs/<label>/architecture.md | N sections, M diagrams |
 | prd.md | claudedocs/<label>/prd.md | N AC, M scenarios |
+| tech-spec.md | claudedocs/<label>/tech-spec.md | N AC mapped, M work items |
 | design-spec.md | claudedocs/<label>/design-spec.md | N screens, M journeys |
 | api-spec.md | claudedocs/<label>/api-spec.md | N endpoints |
 | qa-checklist.md | claudedocs/<label>/qa-checklist.md | N test cases |
@@ -316,14 +346,17 @@ Print a structured completion report:
 |------|-------------------|
 | PM | prd.md |
 | Designer | design-spec.md + prd.md §5–6 |
-| FE engineer | design-spec.md + api-spec.md |
-| BE engineer | design.md + ddl.sql + api-spec.md |
+| FE engineer | tech-spec.md + design-spec.md + api-spec.md |
+| BE engineer | tech-spec.md + design.md + ddl.sql + api-spec.md |
 | QA | prd.md §6 + qa-checklist.md |
 
 ### Next steps
 - Roadmap hub: claudedocs/<label>/index.html
 - If screens change: /functional-spec <label> — bind each wireframe element to
   real components + APIs (code-grounded contract) before /implement.
+- When implementation starts: /spec-coverage init <label> — seed the requirement
+  → test checklist from these docs, so every AC is tracked until a passing test
+  proves it.
 - Commit and open PR: /finish-branch
 ```
 

@@ -47,7 +47,7 @@ def load_manifest():
 def discover_skills(skills_dir: Path):
     return sorted(
         p.name for p in skills_dir.iterdir()
-        if p.is_dir() and not p.name.startswith("_")
+        if p.is_dir() and not p.name.startswith(("_", "."))
     )
 
 
@@ -251,8 +251,12 @@ def _replace_version(path, old, new):
 def scaffold_changelog(newver, date):
     lines = CHANGELOG.read_text(encoding="utf-8").splitlines(keepends=True)
     for i, line in enumerate(lines):
-        if re.match(r"^### \d+\.\d+\.\d+ ", line):  # first existing release heading
-            lines.insert(i, f"### {newver} — {date}\n\n#### Changed\n- TODO: describe the change before opening the PR.\n\n")
+        # Headings appear both bracketed (`### [3.0.0] — date`, the Keep a
+        # Changelog form used by recent entries) and bare (`### 2.22.0 — date`).
+        # Matching only the bare form skipped every recent entry and inserted
+        # the stub in the middle of the file.
+        if re.match(r"^### \[?\d+\.\d+\.\d+\]? ", line):  # first existing release heading
+            lines.insert(i, f"### [{newver}] — {date}\n\n#### Changed\n- TODO: describe the change before opening the PR.\n\n")
             CHANGELOG.write_text("".join(lines), encoding="utf-8")
             return True
     return False

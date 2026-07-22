@@ -13,13 +13,13 @@ Zero external dependencies on purpose: stdlib only, so it runs anywhere and
 never trips supply-chain release-age policies.
 
 Usage:
-    python build_doc.py CONTENT.md --title "제목" [options]
+    python build_doc.py CONTENT.md --title "Document title" [options]
 
 Options:
     --title TEXT        Document title. If omitted, the first '# H1' in the
                         Markdown is used (and removed from the body).
     --subtitle TEXT     One-line subtitle under the title.
-    --meta "k=v"        Repeatable meta chip, e.g. --meta "작성일=2026-06-07".
+    --meta "k=v"        Repeatable meta chip, e.g. --meta "Date=2026-06-07".
                         A bare "--meta value" renders a value-only chip.
     --toc               Insert an auto table of contents (from H2/H3).
     --lang CODE         <html lang>. Default: ko.
@@ -325,11 +325,12 @@ def _para_break(line, lines, i):
 # Document assembly
 # ----------------------------------------------------------------------------
 
-def build_toc(body_html):
+def build_toc(body_html, lang="ko"):
     heads = re.findall(r'<h([23]) id="([^"]+)">(.*?)</h[23]>', body_html, re.S)
     if not heads:
         return ""
-    items = ['<nav class="toc"><div class="toc-title">목차</div><ul>']
+    label = "목차" if lang.lower().startswith("ko") else "Contents"
+    items = [f'<nav class="toc"><div class="toc-title">{label}</div><ul>']
     for level, sid, text in heads:
         text = re.sub(r"<[^>]+>", "", text)
         cls = "lvl-3" if level == "3" else "lvl-2"
@@ -356,7 +357,7 @@ def build_header(title, subtitle, metas):
 
 
 def assemble(title, subtitle, metas, body_html, css, lang, toc):
-    toc_html = build_toc(body_html) if toc else ""
+    toc_html = build_toc(body_html, lang) if toc else ""
     page = f"""<!DOCTYPE html>
 <html lang="{lang}">
 <head>

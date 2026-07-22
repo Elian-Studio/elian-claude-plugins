@@ -1,155 +1,156 @@
-# 하우스 컴포넌트 카탈로그
+# House component catalog
 
-문서를 "디자인된 것"처럼 보이게 하는 리치 컴포넌트 모음. **Markdown 안에 raw HTML 블록으로 그대로 붙여넣으면**
-`build_doc.py` 가 통과시키고, 하우스 CSS가 자동으로 스타일을 입힌다.
+The rich components that make a document look "designed". **Paste them straight into the Markdown
+as raw HTML blocks** — `build_doc.py` passes them through and the house CSS styles them automatically.
 
-**철칙**: 인라인 `style=` 이나 새 CSS를 만들지 말 것. 아래 클래스만 조합한다. 그래야 모든 문서 톤이 통일된다.
-색이 정말 필요하면 변수(`var(--accent)`, `var(--tip)`, `var(--warn)`, `var(--danger)`, `var(--muted)`)만 재사용.
+**Hard rule**: never write inline `style=` or new CSS. Combine only the classes below — that is what
+keeps every document in the same tone. If you genuinely need a color, reuse the variables only
+(`var(--accent)`, `var(--tip)`, `var(--warn)`, `var(--danger)`, `var(--muted)`).
 
 ---
 
-## 콜아웃 (Markdown 문법 권장)
+## Callouts (Markdown syntax preferred)
 
-대부분 raw HTML 없이 GitHub식 문법으로 충분하다:
+Most of the time the GitHub-style syntax is enough, with no raw HTML:
 
 ```markdown
 > [!NOTE]
-> 일반 참고. 맥락이나 배경 설명.
+> General reference. Context or background.
 
 > [!TIP]
-> 권장 사항이나 요령.
+> A recommendation or a trick.
 
 > [!IMPORTANT]
-> 놓치면 안 되는 핵심.
+> The key point that must not be missed.
 
 > [!WARNING]
-> 주의해야 할 위험 요소.
+> A risk to watch out for.
 
 > [!CAUTION]
-> 하면 안 되는 것 / 파괴적 동작 경고.
+> Something not to do / a destructive operation.
 
 > [!INFO]
-> 부가 정보(중립 톤).
+> Supplementary information (neutral tone).
 ```
 
-여러 줄·목록도 콜아웃 안에 넣을 수 있다(각 줄 앞에 `>`).
+Multiple lines and lists work inside a callout too (prefix each line with `>`).
 
 ---
 
-## 카드
+## Cards
 
-단일 카드 — 하나의 묶음을 박스로:
+A single card — one grouped idea in a box:
 
 ```html
 <div class="card">
-  <div class="card-title">아키텍처 결정</div>
-  커넥션 풀을 HikariCP로 통일하고 최대 풀 크기를 50으로 상향한다.
+  <div class="card-title">Architecture decision</div>
+  Standardize the connection pool on HikariCP and raise the maximum pool size to 50.
 </div>
 ```
 
-카드 그리드 — 병렬 항목 2~4개를 나란히 (auto-fit, 좁아지면 자동 한 줄씩):
+Card grid — 2-4 parallel items side by side (auto-fit, wraps to one per row when narrow):
 
 ```html
 <div class="card-grid">
-  <div class="card"><div class="card-title">백엔드</div>Spring Boot 3.x</div>
-  <div class="card"><div class="card-title">프론트</div>Vue 3 + Pinia</div>
+  <div class="card"><div class="card-title">Backend</div>Spring Boot 3.x</div>
+  <div class="card"><div class="card-title">Frontend</div>Vue 3 + Pinia</div>
   <div class="card"><div class="card-title">DB</div>PostgreSQL 16</div>
 </div>
 ```
 
 ---
 
-## KPI 타일
+## KPI tiles
 
-숫자 지표를 강조. `delta up`(초록)·`delta down`(빨강)으로 증감 표시:
+Highlight numeric metrics. `delta up` (green) / `delta down` (red) show the direction of change:
 
 ```html
 <div class="kpi-grid">
   <div class="kpi">
     <div class="num">820ms</div>
-    <div class="label">p95 응답시간</div>
+    <div class="label">p95 response time</div>
     <div class="delta down">+210ms</div>
   </div>
   <div class="kpi">
     <div class="num">99.2%</div>
-    <div class="label">가용성</div>
+    <div class="label">Availability</div>
     <div class="delta up">+0.3%p</div>
   </div>
 </div>
 ```
 
-`delta` 줄은 변화량이 실제로 있을 때만. 단순 현황이면 생략.
+Include the `delta` line only when there is a real change. Omit it for a plain current-state number.
 
 ---
 
-## 2단 비교 (Before / After, 안 / 밖, 장 / 단)
+## Two-column comparison (before / after, inside / outside, pros / cons)
 
 ```html
 <div class="cols2">
-  <div class="card"><div class="card-title">AS-IS</div>동기 호출, 평균 820ms</div>
-  <div class="card"><div class="card-title">TO-BE</div>비동기 + 캐시, 평균 90ms</div>
+  <div class="card"><div class="card-title">AS-IS</div>Synchronous call, 820ms average</div>
+  <div class="card"><div class="card-title">TO-BE</div>Async + cache, 90ms average</div>
 </div>
 ```
 
 ---
 
-## 단계 리스트 (절차 / 워크플로우)
+## Step list (procedures / workflows)
 
-번호가 매겨진 시각적 스텝. 가이드·튜토리얼·절차 설명에 적합:
+Numbered visual steps. Good for guides, tutorials, and procedure walk-throughs:
 
 ```html
 <div class="steps">
   <div class="step">
     <div class="n">1</div>
-    <div class="st-body"><b>의존성 설치</b><br>프로젝트 루트에서 <code>./gradlew build</code> 실행.</div>
+    <div class="st-body"><b>Install dependencies</b><br>Run <code>./gradlew build</code> from the project root.</div>
   </div>
   <div class="step">
     <div class="n">2</div>
-    <div class="st-body"><b>환경 변수 설정</b><br><code>.env</code> 에 DB 접속 정보를 채운다.</div>
+    <div class="st-body"><b>Set environment variables</b><br>Fill the DB connection details into <code>.env</code>.</div>
   </div>
 </div>
 ```
 
-> 단순 순서 목록이면 Markdown 의 `1. 2. 3.` 으로 충분하다. `.steps` 는 각 단계에 설명이 붙는
-> "절차 안내"일 때 쓴다.
+> For a plain ordered list, Markdown's `1. 2. 3.` is enough. Use `.steps` when each step carries
+> an explanation — an actual procedure walk-through.
 
 ---
 
-## 배지 / 태그
+## Badges / tags
 
-상태·라벨을 인라인으로:
+Inline status labels:
 
 ```html
-<span class="badge badge-accent">진행중</span>
-<span class="badge badge-tip">완료</span>
-<span class="badge badge-warn">검토필요</span>
-<span class="badge badge-danger">차단</span>
-<span class="badge badge-muted">보류</span>
+<span class="badge badge-accent">In progress</span>
+<span class="badge badge-tip">Done</span>
+<span class="badge badge-warn">Needs review</span>
+<span class="badge badge-danger">Blocked</span>
+<span class="badge badge-muted">On hold</span>
 ```
 
-표 셀이나 제목 옆에 인라인으로 섞어 쓸 수 있다.
+They can be mixed inline into table cells or next to a heading.
 
 ---
 
-## 데이터 표
+## Data tables
 
-표는 Markdown 으로 쓰면 자동으로 스타일이 입혀진다(별도 클래스 불필요):
+Write tables in Markdown — they get styled automatically, no extra class needed:
 
 ```markdown
-| 항목 | 이전 | 이후 | 변화 |
-|------|----:|----:|:----:|
-| p95 응답 | 820ms | 90ms | <span class="badge badge-tip">−89%</span> |
-| 오류율 | 3.4% | 0.8% | <span class="badge badge-tip">개선</span> |
+| Metric | Before | After | Change |
+|--------|-------:|------:|:------:|
+| p95 response | 820ms | 90ms | <span class="badge badge-tip">−89%</span> |
+| Error rate | 3.4% | 0.8% | <span class="badge badge-tip">Improved</span> |
 ```
 
-- 정렬: `:---` 좌, `---:` 우, `:---:` 중앙.
-- 셀 안 줄바꿈은 `<br>`, 인라인 코드는 백틱.
+- Alignment: `:---` left, `---:` right, `:---:` center.
+- Line breaks inside a cell use `<br>`; inline code uses backticks.
 
 ---
 
-## 코드 블록
+## Code blocks
 
-언어를 명시하면 상단에 작은 라벨이 붙는다:
+Specify a language and a small label appears at the top:
 
 ````markdown
 ```java
@@ -159,13 +160,13 @@ public record PaymentResult(String id, long amountKrw) {}
 
 ---
 
-## 접이식 (긴 부록 / 원본 데이터)
+## Collapsible (long appendices / raw data)
 
-raw HTML `<details>` 를 그대로 쓴다:
+Use raw HTML `<details>` directly:
 
 ```html
 <details>
-  <summary>전체 로그 (클릭하여 펼치기)</summary>
+  <summary>Full log (click to expand)</summary>
 
   ```
   2026-06-07 12:00:01 WARN  pool exhausted
@@ -175,20 +176,20 @@ raw HTML `<details>` 를 그대로 쓴다:
 
 ---
 
-## 이미지 / 그림
+## Images / figures
 
 ```markdown
-![결제 플로우 다이어그램](./images/payment-flow.png)
+![Payment flow diagram](./images/payment-flow.png)
 ```
 
-캡션이 필요하면 raw HTML `figure`:
+If you need a caption, use a raw HTML `figure`:
 
 ```html
 <figure>
-  <img src="./images/payment-flow.png" alt="결제 플로우">
-  <figcaption>그림 1. 결제 요청 처리 플로우</figcaption>
+  <img src="./images/payment-flow.png" alt="Payment flow">
+  <figcaption>Figure 1. Payment request processing flow</figcaption>
 </figure>
 ```
 
-이미지는 출력 HTML 옆 `images/` 에 두고 상대 경로로 참조한다(자기완결 HTML은 텍스트만 인라인되고
-이미지는 외부 파일이다 — 공유 시 함께 전달).
+Keep images in an `images/` directory next to the output HTML and reference them relatively (a
+self-contained HTML inlines text only — images stay external files, so share them together).

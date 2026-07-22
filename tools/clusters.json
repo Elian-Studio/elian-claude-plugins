@@ -27,7 +27,7 @@
     "elian-artifacts": {
       "displayName": "Elian Artifacts",
       "description": "Artifact generation and team orchestration: route to the right workflow, render schema-validated documents, build decision dashboards, spawn teammates, and brainstorm before committing.",
-      "skills": ["skill-dispatcher", "create-document", "decision-dashboard", "generate-teammate", "brainstorm"],
+      "skills": ["create-document", "decision-dashboard", "generate-teammate", "brainstorm"],
       "agents": "domain"
     },
     "elian-tdd": {
@@ -38,14 +38,14 @@
     },
     "elian-review": {
       "displayName": "Elian Review",
-      "description": "Engineering review and verification: findings-first code review, persona-lens review, verify-skill discovery, verify-skill drift repair, a claim-time evidence gate, and the consumer side of receiving review feedback.",
-      "skills": ["review", "persona-review", "pr-review", "verify-implementation", "manage-skills", "verify-before-claiming", "respond-to-review"],
+      "description": "Engineering review and verification: findings-first code review, persona-lens review, verify-skill discovery, verify-skill drift repair, a claim-time evidence gate, requirement-to-test coverage tracking, and the consumer side of receiving review feedback.",
+      "skills": ["review", "persona-review", "pr-review", "verify-implementation", "manage-skills", "verify-before-claiming", "respond-to-review", "spec-coverage"],
       "agents": "persona"
     },
     "elian-design": {
       "displayName": "Elian Design",
-      "description": "Design and authoring: UI/UX design artifacts, self-contained house-styled documents, and AI-assisted feature framing.",
-      "skills": ["design-ui", "document-writer", "ai-assisted-feature-development"]
+      "description": "Design and authoring: requirements intake, gated design-document generation, design-change propagation, UI/UX design artifacts, wireframe-to-code functional specs, schema lineage previews, local task boards, and self-contained house-styled documents.",
+      "skills": ["intake-spec", "design-feature", "update-design", "design-ui", "functional-spec", "erd-preview", "kanban-board", "document-writer"]
     },
     "elian-harness": {
       "displayName": "Elian Harness",
@@ -56,7 +56,8 @@
 
   "codex": {
     "_comment": "Codex distribution per skill. claude_only = never ships to Codex; prompt_only = stays a hand-authored Codex prompt (not a shared skill); everything else lint-clean ships as a codex/skills/<name> symlink.",
-    "claude_only": ["document-writer", "harness-manager", "pr-review", "finish-branch"],
+    "claude_only": ["document-writer", "harness-manager", "pr-review", "finish-branch",
+      "spec-coverage"],
     "prompt_only": ["generate-teammate", "persona-review"]
   }
 }
