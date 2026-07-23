@@ -11,8 +11,8 @@ description: >
   component-design catalog, a per-screen functional spec (.md), a robust
   wireframe↔spec "connected" HTML view, and a hub. Writes no product code.
 
-  Use when wireframes/mockups exist (from /design-ui, /design-feature mockups, or
-  hand-built) and you need function + component design before /implement. Trigger
+  Use when wireframes/mockups exist (from /design-ui or hand-built) and you need
+  function + component design before /implement. Trigger
   phrases: "write the functional spec", "component design from these wireframes",
   "connect wireframe to spec", "functional spec", "component design",
   "/functional-spec".
@@ -21,7 +21,7 @@ when_to_use: >
   shared component set and per-screen function/component contracts before
   implementation. Works on an existing codebase (grounds reuse to file:line) or a
   greenfield product (grounds to the designed API/entities). Sits after /design-ui
-  or /design-feature mockups and before /implement. Skip when no wireframe exists
+  and before /implement. Skip when no wireframe exists
   yet (run /design-ui first) or for a pure backend change with no screen surface.
 argument-hint: "<label> [screen...] [--out <dir>] [--from <mockups-dir>]"
 allowed-tools: Read, Grep, Glob, Write, Edit, Bash(mkdir *), Bash(ls *), Bash(open *), AskUserQuestion
@@ -50,7 +50,7 @@ This skill **grounds its claims but writes no product code.** It is a specificat
 ## Where this fits in the workflow
 
 ```text
-/design-ui or /design-feature (mockups/)        → wireframes exist
+/design-ui  (writes claudedocs/<label>/mockups/) → wireframes exist
   -> /functional-spec                             ← YOU ARE HERE
      P0 Resolve inputs + grounding mode
      P1 Grounding (codebase OR design-doc)         once
@@ -72,15 +72,19 @@ This skill **grounds its claims but writes no product code.** It is a specificat
 - `references/component-design-template.md` — the cross-wireframe component catalog (P2)
 - `references/functional-spec-guide.md` — the per-screen 5-section `.md` structure + example
 - `references/connected-template.html` — the robust, isolated, responsive wireframe↔spec view
-- `references/tokens.css` — shared visual tokens for the connected view
+- `references/tokens.css` — the shared neutral token system, used as a fallback. The connected view links `../mockups/tokens.css`, which `/design-ui` emits into `claudedocs/<label>/mockups/`; when that file is absent, fall back to this reference sheet.
 
 ---
 
 ## Phase 0 — Resolve inputs + grounding mode
 
-1. Parse `<label>`. If absent, ask once.
-2. Resolve the mockup source: `--from <dir>`, else `claudedocs/<label>/mockups/`,
-   else ask. Every screen must have a concrete wireframe file — never invent screens.
+1. Parse `<label>`. If absent, ask once — never guess a `<label>`.
+2. **Resolve the mockup source** in this priority; never silently read the wrong project's artifacts:
+   1. explicit `--from <dir>` — if it does not exist, error and stop; do not invent a path;
+   2. else the new default `claudedocs/<label>/mockups/` (what `/design-ui` writes);
+   3. else, if ONLY the legacy `claudedocs/design/<label>/` exists and is unambiguous, use it after telling the user it is the legacy location;
+   4. else ask.
+   Every screen must have a concrete wireframe file — never invent screens. If the resolved dir has wireframes but no `tokens.css`, still render (fall back to `references/tokens.css`) and note the missing token sheet — do not fabricate one.
 3. Load context if present: `spec.json`, `design-spec.md`, `api-spec.md`, `ddl.sql`,
    `design.md`, `decisions*.json`.
 4. **Determine the grounding mode + root:**
@@ -91,8 +95,10 @@ This skill **grounds its claims but writes no product code.** It is a specificat
    - If there is no product code yet (greenfield) → **greenfield mode**; the
      grounding source is the design docs. State this explicitly; do not loop asking.
 5. **Resolve output dir** — default to a **sibling of the mockups dir**
-   (`<mockups-parent>/functional-specs/`), so the connected view's
-   `../mockups/tokens.css` link resolves. `--out` overrides.
+   (`<mockups-parent>/functional-specs/`, i.e. `claudedocs/<label>/functional-specs/`
+   for the default mockups path), so the connected view's `../mockups/tokens.css`
+   link resolves. `--out` overrides. If the output dir already holds prior
+   functional-spec results, confirm before overwriting rather than clobbering them.
 6. Confirm the screen list **and grounding mode/root** with the user before proceeding.
 
 ---

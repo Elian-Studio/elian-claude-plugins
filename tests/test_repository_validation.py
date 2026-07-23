@@ -212,5 +212,46 @@ allowed-tools: {tools}{gate}
         self.assertTrue(any("appears in both" in message for message in messages))
 
 
+class DesignArtifactContractTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name)
+        self.skills = self.root / "plugins" / "elian-store" / "skills"
+        (self.skills / "design-ui").mkdir(parents=True)
+        (self.skills / "functional-spec" / "references").mkdir(parents=True)
+
+    def tearDown(self) -> None:
+        self.temp.cleanup()
+
+    def write(self, design_ui: str, functional_spec: str, connected: str) -> None:
+        (self.skills / "design-ui" / "SKILL.md").write_text(design_ui, encoding="utf-8")
+        (self.skills / "functional-spec" / "SKILL.md").write_text(functional_spec, encoding="utf-8")
+        (self.skills / "functional-spec" / "references" / "connected-template.html").write_text(
+            connected, encoding="utf-8"
+        )
+
+    GOOD_DUI = "Output dir: claudedocs/<label>/mockups/\n"
+    GOOD_FS = "Resolve: claudedocs/<label>/mockups/, from /design-ui\n"
+    GOOD_CONNECTED = '<link rel="stylesheet" href="../mockups/tokens.css">\n'
+
+    def test_passes_on_aligned_contract(self) -> None:
+        self.write(self.GOOD_DUI, self.GOOD_FS, self.GOOD_CONNECTED)
+        validator = RepositoryValidator(self.root)
+        validator.validate_design_artifact_contract()
+        self.assertEqual([item for item in validator.findings if item.check == "design-contract"], [])
+
+    def test_flags_retired_design_path(self) -> None:
+        self.write(self.GOOD_DUI + "legacy claudedocs/design/<feature>/\n", self.GOOD_FS, self.GOOD_CONNECTED)
+        validator = RepositoryValidator(self.root)
+        validator.validate_design_artifact_contract()
+        self.assertTrue(any("retired" in item.message for item in validator.findings))
+
+    def test_flags_false_design_feature_mockups_claim(self) -> None:
+        self.write(self.GOOD_DUI, self.GOOD_FS + "from /design-feature mockups\n", self.GOOD_CONNECTED)
+        validator = RepositoryValidator(self.root)
+        validator.validate_design_artifact_contract()
+        self.assertTrue(any("falsely claims design-feature" in item.message for item in validator.findings))
+
+
 if __name__ == "__main__":
     unittest.main()
