@@ -72,13 +72,15 @@ Templates: [references/templates.md](references/templates.md).
 4. **Code change (Green)**.
 5. Run **existing + new** tests — both must pass.
 6. Refactor with green tests as safety net.
-7. Incremental commit per improvement unit via `/commit`.
+7. Keep each improvement unit reviewable in the diff. Commit only when the
+   user requested it; use a host-provided `/commit` skill when available.
 
 For parallel multi-improvement, use the spawn prompt template in [references/templates.md](references/templates.md).
 
 ### Step 5: BEFORE/AFTER comparison verification
 
-1. Run project verify skills (`/verify-backend`, `/verify-frontend`, etc.).
+1. Run the repository's documented tests and checks, plus relevant project-local
+   `verify-*` skills when they exist.
 2. **BEFORE/AFTER table**: per item, did the AFTER target hold?
 3. Rollback decision:
    - All achieved → Step 6
@@ -87,7 +89,8 @@ For parallel multi-improvement, use the spawn prompt template in [references/tem
 
 ### Step 6: Code review
 
-`/simplify` for quality. `/code-reviewer` for deep analysis when scope warrants. Stage review fixes via `/commit`.
+Review the diff directly for unnecessary complexity and contract drift. A
+host-provided `/simplify` or `/code-reviewer` may be offered as an optional extra.
 
 ### Step 7: Completion report
 
@@ -138,7 +141,7 @@ For failure recovery: every Step has a fail action — Step 1 fail (no test cove
 ## Where this fits in the workflow
 
 ```
-working feature → /improve → /review → /ship
+working feature → /improve → /review
                      │
                      └── Pre: feature works; metric or pain point identified.
                          Post: PR-ready improvement + before/after evidence.
@@ -147,7 +150,8 @@ working feature → /improve → /review → /ship
 Sequencing principles:
 - **Before** /improve: have a baseline measurement or a clear UX pain.
 - **During** /improve: quantified comparison is non-optional.
-- **After** /improve: hand off to /review, /ship; capture metric in dashboard for ongoing tracking.
+- **After** /improve: hand off to `/review`; offer a host release workflow only
+  when it is actually available.
 
 ## Manual decision gating (automated vs taste)
 
@@ -179,7 +183,7 @@ Write 3 short observations into `claudedocs/{issueId}-improve-reflection.md`:
 | BEFORE snapshot | Step 1 | Post-improvement comparison; future regressions |
 | Improvement plan + conflict matrix | Step 2 | /review (knows scope of each unit) |
 | Characterization Tests + new tests | Step 4 | CI; future improvement attempts |
-| BEFORE/AFTER quantified table | Step 5 | /ship (decision); dashboards (ongoing) |
+| BEFORE/AFTER quantified table | Step 5 | Reviewer; dashboards (ongoing) |
 | Completion report | Step 7 | Retro; cost / benefit analysis |
 
 ## BEFORE / AFTER patterns
@@ -248,8 +252,8 @@ Same effort, much wider payoff.
 ## Skill verification
 
 ```bash
-python3 [scripts/validate_skill.py](scripts/validate_skill.py)
-python3 [scripts/validate_skill.py](scripts/validate_skill.py) --json
+python3 plugins/elian-store/skills/improve/scripts/validate_skill.py
+python3 plugins/elian-store/skills/improve/scripts/validate_skill.py --json
 ```
 
 ## Pre-flight checklist
@@ -268,11 +272,11 @@ Before Step 4 (TDD improvement):
 
 | Skill | Step |
 |-------|------|
-| `/commit` | Step 4 — incremental commits (mandatory) |
-| `/verify-*` | Step 5 — integration verification |
-| `/simplify` | Step 6 — self-review |
+| `/commit` | Optional host capability, only when the user requested commits |
+| project `verify-*` | Optional project-local checks after documented commands |
+| `/simplify`, `/code-reviewer` | Optional host capabilities after direct review |
 | `/generate-teammate` | Step 4 — 4+ improvements warrant a team |
-| `/defer` | Out-of-scope discoveries |
+| `/defer` | Optional host capability; otherwise record follow-up work in the report |
 
 ## Exceptions
 

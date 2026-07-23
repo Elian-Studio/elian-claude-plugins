@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ERD 계보 추적기 — {{TITLE}}</title>
+<title>ERD Lineage Explorer — {{TITLE}}</title>
 <style>
   *{box-sizing:border-box}
   body{margin:0;background:#eef1f6;color:#1f2937;font-family:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',system-ui,sans-serif;}
@@ -21,29 +21,29 @@
 
   <header style="margin-bottom:22px;">
     <div class="mono" style="font-size:12px;letter-spacing:.14em;color:#1c4ed8;font-weight:700;">{{HEADER_TAG}}</div>
-    <h1 style="font-size:28px;font-weight:900;margin:8px 0 8px;letter-spacing:-.02em;">계보 추적기 <span style="color:#8891a0;font-weight:700;font-size:18px;">Lineage Explorer</span></h1>
+    <h1 style="font-size:28px;font-weight:900;margin:8px 0 8px;letter-spacing:-.02em;">Lineage Explorer</h1>
     <p style="margin:0;color:#5b6472;font-size:14.5px;line-height:1.6;max-width:900px;">{{SUBTITLE}}</p>
   </header>
 
   <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:18px;">
-    <span style="font-size:12px;color:#8891a0;font-weight:600;">빠른 예시</span>
+    <span style="font-size:12px;color:#8891a0;font-weight:600;">Quick examples</span>
     {{QUICKCHIPS}}
-    <button id="a-reset" style="margin-left:auto;font-family:inherit;font-size:12.5px;font-weight:600;color:#1c4ed8;background:#eef3ff;border:1px solid #c9d8ff;border-radius:9px;padding:8px 14px;cursor:pointer;">선택 해제</button>
+    <button id="a-reset" style="margin-left:auto;font-family:inherit;font-size:12.5px;font-weight:600;color:#1c4ed8;background:#eef3ff;border:1px solid #c9d8ff;border-radius:9px;padding:8px 14px;cursor:pointer;">Clear selection</button>
   </div>
 
   <div style="display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap;">
 
-    <!-- 다이어그램 -->
+    <!-- Diagram -->
     <div style="flex:1;min-width:600px;background:#fff;border:1px solid #d7dce4;border-radius:16px;padding:20px 22px 24px;box-shadow:0 8px 34px rgba(15,23,42,.06);">
-      <div id="a-hint" style="margin:0 0 14px;font-size:13px;color:#1c4ed8;background:#eef3ff;border:1px dashed #b9caf5;border-radius:10px;padding:11px 14px;">🖱️ 아래 표에서 <b>행을 하나 클릭</b>하거나 위 <b>빠른 예시</b>를 눌러보세요.</div>
+      <div id="a-hint" style="margin:0 0 14px;font-size:13px;color:#1c4ed8;background:#eef3ff;border:1px dashed #b9caf5;border-radius:10px;padding:11px 14px;">Select <b>one row</b> in a table below or choose a <b>quick example</b> above.</div>
       <div id="a-viewport" style="position:relative;height:600px;overflow:hidden;background:#f7f9fc;border:1px solid #e6ebf2;border-radius:12px;cursor:grab;touch-action:none;user-select:none;">
         <div style="position:absolute;top:12px;right:12px;z-index:20;display:flex;flex-direction:column;gap:6px;">
           <button id="a-zin" style="width:34px;height:34px;font-size:18px;font-weight:700;background:#fff;border:1px solid #d0d6e0;border-radius:8px;cursor:pointer;color:#334155;box-shadow:0 1px 3px rgba(0,0,0,.08);">+</button>
           <button id="a-zout" style="width:34px;height:34px;font-size:18px;font-weight:700;background:#fff;border:1px solid #d0d6e0;border-radius:8px;cursor:pointer;color:#334155;box-shadow:0 1px 3px rgba(0,0,0,.08);">−</button>
-          <button id="a-fit" title="전체 보기" style="width:34px;height:34px;font-size:15px;background:#fff;border:1px solid #d0d6e0;border-radius:8px;cursor:pointer;color:#334155;box-shadow:0 1px 3px rgba(0,0,0,.08);">⤢</button>
+          <button id="a-fit" title="Fit to view" style="width:34px;height:34px;font-size:15px;background:#fff;border:1px solid #d0d6e0;border-radius:8px;cursor:pointer;color:#334155;box-shadow:0 1px 3px rgba(0,0,0,.08);">⤢</button>
         </div>
         <div id="a-zoom-label" style="position:absolute;bottom:12px;right:14px;z-index:20;font-family:ui-monospace,Menlo,monospace;font-size:11px;font-weight:700;color:#64748b;background:rgba(255,255,255,.85);border:1px solid #e2e6ee;border-radius:6px;padding:3px 8px;">100%</div>
-        <div style="position:absolute;bottom:12px;left:14px;z-index:20;font-size:11px;color:#94a0b0;background:rgba(255,255,255,.85);border:1px solid #e2e6ee;border-radius:6px;padding:3px 8px;">드래그: 이동 · 휠/버튼: 확대·축소</div>
+        <div style="position:absolute;bottom:12px;left:14px;z-index:20;font-size:11px;color:#94a0b0;background:rgba(255,255,255,.85);border:1px solid #e2e6ee;border-radius:6px;padding:3px 8px;">Drag to pan · wheel/buttons to zoom</div>
         <div id="a-pan" style="position:absolute;top:0;left:0;transform-origin:0 0;">
           <div id="a-diagram" style="position:relative;width:max-content;padding:44px 52px;">
             <svg id="a-wires" style="position:absolute;top:0;left:0;pointer-events:none;overflow:visible;z-index:1;"></svg>
@@ -52,21 +52,21 @@
         </div>
       </div>
       <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:#6b7280;margin-top:16px;align-items:center;">
-        <span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:26px;height:0;border-top:3px solid #1c4ed8;"></span> 하드 FK</span>
-        <span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:26px;height:0;border-top:3px dashed #9aa3b2;"></span> 소프트 참조 (스키마 FK 아님)</span>
-        <span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:14px;height:14px;border-radius:4px;background:#c7dbff;border:1px solid #1c4ed8;"></span> 선택한 행</span>
-        <span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:14px;height:14px;border-radius:4px;background:#eef3ff;border:1px solid #93b4f5;"></span> 계보에 포함</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:26px;height:0;border-top:3px solid #1c4ed8;"></span> Hard FK</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:26px;height:0;border-top:3px dashed #9aa3b2;"></span> Soft reference (not a schema FK)</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:14px;height:14px;border-radius:4px;background:#c7dbff;border:1px solid #1c4ed8;"></span> Selected row</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:14px;height:14px;border-radius:4px;background:#eef3ff;border:1px solid #93b4f5;"></span> In lineage</span>
       </div>
     </div>
 
-    <!-- 요약 패널 -->
+    <!-- Summary panel -->
     <aside style="width:352px;flex:none;position:sticky;top:20px;background:#fff;border:1px solid #d7dce4;border-radius:16px;box-shadow:0 8px 34px rgba(15,23,42,.06);overflow:hidden;">
       <div style="background:#0f172a;color:#e2e8f0;padding:15px 18px;">
         <div class="mono" style="font-size:11px;color:#93b4f5;font-weight:700;letter-spacing:.08em;">RECORD LINEAGE</div>
-        <div id="a-sum-title" style="font-size:16px;font-weight:800;color:#f8fafc;margin-top:4px;">레코드를 선택하세요</div>
+        <div id="a-sum-title" style="font-size:16px;font-weight:800;color:#f8fafc;margin-top:4px;">Select a record</div>
       </div>
       <div id="a-summary" style="padding:16px 18px;font-size:13px;color:#5b6472;line-height:1.6;">
-        표에서 행을 클릭하면 이 레코드의 <b>출처(상위 계보)</b>와 <b>영향(하위 계보)</b>이 순서대로 여기에 정리됩니다.
+        Select a table row to show this record's <b>sources (upstream lineage)</b> and <b>impact (downstream lineage)</b>.
       </div>
     </aside>
 
@@ -74,13 +74,13 @@
 </div>
 
 <script>
-/* ── 데이터 구조 — 이 스킬이 채우는 유일한 부분. 아래 렌더 엔진은 손대지 않는다 ────────
-   SCHEMA  : 테이블+컬럼. {c:'컬럼',t:'타입',pk:1?,fk:1?}
-   RELS    : 관계. {from:[테이블,컬럼], to:[테이블,컬럼], card:'N:1', color:'#hex', soft:true?}
-             soft:true = 스키마 FK 아닌 논리적 참조(점선). to 컬럼이 PK 아닐 수 있음.
-   DATA    : 테이블당 실제 행. {cols:[...], rows:[[...],...]}. 첫 컬럼 = PK/식별자.
-   LAYERS  : 좌→우 계층. 부모(참조 대상) 테이블이 앞 레이어. 한 레이어에 여러 테이블 가능.
-   KLABEL  : 테이블명 → 한글 라벨(요약 패널·박스용).
+/* ── Data structures — this is the only section the skill fills. Do not edit the render engine below.
+   SCHEMA  : tables and columns. {c:'column',t:'type',pk:1?,fk:1?}
+   RELS    : relationships. {from:[table,column], to:[table,column], card:'N:1', color:'#hex', soft:true?}
+             soft:true = logical reference rather than a schema FK (dashed). The target need not be a PK.
+   DATA    : real rows per table. {cols:[...], rows:[[...],...]}. First column = PK/identifier.
+   LAYERS  : left-to-right hierarchy. Parent/target tables come first. Multiple tables per layer are allowed.
+   KLABEL  : table name → human-readable label for the summary panel and boxes.
    ─────────────────────────────────────────────────────────────────────────────── */
 const SCHEMA = {{SCHEMA}};
 const RELS = {{RELS}};
@@ -88,7 +88,7 @@ const DATA = {{DATA}};
 const LAYERS = {{LAYERS}};
 const KLABEL = {{KLABEL}};
 
-// ── 렌더 엔진 (고정 — 수정 금지) ────────────────────────────────────────────────
+// ── Render engine (fixed — do not edit) ─────────────────────────────────────────
 const esc = s => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 
 class ERD {
@@ -272,9 +272,9 @@ class ERD {
     if(!this.aPinned){
       rows.forEach(tr=>{ tr.style.opacity=''; tr.style.background=''; tr.style.boxShadow=''; });
       document.querySelectorAll('[id^="a-box-"]').forEach(b=>b.style.opacity='');
-      if(hint) hint.innerHTML='🖱️ 아래 표에서 <b>행을 하나 클릭</b>하거나 위 <b>빠른 예시</b>를 눌러보세요.';
-      if(sumT) sumT.textContent='레코드를 선택하세요';
-      if(sum) sum.innerHTML='표에서 행을 클릭하면 이 레코드의 <b>출처(상위 계보)</b>와 <b>영향(하위 계보)</b>이 순서대로 여기에 정리됩니다.';
+      if(hint) hint.innerHTML='Select <b>one row</b> in a table below or choose a <b>quick example</b> above.';
+      if(sumT) sumT.textContent='Select a record';
+      if(sum) sum.innerHTML='Select a table row to show this record\'s <b>sources (upstream lineage)</b> and <b>impact (downstream lineage)</b>.';
       return;
     }
 
@@ -297,7 +297,7 @@ class ERD {
       const b=document.getElementById('a-row-'+e.b.replace('#','-'));
       this.conn(svg, host, a, b, {color:e.rel.soft?'#64748b':e.rel.color, soft:e.rel.soft, card:e.rel.card});
     });
-    if(hint) hint.innerHTML=`추적 중: <b class="mono">${P.tbl} #${P.id}</b> · 연결된 레코드 <b>${nodes.size}건</b>. <span style="color:#64748b;">(다른 행 클릭 또는 ‘선택 해제’)</span>`;
+    if(hint) hint.innerHTML=`Tracing <b class="mono">${P.tbl} #${P.id}</b> · <b>${nodes.size}</b> connected records. <span style="color:#64748b;">(Select another row or clear the selection.)</span>`;
 
     const softNodes=new Set();
     edges.forEach(e=>{ if(e.rel.soft){ softNodes.add(e.a); softNodes.add(e.b); } });
@@ -309,7 +309,7 @@ class ERD {
     const downs=nodeArr.filter(n=>n.layer>=pinLayer).sort((a,b)=>a.layer-b.layer);
     const item=(n)=>{
       const soft=softNodes.has(n.key);
-      const badge=soft?'<span style="font-size:9.5px;font-weight:700;color:#64748b;border:1px dashed #9aa3b2;border-radius:5px;padding:0 5px;margin-left:6px;">소프트</span>':'';
+      const badge=soft?'<span style="font-size:9.5px;font-weight:700;color:#64748b;border:1px dashed #9aa3b2;border-radius:5px;padding:0 5px;margin-left:6px;">soft</span>':'';
       return `<div style="display:flex;gap:10px;padding:9px 0;border-top:1px solid #eef1f6;">
         <div style="flex:none;width:8px;height:8px;border-radius:50%;margin-top:5px;background:${soft?'#9aa3b2':'#1c4ed8'};"></div>
         <div style="min-width:0;">
@@ -323,10 +323,10 @@ class ERD {
       let html=`<div style="background:#f7f9fc;border:1px solid #e6ebf2;border-radius:9px;padding:10px 12px;margin-bottom:12px;">
         <div class="mono" style="font-size:11px;color:#8891a0;">${P.tbl} #${P.id}</div>
         <div style="font-size:13px;color:#1f2937;margin-top:2px;font-weight:600;">${this.describe(P.tbl,P.id)}</div></div>`;
-      html+=`<div style="font-size:11px;font-weight:700;letter-spacing:.06em;color:#8891a0;">▲ 출처 (상위 계보) · ${ups.length}</div>`;
-      html+= ups.length? ups.map(item).join('') : '<div style="font-size:12px;color:#a3adba;padding:8px 0;">상위 참조 없음 (계보의 시작점)</div>';
-      html+=`<div style="font-size:11px;font-weight:700;letter-spacing:.06em;color:#8891a0;margin-top:14px;">▼ 영향 (하위 계보) · ${downs.length}</div>`;
-      html+= downs.length? downs.map(item).join('') : '<div style="font-size:12px;color:#a3adba;padding:8px 0;">하위 영향 없음 (말단 레코드)</div>';
+      html+=`<div style="font-size:11px;font-weight:700;letter-spacing:.06em;color:#8891a0;">▲ Sources (upstream) · ${ups.length}</div>`;
+      html+= ups.length? ups.map(item).join('') : '<div style="font-size:12px;color:#a3adba;padding:8px 0;">No upstream references (lineage origin)</div>';
+      html+=`<div style="font-size:11px;font-weight:700;letter-spacing:.06em;color:#8891a0;margin-top:14px;">▼ Impact (downstream) · ${downs.length}</div>`;
+      html+= downs.length? downs.map(item).join('') : '<div style="font-size:12px;color:#a3adba;padding:8px 0;">No downstream impact (terminal record)</div>';
       sum.innerHTML=html;
     }
   }

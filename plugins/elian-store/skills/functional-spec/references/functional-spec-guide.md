@@ -25,106 +25,104 @@ components genuinely unique to this screen.
 
 ## Mandatory 5-section structure
 
-Everything inside the fence below is the **literal skeleton of the generated artifact**. The
-deliverable is written for Korean-speaking readers, so its headings, field names, column headers,
-and the quoted example strings are output labels — emit them verbatim rather than translating
-them. The English text inside the fence is the instruction for what to write under each label.
+Everything inside the fence below is the **literal skeleton of the generated artifact**. Emit the
+headings, field names, column headers, and quoted example strings verbatim. The prose inside the
+fence explains what to write under each label.
 
 ```markdown
-# <Screen Name> V2 — 기능명세
+# <Screen Name> V2 — Functional Specification
 
-- 이슈: <label> (context, parent if any)
-- 근거 목업: <path to the wireframe/mockup this spec is derived from>
-- plan: <path to the plan/roadmap task if one exists>
-- 목적: fix "what each element does + component contract" BEFORE code. This is a spec, not code.
+- Issue: <label> (context, parent if any)
+- Source mockup: <path to the wireframe/mockup this spec is derived from>
+- Plan: <path to the plan/roadmap task if one exists>
+- Purpose: fix "what each element does + component contract" BEFORE code. This is a spec, not code.
 
-## ① 화면 개요
+## ① Screen overview
 What the screen does, who uses it, the IA anchor (real menu/route), and the single
-most important grounding fact (e.g. "표시 필드 6종 중 1종만 신규 BE, 나머지는 이미 VO에 존재. 신규 테이블 0개.").
+most important grounding fact (e.g. "Only one of six displayed fields needs new BE work; the rest already exist in the VO. Zero new tables.").
 
-## ② 기능 분해 표
+## ② Function decomposition
 One numbered row per wireframe element. The number is the connected-view anchor.
 
-| # | 요소 | 기능(동작) | 데이터 소스·BE 의존 | 상태(빈/로딩/에러/선택/비활성) | 상호작용·연동 | 완료 판정 |
+| # | Element | Behavior | Data source / BE dependency | State (empty/loading/error/selected/disabled) | Interaction / handoff | Completion evidence |
 |---|------|-----------|--------------------|------------------------------|--------------|----------|
 
-- 데이터 소스: a **real** endpoint + field (`GET /patient` `VO.Simple.hpNo`) or `UI-only` with reason.
-- 완료 판정: a real-server-round-trip condition — "실 API에 keyword 전달되어 서버 필터된 rows 반환(클라 필터 아님)", never "테이블이 렌더된다".
+- Data source: a **real** endpoint + field (`GET /patient` `VO.Simple.hpNo`) or `UI-only` with reason.
+- Completion evidence: a real-server-round-trip condition — "The real API receives `keyword` and returns server-filtered rows (not client filtering)", never "the table renders".
 
-## ③ 컴포넌트 계약
-Front-end rules first (e.g. "기존 view 미수정, 신규 view로 분리, base 컴포넌트 미수정").
+## ③ Component contract
+Front-end rules first (e.g. "Do not modify the existing view; use a new view; do not modify base components").
 
-### 재사용 (catalog / existing)
-| 컴포넌트 | 출처 | 이 화면 사용(props/variant) |
+### Reuse (catalog / existing)
+| Component | Source | Usage on this screen (props/variant) |
 Shared components from `component-design.md` (name + "catalog"), or on a codebase
 an existing component at its exact `file:line`. Do NOT re-design a shared component here.
 
-### 신규 (this screen only)
-| 컴포넌트/파일 | 배치(신규) | 역할 | props | emit/노출 | 상태 |
+### New (this screen only)
+| Component/file | Placement (new) | Role | Props | Events/exposure | State |
 Only components unique to this screen. If one turns out to recur, promote it to the
 Phase 2 catalog instead of duplicating.
 
-### 데이터 흐름
+### Data flow
 A short tree: view → composable → service → endpoint → selection/handoff. Include
 the downstream handoff contract (object shape passed on) and the minimal change to enable it.
 
-## ④ BE 의존 / 신규 필요
-### 신규 (plan iN)
+## ④ BE dependency / new work
+### New (plan iN)
 The real change: VO field, mapper/query (file + line range), table. Honesty line
-("신규 테이블 0개, 신규 집계 1건"). Smallest change that satisfies the wireframe.
-### 기존 (BE 무변경)
+("Zero new tables; one new aggregate"). Smallest change that satisfies the wireframe.
+### Existing (BE unchanged)
 Fields already provided + their source.
-### UI-only 정당성
+### UI-only justification
 Why selection/label mapping needs no server round-trip.
 
-## ⑤ 미결 질문
+## ⑤ Open questions
 Numbered. Every unverified Phase-1 assumption + every real open decision. Each is a
-gate before /implement. Tag `[BE]` / `[UX]` / `[정합]` as useful.
+gate before /implement. Tag `[BE]` / `[UX]` / `[Consistency]` as useful.
 ```
 
 ---
 
 ## Golden example (trimmed — real output shape)
 
-Quoted verbatim from a real Korean deliverable (issue `MPT-9457`, patient list V2), so everything
-below is generated output, not instruction. Note how every claim is grounded:
+Adapted from a real deliverable (issue `MPT-9457`, patient list V2). Note how every
+claim is grounded:
 
-**② 기능 분해 표 (excerpt)**
+**② Function decomposition (excerpt)**
 
-| # | 요소 | 기능 | 데이터·완료 판정 | 구분 |
+| # | Element | Behavior | Data / completion evidence | Type |
 |---|------|------|-----------------|------|
-| 1 | 키워드 검색 | 이름·연락처·차트번호로 서버 재조회(debounce, page=1) | `GET /patient` `search.keyword` → 서버 필터 rows 반환(클라필터 아님) | 기존 |
-| 11 | 방문 횟수 | 완료 진료 건수 표시 | **신규**: `consult_v2` COUNT(status∈CON-END/COM, type≠REC) → `visitCount:int`. 실 API 카운트 반환(껍데기 금지) | 신규 BE |
-| 13 | 발송 아이콘(행) | 해당 환자 1명 단건 발송 창 | `childWindowService.createCrmSendWindow({name,hpNo})` | 기존 |
+| 1 | Keyword search | Query the server by name, contact, or chart number (debounce, page=1) | `GET /patient` `search.keyword` → server-filtered rows (not client filtering) | Existing |
+| 11 | Visit count | Show completed visit count | **New**: `consult_v2` COUNT(status∈CON-END/COM, type≠REC) → `visitCount:int`. The real API returns the count; no hardcoded shell | New BE |
+| 13 | Send icon (row) | Open a single-recipient send window | `childWindowService.createCrmSendWindow({name,hpNo})` | Existing |
 
 > Of 15 elements, exactly **one** is new BE (#11). The rest are existing-data display
 > or client state. "Build the screen" really = assemble a new view + one aggregate.
 
-**③ 재사용 (excerpt)** — reuse is grounded in real paths:
+**③ Reuse (excerpt)** — reuse is grounded in real paths:
 
-| 컴포넌트 | 경로 | 사용 계약 |
+| Component | Path | Usage contract |
 |---------|------|----------|
-| `MTable` | `src/components/base/MTable.vue` | 골격만. built-in select-mode는 페이징과 안 맞음 → `selectable=false` + 체크박스 컬럼 slot |
+| `MTable` | `src/components/base/MTable.vue` | Structure only. Built-in select mode conflicts with pagination → `selectable=false` plus a checkbox column slot |
 | `MPagination` | `src/components/base/MPagination.vue` | `v-model="search.page"` `:totalRowCnt` `@change="movePage"` |
-| `ModalPatientDetail` | `src/components/modal/ModalPatientDetail.vue` | `showPatientDetail(seq)` 호출로 오픈 |
+| `ModalPatientDetail` | `src/components/modal/ModalPatientDetail.vue` | Open with `showPatientDetail(seq)` |
 
-**⑤ 미결 질문 (excerpt)**
+**⑤ Open questions (excerpt)**
 
-1. **[정합]** plan은 `GET /hospital/patient/search`라 적었으나 목업 리치 테이블을 실제 반환하는 건 `GET /patient` — 라벨 정정 필요.
-2. **[BE]** 방문유형 드롭다운을 서버 파라미터로 거를지 vs 표시만 — 현 `IHospitalPatientSearch`에 visit 필터 부재.
+1. **[Consistency]** The plan says `GET /hospital/patient/search`, but `GET /patient` actually returns the rich mockup table. Correct the label.
+2. **[BE]** Decide whether the visit-type dropdown filters through a server parameter or is display-only. `IHospitalPatientSearch` currently has no visit filter.
 
 ---
 
 ## Checklist
 
-Before handing off to `/implement`. Section and column names are quoted as the literal output
-labels they are:
+Before handing off to `/implement`:
 
 - [ ] Every `②` row has a data source: codebase → `file:line`; greenfield → a designed endpoint+field; or a justified `UI-only`.
-- [ ] Every `완료 판정` cell in `②` is a real-server condition, not "renders".
-- [ ] No fabricated value: any mockup hardcode (price/%/name) is in `⑤`, not treated as real.
-- [ ] Every `재사용` entry in `③` names a catalog component or an existing `file:line` — shared components are NOT re-declared here.
-- [ ] Every `신규` component in `③` is genuinely screen-specific (recurring ones live in the catalog).
-- [ ] `④` counts new tables/endpoints honestly.
-- [ ] `⑤` lists every unpinned assumption — none silently promoted to fact.
+- [ ] Every `Completion evidence` cell in `②` is a real-server condition, not "renders".
+- [ ] No fabricated value: any mockup hardcode (price/%/name) is in `⑤ Open questions`, not treated as real.
+- [ ] Every `Reuse` entry in `③` names a catalog component or an existing `file:line` — shared components are NOT re-declared here.
+- [ ] Every `New` component in `③` is genuinely screen-specific (recurring ones live in the catalog).
+- [ ] `④ BE dependency / new work` counts new tables/endpoints honestly.
+- [ ] `⑤ Open questions` lists every unpinned assumption — none silently promoted to fact.
 - [ ] The connected view includes the §③ component section, its table survives the wireframe's linked CSS (`.fs-*` + scoped reset), and `data-n` matches ② rows one-to-one.

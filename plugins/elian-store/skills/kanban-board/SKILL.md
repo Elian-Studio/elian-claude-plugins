@@ -25,6 +25,7 @@ when_to_use: >
   point the user at that tracker's native board instead).
 argument-hint: "[label] [source-file?] [output-dir?]"
 allowed-tools: Bash(python3 *) Bash(open *) Bash(mkdir *) Bash(git branch*) Read Write Edit Glob Grep
+disable-model-invocation: true
 ---
 
 # Kanban Board Generator
@@ -91,13 +92,13 @@ to choose between options that don't apply:
 
 - **Explicit source given** (`$2`, or the user names a file/skill output):
   read it. A `/intake-spec` `spec.json` maps `requirements[]` /
-  `acceptanceCriteria[]` to cards in a `할 일`/`진행 중`/`검토`/`완료` list
+  `acceptanceCriteria[]` to cards in a `To do`/`In progress`/`Review`/`Done` list
   set. A `/design-feature` roadmap or PRD: pull the task/phase breakdown.
   A `.claude/plans/{issue}.md`: pull its checklist/step items.
 - **`${DATA}` already exists** (regenerating): read it — see Merge below.
 - **Nothing to read and no source named**: ask the user for a board title
   and either a short list of cards or "start empty" — don't invent tasks
-  they didn't mention. Default lists: `할 일`, `진행 중`, `검토`, `완료`
+  they didn't mention. Default lists: `To do`, `In progress`, `Review`, `Done`
   (matches the Kanflow reference this skill's visuals are based on; swap to
   English list names if the user's source/chat is in English).
 
@@ -136,7 +137,7 @@ re-run rather than editing the generated HTML by hand.
 
 Tell the user the path to `${FILE}`, that it opens directly in any browser
 (`file://`, no server needed), and how persistence works: edits autosave to
-that browser's localStorage; the "내보내기" (Export) button downloads the
+that browser's localStorage; the "Export" button downloads the
 current state as `board.json` — replace `${DATA}` with that download and
 re-run this skill later to keep evolving the board without losing edits.
 Open it only with explicit approval:

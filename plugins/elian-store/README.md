@@ -67,9 +67,12 @@ plugins/elian-store/
 
 Use the skill-owned validator when the skill provides one, and keep the plugin metadata in sync when the bundle changes.
 
-Typical checks:
+Typical checks from the repository root (the repository validator is contributor tooling and is
+not part of the installed plugin):
 
 ```shell
+python3 scripts/validate_repository.py
+python3 -m unittest discover -s tests -v
 ruby -EUTF-8 -ryaml -e 'Dir["plugins/elian-store/skills/*/SKILL.md"].sort.each { |p| s=File.read(p, encoding: "UTF-8"); YAML.safe_load(s.split(/^---\s*$/,3)[1] || "", permitted_classes: [], aliases: false); puts "OK #{p}" }'
 python3 plugins/elian-store/skills/review/scripts/validate_skill.py
 ```

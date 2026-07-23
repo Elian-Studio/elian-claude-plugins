@@ -69,23 +69,25 @@ Templates: see [references/templates.md](references/templates.md).
 2. **Fix (Green)** — change the code so the test passes.
 3. **Existing tests** — run the full relevant suite; ensure no collateral damage.
 4. **Refactor** — clean up while keeping tests green.
-5. **Commit per symptom** via `/commit`.
+5. **Checkpoint per symptom** in the diff. Commit only when the user requested
+   it; use a host-provided `/commit` skill when available.
 
 Parallel multi-symptom fixes use the spawn prompt template in [references/templates.md](references/templates.md).
 
 ### Step 5: Integration verification
 
-Run project verify skills (`/verify-backend`, `/verify-frontend`, etc.). For cross-layer fixes also `/verify-api-contract`.
+Run the repository's documented tests and checks. Run relevant project-local
+`verify-*` skills when they exist; do not assume names supplied by another host.
 
 **Critical**: also run tests for modules you did **not** touch — root-cause fixes can have invisible blast radius.
 
 ### Step 6: Code review
 
-Run `/simplify` and check:
+Review the diff directly and check:
 - Does the fix address the root cause, not the symptom?
 - Are there sibling sites with the same root cause?
 
-Stage review fixes via `/commit`.
+A host-provided `/simplify` may be offered as an optional extra.
 
 ### Step 7: Completion report
 
@@ -135,7 +137,7 @@ For failure recovery: every Step has an explicit fail action — Step 1 fail (ro
 ## Where this fits in the workflow
 
 ```
-bug reported → /investigate (if cause unknown) → /fix → /review → /ship
+bug reported → root-cause investigation → /fix → /review
                                                   │
                                                   └── This skill: TDD-driven repair.
                                                       Pre: cause known (or willing to dig).
@@ -143,9 +145,11 @@ bug reported → /investigate (if cause unknown) → /fix → /review → /ship
 ```
 
 Sequencing principles:
-- **Before** /fix: have at least a hypothesis (gathered via /investigate or user dialogue). If the cause is opaque, run /investigate first.
+- **Before** /fix: have at least a hypothesis. If the cause is opaque, investigate
+  within Step 1 or request the missing evidence; no separate bundled skill is assumed.
 - **During** /fix: regression test must come before the patch.
-- **After** /fix: hand off to /review (PR review) and /ship (release).
+- **After** /fix: hand off to `/review`; offer any host release workflow only
+  when it is actually available.
 
 ## Manual decision gating (automated vs taste)
 
@@ -179,7 +183,7 @@ These feed into post-mortems and refactor candidates.
 | Symptom + root-cause table | Step 1 | Post-mortem, retro |
 | Repair plan + conflict matrix | Step 2 | /review (knows what each fix targets) |
 | Regression tests | Step 4 | CI (prevent regression), future similar bugs |
-| Side-effect verification report | Step 5 | /ship (release readiness) |
+| Side-effect verification report | Step 5 | Reviewer or optional host release workflow |
 | Completion report | Step 7 | Project history; root-cause stats |
 
 ## BEFORE / AFTER patterns
@@ -256,8 +260,8 @@ Fix all in one PR with shared regression tests.
 ## Skill verification
 
 ```bash
-python3 [scripts/validate_skill.py](scripts/validate_skill.py)
-python3 [scripts/validate_skill.py](scripts/validate_skill.py) --json
+python3 plugins/elian-store/skills/fix/scripts/validate_skill.py
+python3 plugins/elian-store/skills/fix/scripts/validate_skill.py --json
 ```
 
 ## Pre-flight checklist
@@ -275,12 +279,11 @@ Before Step 4 (TDD repair):
 
 | Skill | Step |
 |-------|------|
-| `/commit` | Step 4 — incremental commits (mandatory) |
-| `/verify-*` | Step 5 — integration verification |
-| `/simplify` | Step 6 — self-review |
-| `/investigate` | Pre-Step 1 — when cause unknown |
+| `/commit` | Optional host capability, only when the user requested commits |
+| project `verify-*` | Optional project-local checks after documented commands |
+| `/simplify` | Optional host capability after direct self-review |
 | `/generate-teammate` | Step 4 — 4+ symptoms warrant a team |
-| `/defer` | Out-of-scope discoveries |
+| `/defer` | Optional host capability; otherwise record follow-up work in the report |
 
 ## Exceptions
 

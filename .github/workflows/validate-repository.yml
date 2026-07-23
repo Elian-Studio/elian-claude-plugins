@@ -1,0 +1,55 @@
+name: Validate repository
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Validate repository contracts
+        run: python3 scripts/validate_repository.py
+
+      - name: Run repository validator tests
+        run: python3 -m unittest discover -s tests -v
+
+      - name: Validate YAML frontmatter
+        run: |
+          ruby -EUTF-8 -ryaml -e '
+            Dir.glob("plugins/elian-store/{skills/*/SKILL.md,agents/*.md}").each do |f|
+              s = File.read(f, encoding: "UTF-8")
+              y = s.match(/\A---\s*\n(.*?)\n---/m) or abort("no frontmatter: #{f}")
+              YAML.safe_load(y[1], permitted_classes: [], aliases: false) or abort("empty frontmatter: #{f}")
+            end
+          '
+
+      - name: Run bundled static validators
+        run: |
+          set -euo pipefail
+          for validator in plugins/elian-store/skills/*/scripts/validate_skill.py; do
+            python3 "$validator"
+          done
+          python3 plugins/elian-store/skills/spec-coverage/scripts/validate.py
+          python3 plugins/elian-store/skills/document-writer/scripts/build_doc.py --selftest
+          bash plugins/elian-store/hooks/check-update.sh --selftest
+
+      - name: Validate cluster generation plan
+        run: python3 tools/generate.py

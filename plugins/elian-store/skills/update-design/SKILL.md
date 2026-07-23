@@ -23,7 +23,8 @@ when_to_use: >
   /design-feature), minor typo fixes (just Edit), or code implementation
   (use /implement).
 argument-hint: "<label> [--scope design|ddl|arch|prd|api|qa|all] [--feedback \"<one-line change summary>\"]"
-allowed-tools: Bash(bash *) Bash(ls *) Bash(grep *) Bash(git *) Bash(python3 *) Read Write Edit Glob Agent
+allowed-tools: Bash(ls *) Bash(grep *) Bash(git log*) Bash(git status*) Bash(git diff*) Bash(python3 *) Read Write Edit Glob Agent
+disable-model-invocation: true
 ---
 
 # update-design — Design-Change Propagation
@@ -186,7 +187,7 @@ the update can be written:
 |-------------------|--------|
 | 0 | Continue to Phase 4 |
 | 1–2 | Ask inline with `AskUserQuestion` |
-| 3+ | Invoke `/decision-dashboard` — do not proceed until user resolves them |
+| 3+ | Prepare a decision-dashboard input summary, stop, and ask the user to run `/decision-dashboard`; resume only after the decisions are returned |
 
 ---
 
@@ -217,7 +218,7 @@ Update documents **one at a time in this order** (skip absent or excluded docs):
 3. **tech-spec.md** — developer-facing PRD; requirement → implementation mapping
 4. **ddl.sql** — schema is the ground truth for design.md / architecture.md
 5. **design.md** — domain model, scenarios, decision log
-6. **architecture.md** — flows, system topology — read `references/architecture-guide.md` before editing
+6. **architecture.md** — flows, system topology — read `../design-feature/references/architecture-guide.md` before editing
 7. **design-spec.md** — FE screens (if present and impacted)
 8. **api-spec.md** — endpoint contracts
 9. **qa-checklist.md** — Given-When-Then cases derived from updated AC
@@ -239,7 +240,7 @@ Before editing each document:
 
 ### prd.md
 
-Read `references/prd-guide.md` before editing. If adding a requirement:
+Read `../design-feature/references/prd-guide.md` before editing. If adding a requirement:
 add a new row in §6 with a Given-When-Then AC. If removing: strike or
 delete the row and note in the decision log.
 
@@ -253,7 +254,7 @@ instead of restating their content.
 
 ### architecture.md
 
-Read `references/architecture-guide.md` before editing. Keep the
+Read `../design-feature/references/architecture-guide.md` before editing. Keep the
 AS-IS / Δ / TO-BE structure. Update only the affected section(s).
 
 ### spec-coverage.json
@@ -261,7 +262,9 @@ AS-IS / Δ / TO-BE structure. Update only the affected section(s).
 Only when the file already exists — `/spec-coverage init <label>` creates it, this
 skill never does. Re-seed just the AC entries this change added or removed, and
 leave every untouched entry alone: recorded evidence must survive the update.
-Then re-render the view with `/spec-coverage render <label>`.
+Then either run the bundled renderer script directly or hand off an explicit
+`/spec-coverage render <label>` command. Do not imply that a side-effect-gated
+skill was invoked automatically.
 
 ### roadmap.json
 
@@ -388,7 +391,8 @@ Ask the user:
 
 On **A**: if a `/commit` skill is available in this session, hand off to it.
 It is not part of this plugin, so when it is missing do not fail — print the
-plain git steps for the changed files instead:
+plain git steps for the changed files instead. Do not execute them without the
+user's explicit commit authorization:
 
 ```bash
 git add claudedocs/<label>/
@@ -414,8 +418,8 @@ git commit -m "docs(<label>): propagate <one-line change summary>"
 |-------|-------------|
 | `/design-feature` | Creates the document set this skill updates |
 | `/intake-spec` | Re-run before `/design-feature` if requirements changed dramatically |
-| `/decision-dashboard` | Called from Phase 3 when 3+ decisions are pending |
-| `/spec-coverage` | Owns `spec-coverage.json` — re-seeded in Phase 5 step 10 when the AC set changed |
-| `/erd-preview` | Offered in Phase 5 step 13 when `ddl.sql` changed |
-| `/functional-spec` | Regenerates a `functional-specs/<screen>-connected.html` |
-| `/commit` | Optional, host-provided — Phase 7 falls back to plain git |
+| `/decision-dashboard` | Explicit handoff from Phase 3 when 3+ decisions are pending |
+| `/spec-coverage` | Explicit handoff or direct bundled-script use for coverage artifacts |
+| `/erd-preview` | Explicit handoff offered when `ddl.sql` changed |
+| `/functional-spec` | Explicit handoff for an affected connected screen artifact |
+| `/commit` | Optional, host-provided, and only after commit authorization |

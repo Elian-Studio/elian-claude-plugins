@@ -69,17 +69,23 @@ For each file unit, run **Red → Green → Refactor**:
 2. **Green** — minimum implementation that passes the tests.
 3. **Test run** — PASS → next; FAIL → fix.
 4. **Refactor** — improve while keeping tests green.
-5. **Incremental commit** — call `/commit` per feature unit.
+5. **Incremental checkpoint** — keep each feature unit reviewable in the diff.
+   Commit only when the user requested it; use a host-provided `/commit` skill
+   when available, otherwise leave the verified changes uncommitted.
 
 For parallel multi-feature work, see the spawn prompt template in [references/templates.md](references/templates.md).
 
 ### Step 5: Integration verification
 
-Run project verify skills (e.g., `/verify-backend`, `/verify-frontend`). For cross-layer changes also run `/verify-api-contract`. For new user-visible strings, run `/verify-i18n`.
+Run the repository's documented test, lint, typecheck, and build commands. If
+project-local `verify-*` skills exist, run the relevant ones as an additional
+layer; their names are project capabilities, not bundled dependencies.
 
 ### Step 6: Code review
 
-Run `/simplify` for quality. Use `/code-reviewer` for deeper analysis when the diff is non-trivial. Stage any review fixes via `/commit`.
+Review the diff directly for unnecessary complexity, broken contracts, and
+missing tests. A host-provided `/simplify` or `/code-reviewer` may be offered as
+an optional extra; the core workflow must complete without either one.
 
 ### Step 7: Completion report
 
@@ -130,7 +136,7 @@ For failure recovery: every Step has an explicit fail action — Step 4 fail →
 ## Where this fits in the workflow
 
 ```
-brainstorm → /generate-teammate (if multi-domain) → /implement → /review → /ship
+brainstorm → /generate-teammate (if multi-domain) → /implement → /review
                                                        │
                                                        └── This skill builds the feature.
                                                            Pre: requirements settled.
@@ -140,7 +146,8 @@ brainstorm → /generate-teammate (if multi-domain) → /implement → /review �
 Sequencing principles:
 - **Before** /implement: requirements clear (use /brainstorm if fuzzy). Design doc exists or is intentionally skipped.
 - **During** /implement: each step's exit criterion must hold before the next begins.
-- **After** /implement: hand off to /review (PR review), /ship (release), or /document-release (post-ship docs).
+- **After** /implement: hand off to `/review`. If the host provides a release
+  or documentation workflow, offer it explicitly rather than assuming it exists.
 
 ## Manual decision gating (automated vs taste)
 
@@ -175,7 +182,7 @@ These feed into future planning (over time, repeated drift signals a refactor ca
 | Feature decomposition + conflict matrix | Step 2 | /review (knows which files relate to which feature) |
 | TDD test files | Step 4 | /review, CI, future regression detection |
 | Per-feature commits | Step 4 | /review (one commit = one reviewable unit), bisect tooling |
-| Verification report | Step 5 | /ship (decides on release readiness) |
+| Verification report | Step 5 | Reviewer or optional host release workflow |
 | Completion report | Step 7 | Post-mortem, retro, project-history |
 
 ## BEFORE / AFTER patterns
@@ -252,8 +259,8 @@ Resolution: extract format change to its own commit before parallel work,
 ## Skill verification
 
 ```bash
-python3 [scripts/validate_skill.py](scripts/validate_skill.py)
-python3 [scripts/validate_skill.py](scripts/validate_skill.py) --json
+python3 plugins/elian-store/skills/implement/scripts/validate_skill.py
+python3 plugins/elian-store/skills/implement/scripts/validate_skill.py --json
 ```
 
 The validator (stdlib only, argparse + `--json`) checks: frontmatter has the required fields, the workflow has all 8 steps, and the body contains the required policy sections (Forbidden / Pitfall / Where this fits / Manual gating / Reflection). Exits 0 on PASS, 1 on FAIL.
@@ -273,11 +280,11 @@ Before Step 4 (TDD execution), confirm:
 
 | Skill | Step |
 |-------|------|
-| `/commit` | Step 4 — incremental commits (mandatory) |
-| `/verify-*` | Step 5 — integration verification |
-| `/simplify` | Step 6 — self-review |
+| `/commit` | Optional host capability, only when the user requested commits |
+| project `verify-*` | Optional project-local checks after documented commands |
+| `/simplify`, `/code-reviewer` | Optional host capabilities after direct review |
 | `/generate-teammate` | Step 4 — when 4+ parallel features warrant a team |
-| `/defer` | Discovered out-of-scope work |
+| `/defer` | Optional host capability; otherwise record follow-up work in the report |
 
 ## Exceptions
 

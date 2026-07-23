@@ -3,7 +3,8 @@ name: decision-dashboard
 description: "When 3+ pending decisions block PO/team progress, capture them in a printable HTML artifact so the team can decide in 5 minutes instead of long chat threads. Replaces scattered decision fatigue with one page, all options, traceable choice, memo, and downloadable JSON for downstream skills."
 when_to_use: "Use when 3+ architecture, DDL, UX, consistency, or product decisions pile up in review; when the user asks to make a decision dashboard or lay out the choices; or when chat explanations are too long to inline. Skip for 1-2 decisions and ask directly in chat."
 argument-hint: "[issue-id] [output-dir?] [mode?]"
-allowed-tools: Bash(cp *) Bash(open *) Bash(date *) Bash(git branch*) Bash(mkdir *) Bash(rm claudedocs/*) Bash(python3 *) Edit Read Write
+allowed-tools: Bash(cp *) Bash(open *) Bash(date *) Bash(git branch*) Bash(mkdir *) Bash(python3 *) Edit Read Write
+disable-model-invocation: true
 ---
 
 # Decision Dashboard Generator
@@ -39,7 +40,7 @@ If automation is wrong, the user corrects via memo or revised options. A card wi
 ## Modes
 
 - `generate` (default): create JSON, validate it, render the HTML dashboard.
-- `finalize`: merge user-exported choices with original card data, persist final JSON, and clean disposable HTML.
+- `finalize`: merge user-exported choices with original card data and persist final JSON.
 
 ## Auto-invoke vs explicit
 
@@ -240,11 +241,9 @@ Merge user choices with original card data:
 - Compute `summary.total`, `summary.by_priority`, `summary.other_chosen`, and `summary.recommended_match_rate`.
 - Write `decisions-final.json`.
 
-Clean disposable HTML only after final JSON is written:
-
-```bash
-rm "${TARGET_DIR}"/decisions-*.html
-```
+Keep the rendered HTML by default so the decision record remains reviewable. If
+the user explicitly asks to remove disposable renders, resolve and show the
+exact file list first, then request approval for that exact deletion.
 
 Keep the original `decisions.json` unless the user explicitly asks to remove it; it is useful for audit and recovery.
 
@@ -261,7 +260,7 @@ Patterns noticed:
 - 0 custom memos may mean the options fit, or memo entry may be too much friction.
 
 Persisted at: <FINAL_JSON_PATH>
-Disposable HTML cleaned up.
+Rendered HTML retained for review.
 ```
 
 Use three short observations at most, with hedged language.
@@ -272,7 +271,7 @@ Use three short observations at most, with hedged language.
 - Add external CDN or JS libraries.
 - Modify `create-document/templates/decision-dashboard.html` as part of ordinary generation.
 - Create separate review/version HTML files.
-- Delete disposable HTML before the user has decided.
+- Delete rendered HTML without an explicit request and exact-target confirmation.
 - Publish a final decision where `D (Other)` has an empty memo.
 - Put implementation identifiers in card body outside the detail panel.
 

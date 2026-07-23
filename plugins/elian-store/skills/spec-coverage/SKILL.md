@@ -35,7 +35,9 @@ allowed-tools:
   - Bash(npm run*)
   - Bash(pytest*)
   - Bash(go test*)
-  - Bash(git *)
+  - Bash(git status*)
+  - Bash(git diff*)
+  - Bash(git log*)
 ---
 
 # spec-coverage — requirement-to-test traceability

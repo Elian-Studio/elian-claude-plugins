@@ -25,7 +25,7 @@ when_to_use: >
   yet (run /design-ui first) or for a pure backend change with no screen surface.
 argument-hint: "<label> [screen...] [--out <dir>] [--from <mockups-dir>]"
 allowed-tools: Read, Grep, Glob, Write, Edit, Bash(mkdir *), Bash(ls *), Bash(open *), AskUserQuestion
-disable-model-invocation: false
+disable-model-invocation: true
 ---
 
 # /functional-spec — Wireframes → Component Design + Code-Grounded Spec
@@ -150,13 +150,13 @@ the column headers below are **literal output labels** — emit them verbatim in
 
 | Emit this literal header | Content |
 |--------------------------|---------|
-| `기능 분해 표` (section heading) | The table itself |
-| `요소` | The wireframe element |
-| `기능` | What it does on interaction |
-| `데이터 소스·BE 의존` | Real/designed endpoint + field, or `UI-only` with justification |
-| `상태` | empty / loading / error / selected / disabled behaviour |
-| `상호작용·연동` | What it triggers, where it hands off |
-| `완료 판정` | Concrete **real-server-round-trip** pass condition (no hardcoded shells) |
+| `Function decomposition` (section heading) | The table itself |
+| `Element` | The wireframe element |
+| `Behavior` | What it does on interaction |
+| `Data source / BE dependency` | Real/designed endpoint + field, or `UI-only` with justification |
+| `State` | empty / loading / error / selected / disabled behavior |
+| `Interaction / handoff` | What it triggers, where it hands off |
+| `Completion evidence` | Concrete **real-server-round-trip** pass condition (no hardcoded shells) |
 
 Number each element — the number anchors the wireframe marker to the spec row in
 the connected view (P6).
@@ -169,13 +169,13 @@ For each screen, map its elements to components — **reuse the catalog, don't
 re-design shared ones**. The three subsection headings are **literal output labels**;
 emit them verbatim into `<screen>.md`:
 
-- **`재사용`** (reuse, from catalog / existing) — name the shared component (link
+- **`Reuse`** (from catalog / existing) — name the shared component (link
   `component-design.md`), or in codebase mode the existing `file:line`. State the
   props/variant used here.
-- **`신규`** (new, screen-specific only) — components genuinely unique to this screen
+- **`New`** (screen-specific only) — components genuinely unique to this screen
   (target path, props, emits, state). If it turns out to recur, promote it to the
   P2 catalog instead of duplicating.
-- **`데이터 흐름`** (data flow) — screen → hook/composable → api client → endpoint → handoff.
+- **`Data flow`** — screen → hook/composable → api client → endpoint → handoff.
 
 ---
 
@@ -183,12 +183,12 @@ emit them verbatim into `<screen>.md`:
 
 Again, the subsection headings are **literal output labels** — emit them verbatim:
 
-- **`신규`** (new BE/endpoint) — the real change (field/query/table or, greenfield,
+- **`New`** (BE/endpoint) — the real change (field/query/table or, greenfield,
   the designed endpoint that must exist). Close with the literal honesty line
-  `신규 테이블 N개` ("N new tables"), N being the real count.
-- **`기존`** (unchanged) — data already provided, with its source.
+  `N new tables`, with N being the real count.
+- **`Existing`** (unchanged) — data already provided, with its source.
 - **UI-only justification** — why some state needs no server round-trip.
-- **`미결 질문`** (open questions) — every unpinned assumption + every decision the
+- **`Open questions`** — every unpinned assumption + every decision the
   wireframe/PRD leaves open (incl. fabricated mockup values with no data source).
   Numbered; each gates `/implement`.
 
@@ -205,10 +205,9 @@ open-question count. Wait for confirmation before rendering.
 
 1. **`component-design.md`** (+ HTML in the hub) — the P2 catalog.
 2. **`<screen>.md`** — the 5-section per-screen spec. The five section headings are
-   literal output labels, emitted verbatim: `① 개요` (overview), `② 기능 분해 표`
-   (function decomposition table), `③ 컴포넌트 계약` (component contract —
-   `재사용` from the catalog + `신규`), `④ BE/API 의존` (BE/API dependency),
-   `⑤ 미결 질문` (open questions). See guide.
+   literal output labels, emitted verbatim: `① Overview`, `② Function decomposition`,
+   `③ Component contract` (`Reuse` from the catalog + `New`), `④ BE/API dependency`,
+   and `⑤ Open questions`. See the guide.
 3. **`<screen>-connected.html`** — from `references/connected-template.html`. Left =
    the wireframe with numbered `data-n` markers; right = the ② table with matching
    `data-n`; **below the split, a rendered §③ component contract** section (links

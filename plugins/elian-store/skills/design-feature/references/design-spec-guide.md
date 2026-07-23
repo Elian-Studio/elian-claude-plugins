@@ -70,8 +70,8 @@ Internal concept name → UI label used in the product.
 
 | Internal | UI label |
 |----------|----------|
-| PatientRecord | 환자 차트 |
-| VisitStatus.SCHEDULED | 예약됨 |
+| PatientRecord | Patient chart |
+| VisitStatus.SCHEDULED | Scheduled |
 
 ## 8. Open UX questions
 Unresolved design decisions. Each item becomes a gate before implementation.

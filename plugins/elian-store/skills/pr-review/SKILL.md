@@ -29,7 +29,8 @@ implement / fix / improve -> pr-writer -> (PR created/updated on platform) -> pr
 
 - **Before** `/pr-review`: a PR/MR exists on the platform (or a branch ready to be reviewed as a PR diff). `pr-writer` has usually drafted the description.
 - **This skill**: gather PR context, run the perspective panel, synthesize a verdict, optionally post it.
-- **After** `/pr-review`: fix blocking findings (`/fix`, `/improve`), re-verify, then `/ship`.
+- **After** `/pr-review`: fix blocking findings (`/fix`, `/improve`) and
+  re-verify. Offer a host release workflow only when one is available.
 
 Relationship to neighbors — pick the right tool:
 
@@ -77,7 +78,10 @@ If no PR exists and the target is not `branch:<base>`, ask once: review the curr
 
 Dispatch every selected reviewer as an independent read-only subagent via the Agent tool, **all in one message** so they run concurrently with fresh, unbiased context. Give each the shared packet (intent + diff + scope map) and ask for structured findings.
 
-**One agent, one subagent.** Several rows below can map to the same agent — `system-architect` owns architecture *and* the data/migration lens; `backend-architect` owns backend layering *and* the API-contract lens. When that happens for a given diff, dispatch that agent **once** with all of its concerns folded into the prompt, not once per row. This is what keeps a thorough panel from ballooning into redundant runs.
+Use the dedicated `engineering-reviewer` for every engineering perspective,
+with one lens per prompt. It has only read/search tools, so the read-only
+contract is enforced by capability rather than prose. Deduplicate overlapping
+lenses before dispatch so a thorough panel does not balloon into redundant runs.
 
 Run three layers (full catalog with the questions each lens asks and its red flags: [references/perspectives.md](references/perspectives.md)):
 
@@ -85,23 +89,23 @@ Run three layers (full catalog with the questions each lens asks and its red fla
 
 | Perspective | Subagent | Core question |
 |---|---|---|
-| Correctness & regression | `devil-advocate` | How does this break in production? edge/null/error paths, races, silent wrong results |
-| Security & privacy | `security-engineer` | Authz, injection, secrets, input validation, trust boundaries, OWASP |
-| Performance & scale | `performance-engineer` | N+1, hot paths, payload size, unbounded work, caching |
-| Architecture & design | `system-architect` | Boundaries, coupling, does the change fit the system |
-| Tests & maintainability | `quality-engineer` | Coverage of new behavior, edge/error-path tests, regression gaps, duplication, change blast radius (Fowler/Martin personas deepen the maintainability lens) |
-| Requirements fit & scope | `requirements-analyst` | Does the diff satisfy the stated intent? missing reqs, scope creep, partial work |
+| Correctness & regression | `engineering-reviewer` | How does this break in production? edge/null/error paths, races, silent wrong results |
+| Security & privacy | `engineering-reviewer` | Authz, injection, secrets, input validation, trust boundaries, OWASP |
+| Performance & scale | `engineering-reviewer` | N+1, hot paths, payload size, unbounded work, caching |
+| Architecture & design | `engineering-reviewer` | Boundaries, coupling, does the change fit the system |
+| Tests & maintainability | `engineering-reviewer` | Coverage of new behavior, edge/error-path tests, regression gaps, duplication, change blast radius |
+| Requirements fit & scope | `engineering-reviewer` | Does the diff satisfy the stated intent? missing reqs, scope creep, partial work |
 
 **Layer 2 — Scope-triggered specialists (run when the diff touches the area; out-of-scope reviewers return NO FINDINGS quickly):**
 
 | Area signal | Subagent | Looks for |
 |---|---|---|
-| UI / component / style files | `frontend-architect`, `ui-ux-designer` | State/loading/error/empty handling, a11y, user-visible regressions |
-| service / controller / repo | `backend-architect` | Layering, transaction boundaries, error contracts |
-| migrations / schema / DDL | `system-architect` (data lens) | Migration safety, backfill, rollback, lock risk |
-| public API / events / DTO | `backend-architect` (contract lens) | Breaking changes, versioning, consumer impact |
-| CI / infra / config / secrets | `devops-architect` | Deploy safety, rollback, config drift, observability |
-| docs / README / public copy | `technical-writer` | Stale docs, missing docs for the change |
+| UI / component / style files | `engineering-reviewer` | State/loading/error/empty handling, a11y, user-visible regressions |
+| service / controller / repo | `engineering-reviewer` | Layering, transaction boundaries, error contracts |
+| migrations / schema / DDL | `engineering-reviewer` | Migration safety, backfill, rollback, lock risk |
+| public API / events / DTO | `engineering-reviewer` | Breaking changes, versioning, consumer impact |
+| CI / infra / config / secrets | `engineering-reviewer` | Deploy safety, rollback, config drift, observability |
+| docs / README / public copy | `engineering-reviewer` | Stale docs, missing docs for the change |
 
 **Layer 3 — Persona judges (`--personas`, default all six):** different *minds*, not checklists. They critique in their own voice; do not force them into a shared template.
 
@@ -122,7 +126,7 @@ The panel returns many overlapping voices. Turn that into a decision:
 
 1. **Normalize** each finding to: severity, confidence (1-10), `path:line`, perspective, problem, suggested direction.
 2. **Deduplicate** by fingerprint (`path:line:category`). When several perspectives raise the same issue, keep the strongest evidence, tag it `confirmed by N perspectives`, and raise confidence — agreement is signal.
-3. **Surface conflicts, don't bury them.** When two lenses disagree (Beck: "delete this abstraction, YAGNI" vs system-architect: "keep it for the planned extension"), present both as a trade-off for the author to decide. Conflicting expert opinion is a finding, not noise.
+3. **Surface conflicts, don't bury them.** When two lenses disagree (Beck: "delete this abstraction, YAGNI" vs the architecture lens: "keep it for the planned extension"), present both as a trade-off for the author to decide. Conflicting expert opinion is a finding, not noise.
 4. **Contrast against intent.** Build a requirement-coverage view from the PR body / linked issue: each stated requirement marked satisfied / partial / missing / changed. An unmet requirement is at least HIGH.
 5. **Rank** by severity (see rubric) then confidence. Drop confidence < 4 to an appendix.
 6. **Decide one verdict:** `Request changes` if any CRITICAL/HIGH or unmet requirement remains; `Comment` if only MEDIUM/LOW notes; `Approve` if nothing blocks. State residual risk either way.
@@ -166,7 +170,7 @@ Residual risk
 - <what the panel could not verify; CI gaps; needs-confirmation items>
 
 Handoff
-- Recommended next: /fix | /improve | /verify-implementation | /ship
+- Recommended next: /fix | /improve | /verify-implementation | optional host release workflow
 ```
 
 When nothing blocks, say so plainly and state residual risk — do not pad with invented findings.

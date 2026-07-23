@@ -4,7 +4,7 @@ description: When a user needs UI/UX design for a new screen or flow, drive Inte
 when_to_use: "Use for new page/flow design, feature-level UX shaping, wireframes, visual HTML, and DESIGN.md handoff. Trigger phrases: 'create a wireframe', 'design this UI flow', 'prepare a visual mock', 'improve this UX', 'make the experience better', '/design-ui'. If the requirement is fuzzy, run /brainstorm first; if only one existing component needs minor styling, direct implementation is faster."
 argument-hint: "<feature-name> [--out <dir>] [--skip-gate] [--from-brief <path>] [--refs <url,url,...>]"
 allowed-tools: Read, Write, Edit, Bash(mkdir *), Bash(ls *), Bash(open *), Glob, Grep, AskUserQuestion, WebFetch
-disable-model-invocation: false
+disable-model-invocation: true
 ---
 
 # /design-ui

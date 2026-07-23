@@ -134,7 +134,7 @@ functional breakdown; skip it for small, well-understood tasks (same rule as
 ```json
 "features": [
   { "name": "LoginController", "items": [
-    { "t": "POST /api/login 핸들러 추가", "done": true, "sub": ["@Valid 적용", "JWT 발급"] }
+    { "t": "Add the POST /api/login handler", "done": true, "sub": ["Apply @Valid", "Issue JWT"] }
   ]}
 ]
 ```
@@ -146,12 +146,12 @@ annotations, not what a user can do.
 
 ```json
 "features": [
-  { "name": "로그인", "items": [
-    { "t": "이메일과 비밀번호로 로그인할 수 있다", "done": true, "sub": ["형식 오류 시 인라인 메시지 표시", "5회 실패 시 잠금"] },
-    { "t": "비밀번호 재설정 링크를 이메일로 받는다", "done": false }
+  { "name": "Sign in", "items": [
+    { "t": "Users can sign in with email and password", "done": true, "sub": ["Show inline validation errors", "Lock after five failures"] },
+    { "t": "Users receive a password reset link by email", "done": false }
   ]},
-  { "name": "세션", "items": [
-    { "t": "자동 로그인이 유지된다", "done": false, "sub": ["30일 만료", "로그아웃 시 즉시 해제"] }
+  { "name": "Session", "items": [
+    { "t": "Users remain signed in", "done": false, "sub": ["Expire after 30 days", "Revoke immediately on sign out"] }
   ]}
 ]
 ```
@@ -170,7 +170,7 @@ task/screen — not merely "not started yet." A `todo` task looks unstarted; a
 Always pair it with `reason`, naming the decision date/source when known:
 
 ```json
-{ "title": "SSO 연동", "status": "dropped", "reason": "2026-07-03 점검 결정: 3rd-party 우선순위 낮음, 구현 제외" }
+{ "title": "SSO integration", "status": "dropped", "reason": "2026-07-03 review decision: third-party integration is lower priority and excluded" }
 ```
 
 Use `hold` (not `dropped`) when the work is merely paused and expected to
@@ -187,15 +187,15 @@ If any of the following appear in a task `title`, rewrite it:
 - File paths or line numbers: `SignalMessageType.java:49`, `api-common/...`
 - Constant / signal names: `NOTIFY_ADMIN_ALIMTALK_REQUEST`, `TOPIC_AUTH_ADMIN_ALL`
 - Verb-free noun phrases (no action stated)
-- Vague verbs alone: "처리", "수행", "진행", "handle", "process"
+- Vague verbs alone: "handle", "process", "perform", "proceed"
 
 **Examples:**
 
 | Bad | Good |
 |-----|------|
-| `SignalMessageType + notifyAlimtalkRequestToAdmin 추가` | `알림톡 요청 신호를 관리자 토픽으로 발송한다` |
-| `HospitalAlimTalkRequestFacadeService 발송 배선` | `채널/템플릿 저장 직후 신호를 발송하도록 연결한다` |
-| `useSocket.onAdmin NOTIFY_ADMIN_ALIMTALK_REQUEST 핸들러` | `운영팀 화면에 신규 요청 알림을 표시한다` |
+| `Add SignalMessageType + notifyAlimtalkRequestToAdmin` | `Publish a messaging-request signal to the admin topic` |
+| `Wire HospitalAlimTalkRequestFacadeService publishing` | `Publish the signal after channel/template persistence succeeds` |
+| `useSocket.onAdmin NOTIFY_ADMIN_ALIMTALK_REQUEST handler` | `Show a new-request notification in the operations UI` |
 
 ---
 
@@ -207,7 +207,7 @@ or involve async handoffs. Embed it as a fenced mermaid block string:
 ```json
 "desc": [
   "When a hospital submits a request, an alert fires on the operations screen.",
-  "```mermaid\nsequenceDiagram\n  actor 병원 as 병원(front-doctor)\n  participant BE as api-admin FacadeService\n  participant Broker as Signal Broker (STOMP)\n  actor 운영팀 as 운영팀(front-admin)\n  병원->>BE: channel/template registration request\n  BE->>BE: DB save succeeds\n  BE-->>Broker: send alert signal\n  Note right of BE: async — send failure does not roll back the save\n  Broker-->>운영팀: signal received\n  운영팀->>운영팀: show sticky notification (bottom-right)\n  운영팀-->>BE: confirm → review drawer\n```"
+  "```mermaid\nsequenceDiagram\n  actor Hospital as Hospital user (front-doctor)\n  participant BE as api-admin FacadeService\n  participant Broker as Signal Broker (STOMP)\n  actor Ops as Operations user (front-admin)\n  Hospital->>BE: channel/template registration request\n  BE->>BE: DB save succeeds\n  BE-->>Broker: send alert signal\n  Note right of BE: async — send failure does not roll back the save\n  Broker-->>Ops: signal received\n  Ops->>Ops: show sticky notification (bottom-right)\n  Ops-->>BE: confirm → review drawer\n```"
 ]
 ```
 
@@ -215,7 +215,7 @@ or involve async handoffs. Embed it as a fenced mermaid block string:
 
 | Element | Use | Avoid |
 |---------|-----|-------|
-| `actor` | External users: `병원(front-doctor)`, `운영팀(front-admin)` | User IDs, login names |
+| `actor` | External users: `Hospital user (front-doctor)`, `Operations user (front-admin)` | User IDs, login names |
 | `participant` | Internal systems: `api-admin FacadeService`, `Signal Broker (STOMP)` | `HospitalAlimTalkRequestFacadeService`, `SignalMessageBroker` |
 | Labels | Role or service purpose | Class names, constant names |
 

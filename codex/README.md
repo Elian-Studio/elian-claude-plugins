@@ -4,19 +4,19 @@ This tree is an independent Codex CLI distribution bundle. It is separate from t
 
 | | Claude Code | Codex CLI |
 |---|---|---|
-| Entry point | `plugins/elian-store/skills/*/SKILL.md` with YAML frontmatter | `codex/skills/*/SKILL.md` (Agent Skills standard, shared with Claude) and legacy `codex/prompts/*.md` (plain Markdown, filename = slash command) |
+| Entry point | `plugins/elian-store/skills/*/SKILL.md` with YAML frontmatter | `codex/skills/*/SKILL.md` (Agent Skills standard, shared with Claude) and `codex/prompts/*.md` platform adapters |
 | Project guidance | `CLAUDE.md` + `.claude/` | `AGENTS.md` + `~/.codex/config.toml` |
 | Permission model | Frontmatter `allowed-tools` | `config.toml` `approval_policy` / `sandbox_mode` |
 | Distribution | Installed through marketplace metadata | Copied or symlinked into `~/.codex/` by the user |
-| Validation | YAML/frontmatter smoke test + skill-owned validator | Prompt/config/parity review |
+| Validation | Repository validator + YAML/frontmatter + skill-owned validator | Repository validator + prompt/config/parity review |
 
 ## Drift model
 
 Most commands ship as **shared skills**: `codex/skills/<name>` is a symlink into
 `plugins/elian-store/skills/<name>/`, so Claude and Codex read the same host-agnostic `SKILL.md`
-and **cannot drift**. The Codex-portable set is whatever `tools/clusters.json` does not mark
-`claude_only` or `prompt_only`; `tools/generate.py` maintains the symlinks and lints every
-`SKILL.md` for host-agnostic script paths.
+and **cannot drift**. The shared set is whatever `tools/clusters.json` does not mark
+`claude_only`, `prompt_only`, or `deferred`; `tools/generate.py` maintains the symlinks and
+lints every `SKILL.md` for host-agnostic script paths.
 
 Two commands stay hand-authored `codex/prompts/*.md` because their core is **Claude subagent
 dispatch**, which Codex cannot reproduce:
@@ -24,8 +24,10 @@ dispatch**, which Codex cannot reproduce:
 - `persona-review` — per-persona subagent dispatch + aggregation.
 
 For these two only, the Codex prompt and the Claude `SKILL.md` are separate files; a change on one
-side must be checked against the other. Two more skills are **Claude-only** and never ship to Codex:
-`document-writer` and `harness-manager`. Everything else is a drift-free shared skill. See
+side must be checked against the other. Four skills are runtime-blocked **Claude-only**
+(`harness-manager`, `pr-review`, `finish-branch`, `spec-coverage`) and six portable skills are
+explicitly **deferred** (`document-writer`, `intake-spec`, `design-feature`, `update-design`,
+`erd-preview`, `kanban-board`). Everything else is a drift-free shared skill. See
 [`../docs/claude-codex-skill-parity.md`](../docs/claude-codex-skill-parity.md).
 
 ## Install
@@ -37,7 +39,7 @@ side must be checked against the other. Two more skills are **Claude-only** and 
 ./codex/setup.sh                    # install all skills under codex/skills/
 # ./codex/setup.sh create-document  # or install a subset
 
-# 2) Legacy custom prompts, available as slash commands in Codex
+# 2) Hand-authored platform prompts, available as slash commands in Codex
 mkdir -p ~/.codex/prompts
 rm -f ~/.codex/prompts/on-call-elian.md
 cp codex/prompts/*.md ~/.codex/prompts/
@@ -56,14 +58,18 @@ After installation, use this command in Codex TUI:
 /create-document --template <name> --data <json-path> --out <out-path> [--schema <name>] [--json]
 /decision-dashboard [issue-id] [--mode generate|finalize]
 /design-ui <feature-name> [--out <dir>] [--skip-gate] [--from-brief <path>] [--refs <url,url,...>]
+/functional-spec <wireframe-paths...> [--out <dir>]
 /implement <issue-id> [--side back|front|both] [--step N] [--skip-docs]
 /fix <issue-id> [--side back|front|both] [--step N] [--skip-docs]
 /improve <issue-id> [--side back|front|both] [--step N] [--skip-docs]
 /manage-skills [skill-name | focus-area | question]
 /verify-implementation [optional verify skill name]
+/verify-before-claiming
+/respond-to-review <review feedback>
 /generate-teammate <project description or task requirements>
 /review <target> [--depth quick|deep] [--lenses security,performance,quality,design,adversarial]
 /persona-review <target> [--persona daniel|evans|dean|martin|all|comma-list|<path>] [--depth quick|deep|interview]
+/pr-writer [optional PR/MR intent or ticket]
 ```
 
 ## Structure
@@ -74,7 +80,7 @@ codex/
   AGENTS.md
   setup.sh                 # installs codex/skills/* into ~/.codex/skills (symlinks)
   skills/                  # symlinks into ../../plugins/elian-store/skills/<name>
-    ...                    # all Codex-portable skills (13; see tools/clusters.json)
+    ...                    # shared skills (14; see tools/clusters.json)
   prompts/
     generate-teammate.md   # subagent-core — stays a prompt
     persona-review.md      # subagent-core — stays a prompt
@@ -83,7 +89,7 @@ codex/
 
 The `skills/` symlinks are generated and lint-checked by `tools/generate.py` from the
 `tools/clusters.json` manifest — run it instead of editing `codex/skills/` by hand. The Codex
-catalog is **13 shared skills + 2 prompts** (`generate-teammate`, `persona-review`); the two
-Claude-only skills (`document-writer`, `harness-manager`) do not appear here.
+catalog is **14 shared skills + 2 prompts** (`generate-teammate`, `persona-review`); four
+runtime-blocked and six deferred skills do not appear here.
 
 Claude/Codex catalog parity status and porting order are tracked in [`../docs/claude-codex-skill-parity.md`](../docs/claude-codex-skill-parity.md).

@@ -26,7 +26,7 @@ import tempfile
 from pathlib import Path
 
 # const 선언 블록은 이 마커 앞에서 끝난다(템플릿 고정 구조).
-RENDER_MARKER = "렌더 엔진"
+RENDER_MARKER = "Render engine"
 
 
 def extract_models(html: str) -> dict:
@@ -180,10 +180,10 @@ def main():
                 f"{r['from'][0]}(자식, L{fl}) 보다 오른쪽 — 좌→우 흐름 위해 부모를 앞 레이어로"
             )
 
-    # 7) KLABEL — 각 테이블 라벨
+    # 7) KLABEL — each table has a human-readable label
     for name in table_names:
         if name not in klabel or not klabel[name]:
-            warnings.append(f"KLABEL 에 {name} 한글 라벨 없음 — 요약 패널에 테이블명 그대로 표시됨")
+            warnings.append(f"KLABEL has no label for {name}; the summary panel will use the table name")
 
     # FK 플래그인데 대응 RELS 없으면 경고
     rel_from = {(r["from"][0], r["from"][1]) for r in rels}

@@ -19,10 +19,10 @@ into the single-file app in `assets/kanban-board-template.html`. Worked example:
 ## `lists[]`
 
 ```json
-{ "id": "todo", "title": "할 일", "cardIds": ["c1", "c2"] }
+{ "id": "todo", "title": "To do", "cardIds": ["c1", "c2"] }
 ```
 
-`cardIds` order is display order top-to-bottom. The stats bar (완료/진행 중/지연
+`cardIds` order is display order top-to-bottom. The stats bar (done/in progress/overdue
 rollup) treats list id `done` as "completed" and `doing` as "in progress" —
 using those two ids unlocks the rollup; any other ids still work fine, the
 board just shows the total count without the done/doing/overdue split.
@@ -37,7 +37,7 @@ board just shows the total count without the done/doing/overdue split.
   "due": "2026-07-05",
   "labels": ["be"],
   "checklist": [{ "text": "Issue endpoint", "done": true }],
-  "comments": [{ "author": "pd", "text": "...", "time": "어제" }],
+  "comments": [{ "author": "pd", "text": "...", "time": "yesterday" }],
   "files": [{ "name": "design.png", "url": "" }]
 }
 ```
@@ -50,7 +50,7 @@ board just shows the total count without the done/doing/overdue split.
 | `due` | `"YYYY-MM-DD"` \| `null` | **raw date only** — the template computes overdue/soon/normal client-side against the viewer's real clock each time the page loads, so never write a precomputed status or label here |
 | `labels` | string[] | each must match a `labels[].id` |
 | `checklist` | array | `{ "text": "...", "done": bool }` |
-| `comments` | array | `{ "author": "...", "text": "...", "time": "..." }` — `author` is a **display name string**, not a `members[].id` (the renderer doesn't resolve it against `members[]`); `time` is a free display string (`"어제"`, `"2026-07-01"`), not parsed |
+| `comments` | array | `{ "author": "...", "text": "...", "time": "..." }` — `author` is a **display name string**, not a `members[].id` (the renderer doesn't resolve it against `members[]`); `time` is a free display string (`"yesterday"`, `"2026-07-01"`), not parsed |
 | `files` | array | `{ "name": "...", "url": "..." }` — `url` optional; a link the user can already reach (repo-relative path, doc URL). This is not a file upload — don't invent a URL that doesn't exist. |
 
 ## Deliberately not in the schema

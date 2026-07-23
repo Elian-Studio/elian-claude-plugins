@@ -86,7 +86,12 @@ cp codex/AGENTS.md ~/.codex/AGENTS.md
 cp codex/config.toml.example ~/.codex/config.toml
 ```
 
-Codex ships **14 shared skills** (`codex/skills/`, symlinked into the plugin tree so they never drift) plus **2 reference prompts** — `/generate-teammate` and `/persona-review`, which stay prompts because their core is Claude subagent dispatch that Codex cannot reproduce. (`document-writer`, `harness-manager`, `pr-review`, and `finish-branch` are Claude-only; the design-pipeline skills are not ported yet.) See [codex/README.md](codex/README.md).
+Codex ships **14 shared skills** (`codex/skills/`, symlinked into the plugin tree so they never
+drift) plus **2 reference prompts** — `/generate-teammate` and `/persona-review`, which stay
+prompts because their core is Claude subagent dispatch that Codex cannot reproduce. Four skills
+are runtime-blocked Claude-only and six portable skills are explicitly deferred; see
+[codex/README.md](codex/README.md) and the
+[parity record](docs/claude-codex-skill-parity.md).
 
 ### Claude Workflows
 
@@ -153,9 +158,11 @@ Path: [codex/](codex/)
 
 Shared skills read one host-agnostic `SKILL.md` and cannot drift between the trees. Only the two
 subagent-core prompts (`generate-teammate`, `persona-review`) are independent files that must be
-kept in sync by hand; the four Claude-only skills (`document-writer`, `harness-manager`, `pr-review`,
-`finish-branch`) have no Codex counterpart at all, and the design-pipeline skills (`intake-spec`,
-`design-feature`, `update-design`, `erd-preview`, `kanban-board`) are not ported yet. Parity status is tracked in [docs/claude-codex-skill-parity.md](docs/claude-codex-skill-parity.md).
+kept in sync by hand. Four skills are Claude-only because of runtime constraints
+(`harness-manager`, `pr-review`, `finish-branch`, `spec-coverage`), and six portable skills are
+explicitly deferred (`document-writer`, `intake-spec`, `design-feature`, `update-design`,
+`erd-preview`, `kanban-board`). Parity status is tracked in
+[docs/claude-codex-skill-parity.md](docs/claude-codex-skill-parity.md).
 
 ### Claude Workflows
 
@@ -225,9 +232,13 @@ Version rule: plugin-distributed behavior changes require updating `plugin.json`
 
 ## Validate
 
-There is no repository-wide numeric score gate. Use concrete checks instead: parse metadata, run the validator owned by the changed skill, and review purpose/boundaries manually.
+There is no repository-wide numeric score gate. The repository validator checks structural
+contracts, tool safety, links, distribution language, cluster registration, Codex disposition,
+version parity, and source syntax. Skill-owned validators still test skill-specific semantics.
 
 ```shell
+python3 scripts/validate_repository.py
+python3 -m unittest discover -s tests -v
 ruby -EUTF-8 -ryaml -e 'Dir["plugins/elian-store/skills/*/SKILL.md"].sort.each { |p| s=File.read(p, encoding: "UTF-8"); YAML.safe_load(s.split(/^---\s*$/,3)[1] || "", permitted_classes: [], aliases: false); puts "OK #{p}" }'
 ```
 

@@ -7,9 +7,9 @@ description: >-
   improve, polish, or review a PR title, PR body, pull request description, GitHub PR summary,
   GitLab MR summary, or merge request description, or right before requesting review on a finished
   feature or bug branch. Detects GitHub (gh) vs GitLab (glab) from the remote and follows the repo
-  template when present. Drafts only — never pushes, creates, or merges unless explicitly asked.
+  template when present. Drafts only — never pushes, creates, submits, or merges a PR/MR.
   Not for single commit messages (use a commit skill).
-argument-hint: "[base-branch | --target <branch> | ISSUE-id | --create]"
+argument-hint: "[base-branch | --target <branch> | ISSUE-id]"
 allowed-tools: Bash(git branch*) Bash(git status*) Bash(git diff*) Bash(git log*) Bash(git remote*) Bash(git rev-parse*) Bash(git merge-base*) Bash(gh pr view*) Bash(glab mr view*) Read Grep Glob
 ---
 
@@ -36,8 +36,9 @@ Produce a title and body that let a reviewer quickly see:
 
 Drafting is the only default behavior. Read the repository; return a draft.
 
-- Do **not** push, create, open, submit, or merge a PR/MR unless the user explicitly asks.
-- When the user does ask to create it, confirm the target branch and platform first, then use the platform CLI (`gh` / `glab`).
+- Do **not** push, create, open, submit, or merge a PR/MR.
+- If the user asks for creation or submission, return the completed draft and
+  hand off to an explicitly authorized ship/CLI workflow.
 - Never edit source files as part of drafting.
 
 ## Non-use boundary

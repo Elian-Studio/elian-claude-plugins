@@ -1,6 +1,6 @@
 ---
 name: review
-description: "When the user asks for code review, PR review, diff review, or runs /review, perform a read-only engineering review of changed code to find production risks, regressions, broken contracts, missing tests, and verification gaps before merge. Lead with findings, cite file:line evidence, and hand off fixes/QA/ship instead of editing code."
+description: "When the user asks for code review, PR review, diff review, or runs /review, perform a read-only engineering review of changed code to find production risks, regressions, broken contracts, missing tests, and verification gaps before merge. Lead with findings, cite file:line evidence, and hand off follow-up work instead of editing code."
 when_to_use: "Use for current worktree, staged changes, branch diff, PR/MR diff, or specific files when the goal is engineering review before merge. Trigger phrases: 'review this', 'code review', 'PR review', 'diff review', 'check current changes', '/review'. Do NOT use for persona lens reviews, running verify-* checks, browser QA, release readiness, or making code changes."
 argument-hint: "[target: worktree|staged|branch:<base>|pr:<id>|<path>] [--depth quick|deep] [--lenses security,performance,quality,design,adversarial]"
 disable-model-invocation: true
@@ -16,7 +16,9 @@ Core contract:
 - Findings first. Bugs, regressions, broken contracts, missing tests, and production risks lead the response.
 - Evidence over vibe. Cite `file:line` when available; otherwise say what evidence is missing.
 - Read-only. Do not create files, modify code, stage, commit, push, or apply fixes.
-- Narrow role. Hand off to `/fix`, `/improve`, `/implement`, `/verify-implementation`, `/browser-qa`, or `/ship` instead of absorbing their work.
+- Narrow role. Hand off to bundled `/fix`, `/improve`, `/implement`, or
+  `/verify-implementation`. Browser QA and release workflows are optional host
+  capabilities and must not be assumed.
 - No score padding. If there are no blocking issues, say so and state residual risk.
 
 ## Parameters
@@ -56,11 +58,15 @@ Use `--lenses` or infer it for large diffs. Run independent read-only subagents 
 
 | Lens | Suggested subagent | Use when |
 |---|---|---|
-| `security` | `security-engineer` | auth, secrets, input validation, tenant isolation, OWASP/AI risk |
-| `performance` | `performance-engineer` | queries, queues, caching, hot paths, payload size |
-| `quality` | `quality-engineer` | missing tests, flaky tests, regression gaps |
-| `design` | `ui-ux-designer` | user-visible UI diff, copy/state/layout risk |
-| `adversarial` | `devil-advocate` | assumptions, migration safety, operational blast radius |
+| `security` | `engineering-reviewer` | auth, secrets, input validation, tenant isolation, OWASP/AI risk |
+| `performance` | `engineering-reviewer` | queries, queues, caching, hot paths, payload size |
+| `quality` | `engineering-reviewer` | missing tests, flaky tests, regression gaps |
+| `design` | `engineering-reviewer` | user-visible UI diff, copy/state/layout risk |
+| `adversarial` | `engineering-reviewer` | assumptions, migration safety, operational blast radius |
+
+Pass the selected lens and evidence packet to a separate
+`engineering-reviewer` run. This dedicated agent has only `Read`, `Grep`, and
+`Glob`; do not dispatch writable implementation agents for a read-only review.
 
 If reviewers must debate trade-offs during the review, ask the user before switching to a team-style workflow.
 
@@ -157,7 +163,7 @@ When the user needs a durable handoff, emit a compact markdown block they can sa
 Handoff
 - Target: <diff/path/PR>
 - Blocking findings: <count>
-- Recommended next skill: /fix | /improve | /verify-implementation | /browser-qa | /ship
+- Recommended next: /fix | /improve | /verify-implementation | optional host QA/release workflow
 - Required verification: <commands or checks>
 - Residual risk: <what remains unknown>
 ```

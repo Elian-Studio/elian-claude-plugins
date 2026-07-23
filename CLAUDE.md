@@ -22,6 +22,10 @@ Any user-visible plugin change must bump all of these together — without a `pl
 ## Validation (run before opening a PR)
 
 ```bash
+# Repository-wide static contract check and regression tests
+python3 scripts/validate_repository.py
+python3 -m unittest discover -s tests -v
+
 # SKILL.md frontmatter YAML smoke test
 ruby -EUTF-8 -ryaml -e 'Dir["plugins/elian-store/skills/*/SKILL.md"].sort.each { |p| s=File.read(p, encoding: "UTF-8"); YAML.safe_load(s.split(/^---\s*$/,3)[1] || "", permitted_classes: [], aliases: false); puts "OK #{p}" }'
 

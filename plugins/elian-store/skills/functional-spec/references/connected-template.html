@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title><!-- SCREEN --> — 와이어프레임 ↔ 기능명세 연결</title>
+<title><!-- SCREEN --> — Wireframe ↔ Functional specification</title>
 <!--
   connected-template.html — functional-spec Phase 6 wireframe↔spec view.
 
@@ -89,32 +89,32 @@
 </head>
 <body>
 <div class="fs-top">
-  <h1><!-- SCREEN --> — 와이어프레임 ↔ 기능명세 연결</h1>
-  <p>좌: 실제 와이어프레임(<code><!-- mockup path --></code>) · 우: 기능명세 ② 표 · 아래: ③ 컴포넌트 계약.
-     <b>같은 번호 = 같은 요소.</b> 커서를 올리면 서로 강조됩니다.
-     <span class="fs-tag ok">기존/UI</span> · <span class="fs-tag new">신규 BE</span>.
-     공유 컴포넌트는 <a href="component-design.html">component-design</a> 참조.</p>
+  <h1><!-- SCREEN --> — Wireframe ↔ Functional specification</h1>
+  <p>Left: source wireframe (<code><!-- mockup path --></code>) · Right: section ② table · Below: section ③ component contract.
+     <b>The same number identifies the same element.</b> Hover to highlight both sides.
+     <span class="fs-tag ok">Existing/UI</span> · <span class="fs-tag new">New BE</span>.
+     See <a href="component-design.html">component-design</a> for shared components.</p>
 </div>
 
 <div class="fs-split">
   <!-- ============ LEFT: real wireframe + numbered markers (.fs-anchor/.fs-mk) ============ -->
   <div class="fs-wire">
     <!-- Paste the actual wireframe markup here. Example element:
-         <div class="food fs-anchor" data-n="6"><span class="fs-mk" data-n="6">6</span><span>🥬</span>시금치</div> -->
+         <div class="food fs-anchor" data-n="6"><span class="fs-mk" data-n="6">6</span><span>Item</span></div> -->
   </div>
 
   <!-- ============ RIGHT: ② functional decomposition (same numbers) ============ -->
   <div class="fs-spec">
-    <h2>기능 분해 — 완료 판정은 실서버 왕복 기준</h2>
-    <p class="fs-legend"><span class="fs-tag ok">기존</span> 이미 설계된 엔드포인트 ·
-       <span class="fs-tag new">신규 BE</span> 새 엔드포인트 필요 · <span class="fs-tag ui">UI</span> 클라 내비/상태</p>
+    <h2>Function decomposition — completion requires a real server round trip</h2>
+    <p class="fs-legend"><span class="fs-tag ok">Existing</span> designed endpoint ·
+       <span class="fs-tag new">New BE</span> new endpoint required · <span class="fs-tag ui">UI</span> client navigation/state</p>
     <div class="fs-tablewrap">
       <table>
-        <thead><tr><th style="width:26px">#</th><th>요소</th><th>기능(동작)</th><th>데이터·완료 판정</th><th style="width:52px">구분</th></tr></thead>
+        <thead><tr><th style="width:26px">#</th><th>Element</th><th>Behavior</th><th>Data / completion evidence</th><th style="width:52px">Type</th></tr></thead>
         <tbody>
           <!-- One <tr class="fs-row" data-n="N"> per element. Example:
-          <tr class="fs-row" data-n="1"><td><span class="fs-num">1</span></td><td>키워드 검색</td>
-            <td>서버 재조회</td><td><code>GET /x</code> …</td><td><span class="fs-tag ok">기존</span></td></tr>
+          <tr class="fs-row" data-n="1"><td><span class="fs-num">1</span></td><td>Keyword search</td>
+            <td>Query server</td><td><code>GET /x</code> …</td><td><span class="fs-tag ok">Existing</span></td></tr>
           -->
         </tbody>
       </table>
@@ -125,14 +125,14 @@
 
 <!-- ============ BELOW: ③ Component contract (references the shared catalog) ============ -->
 <div class="fs-components">
-  <h2>③ 컴포넌트 계약</h2>
-  <p class="sub">공유 컴포넌트는 <a href="component-design.html">component-design</a>에서 한 번 설계됨 — 여기서는 참조. 신규는 이 화면 전용.</p>
-  <!-- 재사용 (from catalog / existing):
-  <table><thead><tr><th>컴포넌트</th><th>출처</th><th>이 화면 사용</th></tr></thead>
-    <tbody><tr><td><code>FoodRow</code></td><td>catalog (공유)</td><td>임박 재료 행</td></tr></tbody></table>
-  신규 (this screen only):
-  <table><thead><tr><th>컴포넌트/파일</th><th>역할</th><th>props</th><th>상태</th></tr></thead><tbody>…</tbody></table>
-  데이터 흐름: -->
+  <h2>③ Component contract</h2>
+  <p class="sub">Design shared components once in <a href="component-design.html">component-design</a> and reference them here. New components are screen-specific.</p>
+  <!-- Reuse (from catalog / existing):
+  <table><thead><tr><th>Component</th><th>Source</th><th>Usage on this screen</th></tr></thead>
+    <tbody><tr><td><code>ItemRow</code></td><td>catalog (shared)</td><td>Expiring-item row</td></tr></tbody></table>
+  New (this screen only):
+  <table><thead><tr><th>Component/file</th><th>Role</th><th>Props</th><th>State</th></tr></thead><tbody>…</tbody></table>
+  Data flow: -->
   <div class="fs-flow"><!-- Screen → hook → api → endpoint --></div>
 </div>
 

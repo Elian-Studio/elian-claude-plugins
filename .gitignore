@@ -14,14 +14,14 @@ Thumbs.db
 .idea/
 .vscode/
 
-# 환경변수 (로컬 테스트용)
+# Environment variables (local testing)
 .env
 .env.local
 
 # Claude Code per-developer local state
 .claude/settings.local.json
 
-# Codex CLI per-developer local state (codex/ 트리는 plugins/ 와 독립)
+# Codex CLI per-developer local state (the codex/ tree is independent of plugins/)
 .codex/
 codex/config.toml
 

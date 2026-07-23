@@ -51,7 +51,7 @@ v3.0.0 removed the `~/.claude/skills/...` hardcoding that used to block it.
 **Noticed:** v3.1.0 (2026-07-22)
 
 `plugins/elian-store/skills/verify-implementation/scripts/check-skill-discovery.py`
-emits Korean status lines (`발견된 verify-* 스킬`, `자동 실행 대상`). The
+emits localized status lines (`Discovered verify-* skills`, `Automatically runnable`). The
 repository is English-only for everything except literal output labels of a
 generated artifact, and this is console output from a validator, not a
 deliverable label. Pre-existing; out of scope for v3.1.0.

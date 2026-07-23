@@ -141,7 +141,7 @@ grep -cE '^## [1-4]\.' claudedocs/<label>/architecture.md
 # 3. All AS-IS / Δ / TO-BE subsections present
 grep -cE '^### [1-4]\.1 AS-IS' claudedocs/<label>/architecture.md
 # Expected: 4
-grep -cE '^### [1-4]\.2 (Δ|changes|변경)' claudedocs/<label>/architecture.md
+grep -cE '^### [1-4]\.2 (Δ|changes)' claudedocs/<label>/architecture.md
 # Expected: 4
 grep -cE '^### [1-4]\.3 TO-BE' claudedocs/<label>/architecture.md
 # Expected: 4

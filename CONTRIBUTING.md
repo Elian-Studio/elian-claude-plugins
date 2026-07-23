@@ -23,6 +23,7 @@ Documentation language: write repository documents, skill bodies, references, te
 
 Use these checks instead:
 
+- **Repository contract check**: run `python3 scripts/validate_repository.py`.
 - **Parse check**: ensure Claude `SKILL.md` frontmatter parses as real YAML.
 - **Skill-owned validator**: when the changed skill has a validator such as `scripts/validate_skill.py`, run it.
 - **Artifact check**: confirm templates, schemas, examples, and references still match the workflow.
@@ -30,6 +31,13 @@ Use these checks instead:
 - **Parity review**: when a command exists in both Claude and Codex trees, compare both purpose and output contracts.
 
 ## Local Checks
+
+Run the repository contract validator and its regression tests first:
+
+```bash
+python3 scripts/validate_repository.py
+python3 -m unittest discover -s tests -v
+```
 
 Smoke test all `SKILL.md` frontmatter:
 
@@ -92,10 +100,11 @@ plugins/elian-store/
 4. Bump `plugins/elian-store/.claude-plugin/plugin.json` version.
 5. Bump the `elian-store` entry version in `.claude-plugin/marketplace.json`.
 6. Update `README.md`, `CHANGELOG.md`, and relevant parity or portfolio docs.
-7. Register the skill in `tools/clusters.json`: add it to exactly one plugin's `skills` array, and set its Codex disposition (`codex.claude_only` or `codex.prompt_only`, or omit both to ship it as a `codex/skills/<name>` symlink). This is easy to miss — `README`/`CHANGELOG`/parity docs get attention, but the machine manifest does not, and an unregistered skill makes `tools/generate.py` fail with "skill '<name>' is not assigned to any plugin".
-8. Run `python3 tools/generate.py` and confirm it exits 0 (manifest + bare-`CLAUDE_*` lint + version consistency + `codex/skills` symlink status).
-9. Run YAML smoke tests and any skill-owned validators.
-10. Open a pull request, review, and merge.
+7. Register the skill in `tools/clusters.json`: add it to exactly one plugin's `skills` array, and set its Codex disposition (`codex.claude_only`, `codex.prompt_only`, or `codex.deferred`; omit all three only when it ships as a `codex/skills/<name>` symlink). This is easy to miss — `README`/`CHANGELOG`/parity docs get attention, but the machine manifest does not, and an unregistered skill makes validation fail.
+8. Run `python3 scripts/validate_repository.py` and its unit tests.
+9. Run `python3 tools/generate.py` and confirm it exits 0 (manifest + bare-`CLAUDE_*` lint + version consistency + `codex/skills` symlink status).
+10. Run YAML smoke tests and any skill-owned validators.
+11. Open a pull request, review, and merge.
 
 Adding a completely separate plugin requires a separate pull request and a separate guide. The current default is one bundled plugin.
 
@@ -162,7 +171,8 @@ elian-claude-plugins/
 |-- .claude-plugin/
 |   `-- marketplace.json
 |-- .github/
-|   `-- pull_request_template.md
+|   |-- pull_request_template.md
+|   `-- workflows/validate-repository.yml
 |-- plugins/
 |   `-- elian-store/
 |       |-- .claude-plugin/
@@ -178,6 +188,10 @@ elian-claude-plugins/
 |   |-- README.md
 |   |-- AGENTS.md
 |   |-- prompts/
+|-- scripts/
+|   `-- validate_repository.py
+|-- tests/
+|   `-- test_repository_validation.py
 |   `-- config.toml.example
 |-- docs/
 |-- CHANGELOG.md
