@@ -1,8 +1,8 @@
 # Repository-wide AI Skills and Plugins Audit
 
-Date: 2026-07-23  
-Scope: repository definitions only  
-Baseline: `main` before the v3.1.1 hardening changes  
+Date: 2026-07-23<br>
+Scope: repository definitions only<br>
+Baseline: `main` before the v3.1.1 hardening changes<br>
 Post-change state: `refactor/repository-audit-safety-baseline`
 
 This audit intentionally excludes local installation state, MCP connectivity,
