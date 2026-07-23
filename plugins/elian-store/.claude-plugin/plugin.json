@@ -2,7 +2,7 @@
   "name": "elian-store",
   "displayName": "Elian Store",
   "description": "Claude Code workflow bundle for Elian-Studio: requirements intake, gated design-document generation and change propagation, decision artifacts, UI design, TDD implementation flows, engineering and persona review, verification orchestration, harness sync, and bundled domain agents.",
-  "version": "3.1.2",
+  "version": "3.2.0",
   "author": {
     "name": "Daniel (Elian-Studio)",
     "email": "danielmrbang@gmail.com"

@@ -10,6 +10,36 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## elian-store Plugin
 
+### [3.2.0] — 2026-07-23
+
+Aligns the design pipeline on one canonical artifact layout. **Breaking / migration
+required**: the default output path of `/design-ui` changes. Existing artifacts are not
+moved or deleted; `--out` / `--from` preserve the old locations. See
+`docs/migrations/design-artifact-path-v3.2.md`.
+
+#### Changed
+- `/design-ui` default output moves from `claudedocs/design/<feature>/` to
+  `claudedocs/<label>/mockups/`, and the skill unifies on the canonical `<label>`
+  identifier (the same one used by spec.json, `/design-feature`, and the roadmap).
+  `--out` still overrides.
+- `/design-ui` now emits `tokens.css` into the mockups dir (the Phase 4 design tokens as
+  CSS custom properties; falls back to the shared `functional-spec/references/tokens.css`
+  neutral system when no project tokens are defined), so the `/functional-spec` connected
+  view's `../mockups/tokens.css` link resolves.
+- `/functional-spec` keeps its canonical default input `claudedocs/<label>/mockups/` and
+  documents the input-resolution priority (explicit `--from`, then the new default, then an
+  unambiguous legacy path used only after telling the user, else ask). Added error handling
+  for missing/ambiguous mockups, missing tokens.css, existing output, bad `--from`/`--out`.
+- `/functional-spec` no longer claims `/design-feature` produces mockups (it never did).
+  `/design-feature` now states the pipeline flow: it emits design docs and the roadmap,
+  `/design-ui` emits `mockups/` + `tokens.css`, `/functional-spec` emits `functional-specs/`.
+
+#### Added
+- `docs/migrations/design-artifact-path-v3.2.md` — migration notes and compatibility guidance.
+- Repository validator gains a `design-contract` check (canonical mockups path present, retired
+  `claudedocs/design/<feature>/` path absent, no false design-feature-mockups claim, connected
+  template links `../mockups/tokens.css`) plus three regression tests.
+
 ### [3.1.2] — 2026-07-23
 
 Low-risk policy alignment after the safety baseline: correct one Codex classification and
