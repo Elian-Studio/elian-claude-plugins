@@ -1,5 +1,5 @@
 {
-  "_comment": "Thematic-cluster manifest for the Phase A generator (tools/generate.py). SSOT is plugins/elian-store/skills/<name>/ + agents/ + skills/_shared/. This maps the 21 skills into composition-respecting plugins. Revise freely — it is config.",
+  "_comment": "Thematic-cluster manifest for tools/generate.py. Claude plugin source lives under plugins/elian-store; Codex shared skills point there by symlink, while prompt-only adapters remain independent. Skill counts are discovered dynamically.",
 
   "source": {
     "skills_dir": "plugins/elian-store/skills",
@@ -14,7 +14,8 @@
       "ui-ux-designer", "technical-writer", "ux-researcher", "marketing-strategist",
       "business-analyst", "devil-advocate"
     ],
-    "persona": [
+    "reviewers": [
+      "engineering-reviewer",
       "persona-beck-reviewer", "persona-custom-reviewer", "persona-daniel-reviewer",
       "persona-dean-reviewer", "persona-evans-reviewer", "persona-fowler-reviewer",
       "persona-martin-reviewer", "persona-abramov-reviewer", "persona-evanyou-reviewer",
@@ -40,7 +41,7 @@
       "displayName": "Elian Review",
       "description": "Engineering review and verification: findings-first code review, persona-lens review, verify-skill discovery, verify-skill drift repair, a claim-time evidence gate, requirement-to-test coverage tracking, and the consumer side of receiving review feedback.",
       "skills": ["review", "persona-review", "pr-review", "verify-implementation", "manage-skills", "verify-before-claiming", "respond-to-review", "spec-coverage"],
-      "agents": "persona"
+      "agents": "reviewers"
     },
     "elian-design": {
       "displayName": "Elian Design",
@@ -55,9 +56,10 @@
   },
 
   "codex": {
-    "_comment": "Codex distribution per skill. claude_only = never ships to Codex; prompt_only = stays a hand-authored Codex prompt (not a shared skill); everything else lint-clean ships as a codex/skills/<name> symlink.",
-    "claude_only": ["document-writer", "harness-manager", "pr-review", "finish-branch",
-      "spec-coverage"],
-    "prompt_only": ["generate-teammate", "persona-review"]
+    "_comment": "Codex distribution per skill. claude_only = blocked by a real runtime limitation; prompt_only = hand-authored Codex prompt; deferred = portable but intentionally not shipped yet; everything else ships as a codex/skills/<name> symlink.",
+    "claude_only": ["harness-manager", "pr-review", "finish-branch", "spec-coverage"],
+    "prompt_only": ["generate-teammate", "persona-review"],
+    "deferred": ["document-writer", "intake-spec", "design-feature", "update-design",
+      "erd-preview", "kanban-board"]
   }
 }

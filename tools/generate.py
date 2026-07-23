@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Phase A generator for the elian-claude-plugins thematic-cluster distribution.
 
-SSOT: plugins/elian-store/skills/<name>/ + plugins/elian-store/agents/ + skills/_shared/.
-Driven by tools/clusters.json. Report-only by default; mutations are behind flags.
+Claude source: plugins/elian-store/skills/<name>/ + plugins/elian-store/agents/ +
+skills/_shared/. Codex shared skills point to that source by symlink; prompt-only
+adapters remain independent. Driven by tools/clusters.json. Report-only by default;
+mutations are behind flags.
 
 Usage:
   python3 tools/generate.py              # validate manifest + lint + codex status + cluster plan
@@ -74,11 +76,18 @@ def validate_manifest(m, skills):
         for a in names:
             if not (agents_dir / f"{a}.md").is_file():
                 errors.append(f"agent group '{grp}': missing file {a}.md")
-    # codex lists reference real skills
-    for key in ("claude_only", "prompt_only"):
+    # Codex disposition lists reference real skills and are mutually exclusive.
+    disposition_owner = {}
+    for key in ("claude_only", "prompt_only", "deferred"):
         for s in m["codex"].get(key, []):
             if s not in skills_set:
                 errors.append(f"codex.{key}: unknown skill '{s}'")
+            if s in disposition_owner:
+                errors.append(
+                    f"codex disposition overlap: '{s}' is in both "
+                    f"'{disposition_owner[s]}' and '{key}'"
+                )
+            disposition_owner[s] = key
     return errors
 
 
@@ -105,6 +114,8 @@ def codex_disposition(skill, m):
         return "claude-only"
     if skill in m["codex"].get("prompt_only", []):
         return "prompt"
+    if skill in m["codex"].get("deferred", []):
+        return "deferred"
     return "skill"
 
 
