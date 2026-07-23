@@ -10,6 +10,29 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## elian-store Plugin
 
+### [3.1.2] — 2026-07-23
+
+Low-risk policy alignment after the safety baseline: correct one Codex classification and
+close the `pr-review` posting gate. No Codex deployment changes.
+
+#### Changed
+- `spec-coverage` is reclassified from `claude_only` to `deferred`. Its coverage core
+  (test-runner discovery, status/render scripts) is portable via Read/Write/Bash; only the
+  optional PostToolUse auto-render hook is Claude-only. `deferred` reflects an intentional
+  hold, not a runtime block. It is still not shipped to Codex — no symlink, no `setup.sh`
+  entry — and Codex shipping stays pending host-conditioning of the hook guidance and a
+  smoke test. Codex catalog counts updated to three Claude-only and seven deferred skills.
+- `pr-review` review-posting commands (`gh pr review`, `gh pr comment`, `glab mr note`,
+  `glab mr approve`) are removed from `allowed-tools`. Posting is now double-gated: an
+  explicit user confirmation plus a capability/OS approval at execution time. The posting
+  feature and all read-only query commands are retained; only the pre-authorization is
+  removed.
+
+#### Added
+- The repository validator now flags any skill that pre-allowlists PR/MR posting commands,
+  and flags a disposition-listed (`claude_only` / `prompt_only` / `deferred`) skill that
+  also carries a `codex/skills` symlink. Two regression tests cover both rules.
+
 ### [3.1.1] — 2026-07-23
 
 Hardens repository-defined skill safety and makes distribution drift mechanically detectable.

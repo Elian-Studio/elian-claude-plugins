@@ -24,10 +24,10 @@ dispatch**, which Codex cannot reproduce:
 - `persona-review` — per-persona subagent dispatch + aggregation.
 
 For these two only, the Codex prompt and the Claude `SKILL.md` are separate files; a change on one
-side must be checked against the other. Four skills are runtime-blocked **Claude-only**
-(`harness-manager`, `pr-review`, `finish-branch`, `spec-coverage`) and six portable skills are
+side must be checked against the other. Three skills are runtime-blocked **Claude-only**
+(`harness-manager`, `pr-review`, `finish-branch`) and seven portable skills are
 explicitly **deferred** (`document-writer`, `intake-spec`, `design-feature`, `update-design`,
-`erd-preview`, `kanban-board`). Everything else is a drift-free shared skill. See
+`erd-preview`, `kanban-board`, `spec-coverage`). Everything else is a drift-free shared skill. See
 [`../docs/claude-codex-skill-parity.md`](../docs/claude-codex-skill-parity.md).
 
 ## Install
@@ -89,7 +89,7 @@ codex/
 
 The `skills/` symlinks are generated and lint-checked by `tools/generate.py` from the
 `tools/clusters.json` manifest — run it instead of editing `codex/skills/` by hand. The Codex
-catalog is **14 shared skills + 2 prompts** (`generate-teammate`, `persona-review`); four
-runtime-blocked and six deferred skills do not appear here.
+catalog is **14 shared skills + 2 prompts** (`generate-teammate`, `persona-review`); three
+runtime-blocked and seven deferred skills do not appear here.
 
 Claude/Codex catalog parity status and porting order are tracked in [`../docs/claude-codex-skill-parity.md`](../docs/claude-codex-skill-parity.md).

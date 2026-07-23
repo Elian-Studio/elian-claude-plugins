@@ -57,9 +57,9 @@
 
   "codex": {
     "_comment": "Codex distribution per skill. claude_only = blocked by a real runtime limitation; prompt_only = hand-authored Codex prompt; deferred = portable but intentionally not shipped yet; everything else ships as a codex/skills/<name> symlink.",
-    "claude_only": ["harness-manager", "pr-review", "finish-branch", "spec-coverage"],
+    "claude_only": ["harness-manager", "pr-review", "finish-branch"],
     "prompt_only": ["generate-teammate", "persona-review"],
     "deferred": ["document-writer", "intake-spec", "design-feature", "update-design",
-      "erd-preview", "kanban-board"]
+      "erd-preview", "kanban-board", "spec-coverage"]
   }
 }

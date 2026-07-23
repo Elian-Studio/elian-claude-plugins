@@ -4,7 +4,7 @@ description: "Orchestrate a multi-perspective review of an existing pull request
 when_to_use: "Use right after pr-writer creates or updates a PR/MR, or whenever the user wants a many-angle panel review of an existing pull request before merge. Trigger phrases: 'review this PR', 'PR review panel', 'multi-perspective PR review', 'should we merge this PR', 'review PR #123 from every angle', '/pr-review'. Do NOT use for local-only diff review with handoff (use /review), persona-only critique of a plan or doc (use /persona-review), drafting the PR title/body (use /pr-writer), or editing code (use /fix or /improve)."
 argument-hint: "[current | pr:<id> | <url> | branch:<base>] [--post] [--personas all|none|<list>] [--scope <areas>] [--depth quick|deep]"
 disable-model-invocation: true
-allowed-tools: Read, Glob, Grep, Bash(git status*), Bash(git diff*), Bash(git log*), Bash(git show*), Bash(git branch*), Bash(git rev-parse*), Bash(git merge-base*), Bash(git fetch*), Bash(git remote*), Bash(gh pr view*), Bash(gh pr diff*), Bash(gh pr checks*), Bash(gh pr list*), Bash(gh auth status*), Bash(glab mr view*), Bash(glab mr diff*), Bash(glab auth status*), Bash(gh pr review*), Bash(gh pr comment*), Bash(glab mr note*), Bash(glab mr approve*), Agent, AskUserQuestion
+allowed-tools: Read, Glob, Grep, Bash(git status*), Bash(git diff*), Bash(git log*), Bash(git show*), Bash(git branch*), Bash(git rev-parse*), Bash(git merge-base*), Bash(git fetch*), Bash(git remote*), Bash(gh pr view*), Bash(gh pr diff*), Bash(gh pr checks*), Bash(gh pr list*), Bash(gh auth status*), Bash(glab mr view*), Bash(glab mr diff*), Bash(glab auth status*), Agent, AskUserQuestion
 ---
 
 # /pr-review — multi-perspective pull request review
@@ -45,7 +45,7 @@ Relationship to neighbors — pick the right tool:
 Producing a review report is the only default behavior.
 
 - Default output is a **local report** in the terminal. Read the PR; return findings and a verdict.
-- **Posting to the PR is opt-in.** Only post inline or summary comments, or set a review state (approve / request-changes / comment), after the user explicitly confirms — show the exact draft and command first. `--post` signals intent but still confirms before the network call.
+- **Posting to the PR is opt-in and double-gated.** Only post inline or summary comments, or set a review state (approve / request-changes / comment), after the user explicitly confirms — show the exact draft and command first. `--post` signals intent but still confirms before the network call. The posting commands are deliberately **not** in `allowed-tools`, so a second capability/OS approval also applies at execution time; if that approval is denied, return the draft and do not post.
 - **Never merge**, close, or push. Never edit source files. Review is read-only against the code.
 
 This matches `pr-writer` (drafts only) and `review` (read-only): external, hard-to-reverse actions wait for an explicit yes.
@@ -184,7 +184,20 @@ If the user asked to post (or used `--post`), draft the comment, **show it and t
 - **Self-authored PRs:** GitHub blocks `--approve` / `--request-changes` reviews on your own PR. Fall back to `gh pr comment <id> --body-file <draft>` to post the review as a plain comment, and state the verdict in the comment body.
 - **GitLab:** `glab mr note <id> --message <draft>` for a summary note (and `glab mr approve <id>` only if explicitly approving).
 
-The POST/auth commands above are listed in `allowed-tools` so they run without a second OS-level prompt, but this confirm step is the real gate: never post without showing the draft + exact command and getting an explicit yes. Map the verdict to the review state (`Request changes` -> `--request-changes`, etc.) but let the user override.
+Posting is **double-gated** — a prompt-level confirmation and a capability approval:
+
+1. Default behavior stops at analysis and a review draft; no posting.
+2. `--post` or a direct request to post does **not** post immediately.
+3. Show the final draft of exactly what would be posted.
+4. Show the exact command and the target PR/MR.
+5. Get an explicit final yes from the user.
+6. Only then attempt the posting command.
+7. The posting commands are **not** in `allowed-tools`, so a capability/OS approval step may appear at execution time.
+8. If that approval is denied, do not post — return the draft only.
+9. Confirm success from the actual command result, not from intent.
+10. Never describe a post that did not execute as successful.
+
+Map the verdict to the review state (`Request changes` -> `--request-changes`, etc.) but let the user override. Do not "auto-post because the user confirmed", "run directly because permission already exists", or "post on `--post` without approval" — each of those skips a gate.
 
 ## What's automated vs what needs your taste
 
