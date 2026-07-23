@@ -43,6 +43,10 @@ UNSAFE_TOOL_PATTERNS = {
 }
 READ_ONLY_REVIEW_AGENTS = {"engineering-reviewer"}
 HIGH_IMPACT_SKILLS = {"finish-branch", "harness-manager"}
+# PR/MR posting commands must never be pre-allowlisted: posting a review is a
+# hard-to-reverse external write that has to pass an explicit confirm plus a
+# capability approval, not run silently because it sits in allowed-tools.
+POSTING_TOOL_RE = re.compile(r"Bash\((?:gh pr (?:review|comment)|glab mr (?:note|approve))")
 
 
 @dataclass(frozen=True)
@@ -202,6 +206,12 @@ class RepositoryValidator:
             for label, pattern in UNSAFE_TOOL_PATTERNS.items():
                 if pattern.search(allowed_tools):
                     self.add("tool-policy", skill_md, f"unsafe allowed-tools pattern: {label}")
+            if POSTING_TOOL_RE.search(allowed_tools):
+                self.add(
+                    "tool-policy",
+                    skill_md,
+                    "PR/MR posting commands must not be pre-allowlisted; posting requires an explicit confirm plus a capability approval",
+                )
             if SIDE_EFFECT_TOOL_RE.search(allowed_tools) or name in HIGH_IMPACT_SKILLS:
                 if metadata.get("disable-model-invocation", "").lower() != "true":
                     self.add(

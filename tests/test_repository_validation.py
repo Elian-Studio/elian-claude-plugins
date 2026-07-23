@@ -115,6 +115,29 @@ allowed-tools: {tools}{gate}
         validator.validate_skill_contracts()
         self.assertTrue(any(item.check == "tool-policy" for item in validator.findings))
 
+    def test_flags_pre_allowlisted_pr_posting_commands(self) -> None:
+        self.write_skill(
+            "poster",
+            tools="Read Bash(gh pr view*) Bash(gh pr comment*)",
+            disable="true",
+        )
+        validator = RepositoryValidator(self.root)
+        validator.validate_skill_contracts()
+        self.assertTrue(
+            any(
+                item.check == "tool-policy" and "posting commands" in item.message
+                for item in validator.findings
+            )
+        )
+
+    def test_read_only_pr_query_commands_are_allowed(self) -> None:
+        self.write_skill("querier", tools="Read Bash(gh pr view*) Bash(gh pr diff*) Bash(glab mr view*)")
+        validator = RepositoryValidator(self.root)
+        validator.validate_skill_contracts()
+        self.assertFalse(
+            any("posting commands" in item.message for item in validator.findings)
+        )
+
     def test_reports_live_missing_link_but_ignores_fenced_example(self) -> None:
         docs = self.root / "docs"
         docs.mkdir()
