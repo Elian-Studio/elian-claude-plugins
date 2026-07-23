@@ -10,6 +10,42 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## elian-store Plugin
 
+### [3.1.1] — 2026-07-23
+
+Hardens repository-defined skill safety and makes distribution drift mechanically detectable.
+
+#### Fixed
+- Side-effect-capable artifact, design, implementation, and maintenance skills now require
+  explicit invocation through `disable-model-invocation: true`; broad shell permissions were
+  narrowed, and decision-dashboard no longer exposes wildcard deletion.
+- `review` and `pr-review` now use a capability-enforced read-only engineering reviewer. Persona
+  reviewers no longer expose Bash.
+- The `pr-review` perspective catalog and example review now dispatch every engineering lens to
+  the read-only `engineering-reviewer`, matching the SKILL contract instead of naming
+  write-capable domain agents.
+- `update-design` guide references now resolve to `../design-feature/references/` instead of a
+  nonexistent local `references/` directory.
+- `fix`, `implement`, and `improve` skill-verification commands are now runnable shell syntax
+  instead of Markdown links inside Bash code blocks.
+- `pr-writer` is draft-only end to end and cannot create, submit, or merge a PR/MR.
+- Core implementation workflows no longer assume that optional host skills such as `/commit`,
+  `/simplify`, `/code-reviewer`, `/ship`, or `/document-release` are installed.
+- Codex distribution now distinguishes 14 shared skills, two prompt-only skills, four
+  runtime-blocked Claude-only skills, and six intentionally deferred portable skills.
+- English-only distribution content is restored in Codex configuration, functional-spec
+  guidance, design examples, and bundled HTML templates.
+
+#### Added
+- `scripts/validate_repository.py` checks skill contracts, side-effect gates, tool policies,
+  read-only reviewer capabilities, cluster registration, Codex disposition, version parity,
+  relative links, English-only distribution content, and source syntax.
+- Ten stdlib regression tests cover frontmatter parsing, naming, duplicate IDs, side-effect
+  gates, unsafe tool scopes, link handling, and cluster-disposition failures.
+- `.github/workflows/validate-repository.yml` runs repository, YAML, bundled-validator, hook, and
+  cluster checks on pull requests and pushes to `main`.
+- `docs/repository-wide-ai-skills-audit.md` records the full inventory, skill-by-skill audit,
+  scenario review, issue register, target architecture, migration phases, and post-change status.
+
 ### [3.1.0] — 2026-07-22
 
 Adds requirement coverage tracking. The pipeline could produce a PRD and design

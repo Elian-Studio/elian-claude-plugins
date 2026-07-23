@@ -24,3 +24,5 @@ When the two ever differ, **`CLAUDE.md` wins**: update it, then reflect the chan
   `codex/` is versioned independently. See `CLAUDE.md` for the full procedure and the pre-PR validation commands.
 - Skills with side effects default to `disable-model-invocation: true`. Keep each `SKILL.md` under
   500 lines and its `description` + `when_to_use` under 1,536 characters (the character limit is hard-enforced).
+- Run `python3 scripts/validate_repository.py` and
+  `python3 -m unittest discover -s tests -v` before opening a pull request.
