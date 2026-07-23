@@ -128,6 +128,38 @@ allowed-tools: {tools}{gate}
         self.assertEqual(messages, ["relative link target does not exist: ./missing.md"])
         self.assertNotIn("./example.md", strip_fenced_code((docs / "guide.md").read_text()))
 
+    def test_deferred_skill_must_not_ship_a_codex_symlink(self) -> None:
+        self.write_skill("spec-coverage")
+        (self.root / "tools").mkdir()
+        (self.root / "plugins" / "elian-store" / "agents").mkdir()
+        codex_skills = self.root / "codex" / "skills"
+        codex_skills.mkdir(parents=True)
+        # A deferred skill is not shipped; a stray symlink contradicts that.
+        (codex_skills / "spec-coverage").symlink_to("../../plugins/elian-store/skills/spec-coverage")
+        (self.root / "tools" / "clusters.json").write_text(
+            json.dumps(
+                {
+                    "source": {
+                        "skills_dir": "plugins/elian-store/skills",
+                        "agents_dir": "plugins/elian-store/agents",
+                    },
+                    "agent_groups": {},
+                    "plugins": {"only": {"skills": ["spec-coverage"]}},
+                    "codex": {
+                        "claude_only": [],
+                        "prompt_only": [],
+                        "deferred": ["spec-coverage"],
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+        validator = RepositoryValidator(self.root)
+        validator.validate_cluster_manifest()
+        self.assertTrue(
+            any("must not ship a codex/skills symlink" in item.message for item in validator.findings)
+        )
+
     def test_reports_cluster_orphan_and_disposition_overlap(self) -> None:
         self.write_skill("alpha")
         (self.root / "tools").mkdir()

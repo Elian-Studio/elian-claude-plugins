@@ -295,6 +295,17 @@ class RepositoryValidator:
                     )
                 owners[skill] = disposition
 
+        # A skill with an explicit disposition (claude_only / prompt_only / deferred)
+        # is not shipped to Codex, so it must not also carry a codex/skills symlink.
+        for skill in sorted(owners):
+            link = self.root / "codex" / "skills" / skill
+            if link.is_symlink() or link.exists():
+                self.add(
+                    "codex-disposition",
+                    link,
+                    f"'{skill}' is {owners[skill]} and must not ship a codex/skills symlink",
+                )
+
         skills_dir_rel = Path(
             manifest.get("source", {}).get("skills_dir", "plugins/elian-store/skills")
         )
