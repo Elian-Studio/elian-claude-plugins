@@ -12,10 +12,10 @@
     { "id": "bug", "name": "Bug", "color": "#b91c1c", "bg": "#fee2e2" }
   ],
   "lists": [
-    { "id": "todo", "title": "할 일", "cardIds": ["c1", "c2"] },
-    { "id": "doing", "title": "진행 중", "cardIds": ["c3"] },
-    { "id": "review", "title": "검토", "cardIds": [] },
-    { "id": "done", "title": "완료", "cardIds": ["c4"] }
+    { "id": "todo", "title": "To do", "cardIds": ["c1", "c2"] },
+    { "id": "doing", "title": "In progress", "cardIds": ["c3"] },
+    { "id": "review", "title": "Review", "cardIds": [] },
+    { "id": "done", "title": "Done", "cardIds": ["c4"] }
   ],
   "cards": {
     "c1": {
@@ -30,7 +30,7 @@
         { "text": "Integration test", "done": false }
       ],
       "comments": [
-        { "author": "Doyoon Park", "text": "Should we do token rotation on every refresh?", "time": "어제" }
+        { "author": "Doyoon Park", "text": "Should we do token rotation on every refresh?", "time": "yesterday" }
       ],
       "files": []
     },

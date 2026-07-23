@@ -13,6 +13,7 @@ description: >-
   harness-legacy-scan (cruft audit) or harness-diet (cruft removal); those trim a single
   harness, this one keeps two harnesses consistent. Global scope only (~/.claude, ~/.codex);
   project-level AGENTS.md / .claude are out of scope.
+disable-model-invocation: true
 ---
 
 # harness-manager

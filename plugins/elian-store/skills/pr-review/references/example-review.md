@@ -51,7 +51,7 @@ Requirement coverage
 
 Trade-offs raised (conflicting perspectives)
 - Beck: "drop the SearchCriteria builder, only one field is used — YAGNI."
-  system-architect: "keep it; the phone field and filters are still to come."
+  architecture lens: "keep it; the phone field and filters are still to come."
   -> author decides based on whether phone search lands this sprint.
 
 Residual risk

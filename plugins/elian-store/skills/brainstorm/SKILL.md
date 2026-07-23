@@ -309,7 +309,7 @@ For failure recovery: every Phase has a re-entry path — Phase 5 "Iterate" loop
 ## Where this fits in the workflow
 
 ```
-fuzzy idea → /brainstorm → /implement (or /generate-teammate first if multi-domain) → /review → /ship
+fuzzy idea → /brainstorm → /implement (or /generate-teammate first if multi-domain) → /review → release
                   │
                   └── Pre: ambiguous request, multiple paths possible.
                       Post: decision + plan file; downstream skill picks up.

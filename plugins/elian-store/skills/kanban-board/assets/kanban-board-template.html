@@ -155,22 +155,22 @@
   <header class="topbar">
     <div class="brand"><span class="logo">K</span><h1 id="board-title">Board</h1></div>
     <div class="spacer"></div>
-    <input id="search" type="search" placeholder="카드 검색" autocomplete="off">
+    <input id="search" type="search" placeholder="Search cards" autocomplete="off">
     <div class="theme-switch" id="theme-switch">
       <button class="swatch swatch-cobalt" data-theme-btn="cobalt" title="Cobalt"></button>
       <button class="swatch swatch-sage" data-theme-btn="sage" title="Sage"></button>
       <button class="swatch swatch-grape" data-theme-btn="grape" title="Grape"></button>
     </div>
-    <button class="btn" id="btn-export">내보내기</button>
-    <button class="btn" id="btn-import">가져오기</button>
+    <button class="btn" id="btn-export">Export</button>
+    <button class="btn" id="btn-import">Import</button>
     <input type="file" id="file-import" accept="application/json" hidden>
-    <button class="btn btn-ghost" id="btn-reset" title="브라우저에 저장된 편집 내용을 지우고 처음 생성된 데이터로 되돌립니다">초기화</button>
+    <button class="btn btn-ghost" id="btn-reset" title="Clear browser-saved edits and restore the original generated data">Reset</button>
   </header>
 
   <div class="toolbar">
     <div class="filters" id="member-filters"></div>
     <div class="filters" id="label-filters"></div>
-    <button class="btn btn-ghost" id="btn-clear-filters" hidden>필터 초기화</button>
+    <button class="btn btn-ghost" id="btn-clear-filters" hidden>Clear filters</button>
     <div class="stats" id="stats"></div>
   </div>
 
@@ -228,7 +228,7 @@
   function dateLabel(iso){
     if (!iso) return '';
     var d = new Date(iso + 'T00:00:00');
-    return (d.getMonth() + 1) + '월 ' + d.getDate() + '일';
+    return d.toLocaleDateString('en', { month: 'short', day: 'numeric' });
   }
 
   function avatarHtml(memberId, size){
@@ -281,16 +281,16 @@
         '<div class="column-head"><span class="dot"></span><span class="column-title">' + esc(list.title) + '</span>' +
         '<span class="count">' + (list.cardIds || []).length + '</span></div>' +
         '<div class="column-cards" data-droplist="' + esc(list.id) + '">' + cards + '</div>' +
-        '<button class="add-card-btn" data-addcard="' + esc(list.id) + '">+ 카드 추가</button>' +
+        '<button class="add-card-btn" data-addcard="' + esc(list.id) + '">+ Add card</button>' +
         '</section>';
-    }).join('') + '<button class="add-list-btn" id="btn-add-list">+ 리스트 추가</button>';
+    }).join('') + '<button class="add-list-btn" id="btn-add-list">+ Add list</button>';
     boardEl.innerHTML = html;
   }
 
   function renderFilters(){
     var mWrap = document.getElementById('member-filters');
     var members = state.members || [];
-    mWrap.innerHTML = members.length ? ('<span class="filter-label">담당자</span>' + members.map(function(m){
+    mWrap.innerHTML = members.length ? ('<span class="filter-label">Assignee</span>' + members.map(function(m){
       var active = ui.memberFilter.indexOf(m.id) !== -1;
       return '<div class="member-chip" data-memberfilter="' + esc(m.id) + '" data-active="' + active + '" ' +
         'style="background:' + memberColor(m.id) + '" title="' + esc(m.name) + '">' + esc((m.name || '?')[0]) + '</div>';
@@ -298,7 +298,7 @@
 
     var lWrap = document.getElementById('label-filters');
     var labels = state.labels || [];
-    lWrap.innerHTML = labels.length ? ('<span class="filter-label">라벨</span>' + labels.map(function(l){
+    lWrap.innerHTML = labels.length ? ('<span class="filter-label">Label</span>' + labels.map(function(l){
       var active = ui.labelFilter.indexOf(l.id) !== -1;
       return '<div class="chip" data-labelfilter="' + esc(l.id) + '" data-active="' + active + '" ' +
         'style="color:' + (l.color || labelColor(l.id)) + ';background:' + (l.bg || labelBg(l.id)) + '">' + esc(l.name) + '</div>';
@@ -322,9 +322,9 @@
     var pct = total ? Math.round(done / total * 100) : 0;
     document.getElementById('stats').innerHTML =
       '<div class="bar"><span style="width:' + pct + '%"></span></div><span><b>' + pct + '%</b></span>' +
-      '<span>완료 <b>' + done + '</b> / ' + total + '</span>' +
-      '<span>진행 중 <b>' + doing + '</b></span>' +
-      (overdue ? '<span class="badge-overdue">⚠ 지연 ' + overdue + '</span>' : '');
+      '<span>Done <b>' + done + '</b> / ' + total + '</span>' +
+      '<span>In progress <b>' + doing + '</b></span>' +
+      (overdue ? '<span class="badge-overdue">Overdue ' + overdue + '</span>' : '');
   }
 
   function renderAll(){ renderBoard(); renderFilters(); renderStats(); syncTheme(); }
@@ -351,7 +351,7 @@
     saveState();
   }
   function addList(){
-    var title = window.prompt('새 리스트 이름');
+    var title = window.prompt('New list name');
     if (!title) return;
     var listBag = {}; (state.lists || []).forEach(function(l){ listBag[l.id] = true; });
     var id = uniqueId('l', listBag);
@@ -364,8 +364,8 @@
     if (!btn) return;
     var wrap = document.createElement('div');
     wrap.className = 'add-card-form';
-    wrap.innerHTML = '<textarea rows="2" placeholder="카드 제목을 입력하세요…"></textarea>' +
-      '<div class="add-card-actions"><button class="btn btn-primary" type="button" data-act="submit">추가</button>' +
+    wrap.innerHTML = '<textarea rows="2" placeholder="Enter a card title…"></textarea>' +
+      '<div class="add-card-actions"><button class="btn btn-primary" type="button" data-act="submit">Add</button>' +
       '<button class="btn btn-ghost" type="button" data-act="cancel">✕</button></div>';
     btn.replaceWith(wrap);
     var ta = wrap.querySelector('textarea');
@@ -405,36 +405,36 @@
     var doneCount = checklist.filter(function(c){ return c.done; }).length;
 
     var checklistHtml = checklist.length ? (
-      '<div><div class="section-title">체크리스트<span>' + doneCount + '/' + checklist.length + '</span></div>' +
+      '<div><div class="section-title">Checklist<span>' + doneCount + '/' + checklist.length + '</span></div>' +
       '<div class="card-progress" style="margin-bottom:12px"><span style="width:' + Math.round(doneCount / checklist.length * 100) + '%"></span></div>' +
       checklist.map(function(item, i){
         return '<div class="checklist-item" data-check="' + i + '">' +
           '<span class="check-box' + (item.done ? ' done' : '') + '">' + (item.done ? '✓' : '') + '</span>' +
           '<span class="check-text' + (item.done ? ' done' : '') + '">' + esc(item.text) + '</span></div>';
       }).join('') +
-      '<button class="btn btn-ghost" data-act="add-check" style="margin-top:4px">+ 항목 추가</button></div>'
-    ) : '<div><div class="section-title">체크리스트<span></span></div>' +
-        '<button class="btn btn-ghost" data-act="add-check">+ 항목 추가</button></div>';
+      '<button class="btn btn-ghost" data-act="add-check" style="margin-top:4px">+ Add item</button></div>'
+    ) : '<div><div class="section-title">Checklist<span></span></div>' +
+        '<button class="btn btn-ghost" data-act="add-check">+ Add item</button></div>';
 
-    var filesHtml = '<div><div class="section-title">첨부 링크<button class="btn btn-ghost" data-act="add-file">+ 링크 추가</button></div>' +
+    var filesHtml = '<div><div class="section-title">Attached links<button class="btn btn-ghost" data-act="add-file">+ Add link</button></div>' +
       (card.files || []).map(function(f){
         var ext = (f.name.split('.').pop() || '').slice(0, 4).toUpperCase();
         var inner = '<span class="file-icon">' + esc(ext) + '</span><span style="flex:1;font-size:13px;font-weight:500">' + esc(f.name) + '</span>';
         return f.url ? '<a class="file-row" href="' + esc(f.url) + '" target="_blank" rel="noopener">' + inner + '</a>'
                       : '<div class="file-row">' + inner + '</div>';
       }).join('') +
-      (!(card.files || []).length ? '<div class="muted">첨부된 링크가 없습니다.</div>' : '') + '</div>';
+      (!(card.files || []).length ? '<div class="muted">No links attached.</div>' : '') + '</div>';
 
-    var commentsHtml = '<div><div class="section-title">댓글</div>' +
+    var commentsHtml = '<div><div class="section-title">Comments</div>' +
       '<div style="display:flex;flex-direction:column;gap:14px;margin-bottom:14px">' +
       (card.comments || []).map(function(c){
         return '<div class="comment"><div class="avatar" style="width:30px;height:30px;background:' + memberColor(c.author) + ';font-size:11px">' +
           esc((c.author || '?')[0]) + '</div><div class="body"><div class="head"><span class="author">' + esc(c.author) +
           '</span><span class="time">' + esc(c.time || '') + '</span></div><div class="text">' + esc(c.text) + '</div></div></div>';
       }).join('') +
-      (!(card.comments || []).length ? '<div class="muted">아직 댓글이 없습니다.</div>' : '') + '</div>' +
-      '<div class="comment-input"><input type="text" id="comment-draft" placeholder="댓글 남기기…">' +
-      '<button class="btn btn-primary" data-act="submit-comment">등록</button></div></div>';
+      (!(card.comments || []).length ? '<div class="muted">No comments yet.</div>' : '') + '</div>' +
+      '<div class="comment-input"><input type="text" id="comment-draft" placeholder="Leave a comment…">' +
+      '<button class="btn btn-primary" data-act="submit-comment">Post</button></div></div>';
 
     document.getElementById('modal').innerHTML =
       '<div class="modal-head"><div style="flex:1;min-width:0">' +
@@ -443,15 +443,15 @@
       '<button class="modal-close" data-act="close">→</button></div>' +
       '<div class="modal-body">' +
       '<div class="kv">' +
-      '<div class="k">담당자</div><div class="v">' + (member(card.assignee) ? (avatarHtml(card.assignee, 26) + ' ' + esc(member(card.assignee).name)) : '<span class="muted">미지정</span>') + '</div>' +
-      '<div class="k">마감일</div><div class="v">' + (due ? ('<span class="due ' + status + '">◷ ' + dateLabel(due) + '</span>') : '<span class="muted">없음</span>') + '</div>' +
-      '<div class="k">라벨</div><div class="v">' + ((card.labels || []).map(function(lid){
+      '<div class="k">Assignee</div><div class="v">' + (member(card.assignee) ? (avatarHtml(card.assignee, 26) + ' ' + esc(member(card.assignee).name)) : '<span class="muted">Unassigned</span>') + '</div>' +
+      '<div class="k">Due date</div><div class="v">' + (due ? ('<span class="due ' + status + '">◷ ' + dateLabel(due) + '</span>') : '<span class="muted">None</span>') + '</div>' +
+      '<div class="k">Labels</div><div class="v">' + ((card.labels || []).map(function(lid){
         var l = label(lid); if (!l) return '';
         return '<span class="card-label" style="color:' + (l.color || labelColor(lid)) + ';background:' + (l.bg || labelBg(lid)) + '">' + esc(l.name) + '</span>';
-      }).join(' ') || '<span class="muted">없음</span>') + '</div>' +
+      }).join(' ') || '<span class="muted">None</span>') + '</div>' +
       '</div>' +
       '<div class="hr"></div>' +
-      '<div><div class="section-title">설명</div><p style="font-size:14px;line-height:1.6">' + (esc(card.desc) || '<span class="muted">설명이 없습니다.</span>') + '</p></div>' +
+      '<div><div class="section-title">Description</div><p style="font-size:14px;line-height:1.6">' + (esc(card.desc) || '<span class="muted">No description.</span>') + '</p></div>' +
       checklistHtml + filesHtml + commentsHtml +
       '</div>';
   }
@@ -518,7 +518,7 @@
         return;
       }
       if (e.target.closest('[data-act="add-check"]')) {
-        var text = window.prompt('체크리스트 항목');
+        var text = window.prompt('Checklist item');
         if (text) {
           var c = state.cards[ui.modalCardId];
           c.checklist = c.checklist || [];
@@ -528,9 +528,9 @@
         return;
       }
       if (e.target.closest('[data-act="add-file"]')) {
-        var name = window.prompt('파일/링크 이름 (예: design.png)');
+        var name = window.prompt('File/link name (for example, design.png)');
         if (!name) return;
-        var url = window.prompt('링크 URL (없으면 취소해도 이름만 저장됩니다)') || '';
+        var url = window.prompt('Link URL (cancel to save only the name)') || '';
         var c2 = state.cards[ui.modalCardId];
         c2.files = c2.files || [];
         c2.files.push({ name: name, url: url });
@@ -543,7 +543,7 @@
         if (val) {
           var c3 = state.cards[ui.modalCardId];
           c3.comments = c3.comments || [];
-          c3.comments.push({ author: '나', text: val, time: '방금' });
+          c3.comments.push({ author: 'Me', text: val, time: 'just now' });
           saveState(); renderModal(); renderBoard();
         }
         return;
@@ -602,7 +602,7 @@
       document.body.appendChild(a); a.click(); a.remove();
     });
     document.getElementById('btn-import').addEventListener('click', function(){
-      if (!window.confirm('가져오기를 하면 현재 보드 내용을 덮어씁니다. 계속할까요?')) return;
+      if (!window.confirm('Importing replaces the current board. Continue?')) return;
       document.getElementById('file-import').click();
     });
     document.getElementById('file-import').addEventListener('change', function(e){
@@ -616,14 +616,14 @@
           state = data;
           saveState(); renderAll();
         } catch (err) {
-          window.alert('올바른 board.json 파일이 아닙니다: ' + err.message);
+          window.alert('This is not a valid board.json file: ' + err.message);
         }
       };
       reader.readAsText(file);
       e.target.value = '';
     });
     document.getElementById('btn-reset').addEventListener('click', function(){
-      if (!window.confirm('브라우저에 저장된 편집 내용을 지우고 처음 생성된 데이터로 되돌립니다. 계속할까요?')) return;
+      if (!window.confirm('Clear browser-saved edits and restore the original generated data?')) return;
       state = JSON.parse(JSON.stringify(SEED));
       saveState(); renderAll();
     });

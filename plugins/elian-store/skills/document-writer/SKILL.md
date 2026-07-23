@@ -12,6 +12,8 @@ description: >-
   code comment. (For rendering a fixed JSON payload through a schema-based template, use
   create-document — that is the render engine other skills call internally. This skill is the
   general-purpose author that turns arbitrary content into a well-presented document.)
+allowed-tools: Read Write Bash(python3 *) Bash(mkdir *)
+disable-model-invocation: true
 ---
 
 # Document Writer
@@ -38,8 +40,9 @@ documented classes and the tone matches automatically.
 ### 1. Decide the format
 - **HTML by default.** Absent any instruction, produce a self-contained HTML document.
 - If the user asks for "MD" or "markdown" → take the [Markdown-only](#markdown-only-path) path.
-- If the user asks for "PDF" → build the HTML, then point them at browser printing or the
-  `make-pdf` skill (this skill stops at HTML).
+- If the user asks for "PDF" → build the HTML, then point them at browser printing.
+  If the host provides a separate PDF skill, offer it as an optional handoff; this
+  plugin does not bundle one.
 
 ### 2. Pick the document type and structure
 Each type has a section layout that works well. Read `references/doc-types.md` and follow the

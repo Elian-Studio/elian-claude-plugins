@@ -19,6 +19,8 @@ description: >
   the diagram with ACTUAL data (introspected from a DB or pasted), not invented
   example rows. Inputs: a live read-only DB tool, CREATE TABLE DDL, design docs,
   or pasted query results.
+allowed-tools: Read Write Bash(python3 *)
+disable-model-invocation: true
 ---
 
 # ERD Lineage Explorer

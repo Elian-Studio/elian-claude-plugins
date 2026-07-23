@@ -1,7 +1,11 @@
 # Claude / Codex Skill Parity Review
 
 Date: 2026-06-02
-Last updated: 2026-06-12 (migrated 13 commands from Codex prompts to shared Codex *skills* via `tools/generate.py`; only `generate-teammate` and `persona-review` stay prompts — their core is Claude subagent dispatch, which Codex cannot reproduce; `document-writer` and `harness-manager` remain Claude-only. Codex catalog: 2 prompts + 13 shared skills. 2026-06-12: added `pr-review` as a third Claude-only skill — parallel multi-subagent review panel the Codex runtime cannot reproduce. 2026-06-23: added three superpowers-derived skills — `verify-before-claiming` and `respond-to-review` as shared Codex skills, and `finish-branch` as a fourth Claude-only skill (native worktree tooling). Codex catalog: 2 prompts + 15 shared skills. 2026-07-03: added `functional-spec` as a shared Codex skill (wireframe→code-grounded spec bridge; doc-generation + codebase-reading, fully Codex-reproducible — symlinked, no Claude-only blocker). Codex catalog: 2 prompts + 16 shared skills. 2026-07-22 (v3.0.0): retired `ai-assisted-feature-development` and `skill-dispatcher` from **both** trees (the first duplicated `intake-spec` + `design-feature` + `implement` + `review`; the second duplicated the host's built-in skill discovery). Codex catalog: 2 prompts + 14 shared skills. 2026-07-22 (v3.1.0): added `spec-coverage` (requirement-to-test coverage) as a fifth Claude-only skill — it detects and runs the project's test runner and depends on a bundled renderer/validator asset pair. Codex catalog unchanged: 2 prompts + 14 shared skills.)
+Last updated: 2026-07-23. The Claude catalog has 26 skills. Codex ships 14 shared
+skill symlinks and two hand-authored prompts; four skills are blocked by runtime
+constraints and six portable skills are explicitly deferred. `tools/clusters.json`
+is the machine-readable disposition source and `scripts/validate_repository.py`
+checks that every skill has exactly one non-overlapping disposition.
 
 ## Goal
 
@@ -31,19 +35,27 @@ A Claude skill and Codex prompt are considered aligned only when all of these ma
 
 | Area | Claude | Codex | Status |
 |---|---:|---:|---|
-| Catalog entries | 26 skills | 2 prompts + 14 shared skills | 15 matched + 5 documented Claude-only + 6 not yet ported |
+| Catalog entries | 26 skills | 2 prompts + 14 shared skills | 16 matched + 4 Claude-only + 6 deferred |
 | Command naming | `/elian-store:<skill>` | `/<prompt-file>` | Mostly alignable |
 | Current matched commands | `brainstorm`, `create-document`, `decision-dashboard`, `design-ui`, `fix`, `functional-spec`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `review`, `verify-implementation`, `persona-review`, `pr-writer`, `verify-before-claiming`, `respond-to-review` | `brainstorm`, `create-document`, `decision-dashboard`, `design-ui`, `fix`, `functional-spec`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `review`, `verify-implementation`, `persona-review`, `pr-writer`, `verify-before-claiming`, `respond-to-review` | Aligned |
 | Legacy `on-call-elian` | Removed from current Claude skill catalog | Removed from current Codex prompt catalog | Aligned |
-| Validation | YAML + skill-owned validators where present | Prompt/config review | Asymmetric, manual |
+| Validation | Repository validator + YAML + skill-owned validators | Repository validator + prompt/config parity review | Automated structure, manual semantics |
 
-Current conclusion: **the two trees now cover the same ported command catalog, but they are not byte-for-byte or runtime-identical yet**. The name drift around `on-call-elian` is fixed, the 16 ported commands all have Codex counterparts (2 prompts + 14 shared skills), the 5 Claude-only skills (`harness-manager`, `document-writer`, `pr-review`, `finish-branch`, `spec-coverage`) plus the 5 design-pipeline skills not yet ported (`intake-spec`, `design-feature`, `update-design`, `erd-preview`, `kanban-board`) are documented exceptions below, and the remaining divergence is platform/runtime behavior rather than missing prompt coverage.
+Current conclusion: **the two trees cover the same 16-command ported catalog, but they are
+not runtime-identical**. Four skills are Claude-only because of real runtime behavior:
+`harness-manager`, `pr-review`, `finish-branch`, and `spec-coverage`. Six are portable but
+deliberately deferred: `document-writer`, `intake-spec`, `design-feature`, `update-design`,
+`erd-preview`, and `kanban-board`.
 
 **Skills-based Codex distribution.** Instead of hand-mirrored prompts, `codex/skills/<name>` is a relative symlink into `plugins/elian-store/skills/<name>/`, and `codex/setup.sh` symlinks it into `~/.codex/skills/`. Both tools read one `SKILL.md`, so migrated commands cannot drift. `tools/generate.py` (manifest `tools/clusters.json`) maintains the symlinks and lints every `SKILL.md` for host-agnostic script paths. **14 commands are now shared skills** — everything except the exceptions below.
 
 **Third-host decision.** The current Claude + Codex shape should stay simple: shared `SKILL.md` symlinks for portable skills plus hand-authored Codex prompts for the two subagent-core flows. Template/adapter generation is deferred until a third host such as Gemini or Cursor becomes a real target; adding that machinery now would increase release and validation surface without solving an active parity gap.
 
-**The exceptions.** Five skills are **Claude-only** (`harness-manager` operates on the global harnesses; `pr-review` is a parallel multi-subagent review panel; `finish-branch` depends on the native `EnterWorktree`/`ExitWorktree` tools and `.claude/worktrees/` semantics; `spec-coverage` detects and runs the project's test runner behind a bundled validator/renderer pair; `document-writer` is a deferred port, not a platform limitation — its `~/.claude/skills/...` hardcoding was removed in v3.0.0, so a symlink port is now feasible) and do not currently ship to Codex. Two stay **hand-authored Codex prompts** because their core is Claude subagent dispatch, which Codex cannot reproduce: `generate-teammate` (teammate-spawn / subagent team flow) and `persona-review` (per-persona subagent dispatch + aggregation). Their `SKILL.md` is host-agnostic, but symlinking it would advertise a flow that does not run on Codex.
+**The exceptions.** Four skills are **Claude-only** for runtime reasons. Six portable skills are
+**deferred**, which means omission is an explicit product choice rather than a runtime claim. Two
+stay **hand-authored Codex prompts** because their core is Claude subagent dispatch:
+`generate-teammate` and `persona-review`. Their `SKILL.md` bodies are host-agnostic, but
+symlinking them would advertise a dispatch flow Codex cannot reproduce.
 
 **Host-agnostic `SKILL.md` portability** (resolve `SKILL_DIR` / sibling `CD` with a `${CLAUDE_SKILL_DIR:-${CLAUDE_PLUGIN_ROOT:+...}}` → `${CODEX_HOME:-$HOME/.codex}/skills/...` fallback, never a bare `CLAUDE_PLUGIN_ROOT`/`CLAUDE_SKILL_DIR`) is applied to all six skills that used those vars: `create-document`, `decision-dashboard`, `design-ui`, `generate-teammate`, `manage-skills`, and `verify-implementation`. The last two were caught by the `tools/generate.py` lint; the lint now gates every skill.
 
@@ -53,10 +65,10 @@ Current conclusion: **the two trees now cover the same ported command catalog, b
 
 | Lifecycle lane | Current Claude coverage | Current Codex coverage | Status |
 |---|---|---|---|
-| Product/spec planning | `brainstorm`, `intake-spec`, `design-feature`, `update-design`, `decision-dashboard` | `brainstorm`, `decision-dashboard` | Partial |
-| Design planning | `design-ui` | Missing | Partial |
-| Implementation/fix/improve | `implement`, `fix`, `improve` | Missing | Claude-only |
-| Engineering review | `review`; `persona-review` remains persona-lens critique | `persona-review` only | Claude-only |
+| Product/spec planning | `brainstorm`, `intake-spec`, `design-feature`, `update-design`, `decision-dashboard` | `brainstorm`, `decision-dashboard` | Partial; pipeline deferred |
+| Design planning | `design-ui` | `design-ui` | Aligned |
+| Implementation/fix/improve | `implement`, `fix`, `improve` | `implement`, `fix`, `improve` | Aligned |
+| Engineering review | `review`; `persona-review` remains persona-lens critique | `review`, `persona-review` | Aligned with runtime-specific dispatch |
 | Browser QA | None | None | Gap |
 | Ship/release | Referenced by downstream handoffs, no skill | None | Gap |
 | Deploy/canary/benchmark/security | None | None | Gap |
@@ -64,7 +76,7 @@ Current conclusion: **the two trees now cover the same ported command catalog, b
 
 Do not treat these gaps as immediate parity bugs. They are roadmap gaps and should become skills only when the workflow, artifacts, and verification path are concrete.
 
-## Purpose Fit Matrix
+## Ported Purpose Fit Matrix
 
 | Skill | Purpose | Fit | Notes | Codex parity |
 |---|---|---|---|---|
@@ -76,32 +88,34 @@ Do not treat these gaps as immediate parity bugs. They are roadmap gaps and shou
 | `decision-dashboard` | Turn 3+ blocking decisions into a printable decision artifact and JSON | Good | Codex now preserves the JSON-first / HTML-second contract and the `generate` / `finalize` flow. Keep the memo requirement for `Other` explicit. | Present |
 | `generate-teammate` | Decide direct/subagent/team execution and generate teammate/task prompts | Platform-specific | Claude can use Agent/Team tools; Codex keeps the same phase analysis and handoff plan, but not actual teammate spawning. | Present (platform-limited) |
 | `create-document` | Deterministically render schema-validated JSON into HTML/MD templates | Good utility | Codex now preserves the validate-first rendering contract and the supported template set. Keep the legacy fixed five-block renderer out of the active path. | Present |
-| `manage-skills` | Detect and repair verify-skill drift | Good, but Claude-specific | Codex now treats this as verification prompt maintenance and drift repair within the prompt tree; actual `.claude/skills` repair is still Claude-side. | Present (platform-limited) |
-| `verify-implementation` | Discover and run project verify-* skills before shipping | Good, but Claude-specific | Codex now provides a prompt-level verification orchestrator, but project-local verification semantics still depend on the prompt tree rather than Claude Agent tooling. | Present (platform-limited) |
+| `manage-skills` | Detect and repair verify-skill drift | Good | Both hosts read the same `SKILL.md`; project harness paths are resolved at runtime. | Present |
+| `verify-implementation` | Discover and run project verify-* skills before shipping | Good | Both hosts read the same discovery and approval contract. | Present |
 | `persona-review` | Auto-select matching persona lenses from the target and review with persona-native output | Aligned | Claude and Codex now share the same command name, signal-map **auto-selection** as the default when no `--persona` is given (cap 3, `daniel` fallback), the full 14-persona roster (+ custom path), interview mode, and free-form review contract. Claude dispatches persona-specific subagents; Codex keeps the same judgment shape in-process without Claude Agent tools. | Present |
 | `review` | Read-only engineering review of code, diffs, PRs, or changed files with findings-first output | Good | Codex now shares the same findings-first contract and read-only boundary. Keep the target/diff/line evidence discipline aligned with the Claude skill. | Present |
 | `pr-writer` | Draft a review-friendly PR/MR title and body from the diff, commits, and stated intent, contrasting intent vs implementation | Good | Both trees share the draft-only posture, PLAN -> DRAFT -> CONTRAST flow, platform (`gh`/`glab`) detection, and the same title/body output contract. Claude scopes read-only git tools via `allowed-tools`; Codex enforces the same draft-only boundary in prompt prose. | Present |
 | `verify-before-claiming` | Claim-time honesty gate — require fresh verification evidence before any pass/fixed/done claim | Good | Portable doctrine + bash verification idioms; ships as a shared symlink. Always-on (`disable-model-invocation: false`), read-only. Distinct from `verify-implementation` (suite runner) — this proves the specific claim being made. | Present |
 | `respond-to-review` | Consumer side of review — verify feedback before implementing, no performative agreement, push back with reasoning | Good | Behavioral, read-only triage that hands edits to `/fix` or `/improve`; ships as a shared symlink. Always-on (`disable-model-invocation: false`). | Present |
-| `finish-branch` | Disposition of a finished branch (merge / push+PR / keep / discard) with worktree-safe cleanup | Claude-only | Depends on native `EnterWorktree`/`ExitWorktree` and `.claude/worktrees/`; delegates push+PR to `/ship`. Documented exception below. | Claude-only |
+| `finish-branch` | Disposition of a finished branch (merge / push+PR / keep / discard) with worktree-safe cleanup | Claude-only | Depends on native `EnterWorktree`/`ExitWorktree` and `.claude/worktrees/`; uses optional host release/commit skills with plain-git fallback. | Claude-only |
 
-## Required Work To Make Them Identical
+## Required Work To Maintain Parity
 
-Minimum parity work:
+Minimum ongoing parity work:
 
-1. Keep prompt bodies and runtime assumptions in sync as the remaining platform-specific gaps are refined.
+1. Keep the two prompt-only adapters aligned with their Claude `SKILL.md` intent and output.
 2. Keep command names exactly equal to Claude skill directory names.
-3. For side-effect skills (`implement`, `fix`, `improve`, `manage-skills`, `verify-implementation`), convert Claude `AskUserQuestion` and tool-gate behavior into Codex "ask and stop" instructions.
-4. For utility skills (`create-document`, `decision-dashboard`), call shared scripts/templates instead of duplicating generated output logic in prompt prose.
-5. For Claude-only runtime skills (`generate-teammate`, parts of `verify-implementation`), document the Codex limitation in the prompt and make the Codex version produce a handoff plan rather than pretending to spawn agents.
-6. Keep Codex validation prompt-specific. Skill-specific contracts should be validated without forcing unrelated prompts into the same output shape.
+3. Keep side-effect approval semantics explicit in shared skills and prompt adapters.
+4. Call shared scripts/templates from shared skills instead of duplicating output logic.
+5. Record every non-shared skill as `claude_only`, `prompt_only`, or `deferred` in
+   `tools/clusters.json`; do not infer a runtime blocker from a missing symlink.
+6. Run `scripts/validate_repository.py` and `tools/generate.py` for every parity change.
 
 ## Recommended Port Order
 
-| Order | Prompt | Reason |
+| Order | Skill | Reason |
 |---:|---|---|
-| 1 | `manage-skills`, `verify-implementation` | Needs a cross-tool definition of what gets verified. |
-| 2 | `generate-teammate` | Most platform-specific because Claude Agent/Team tools do not have a direct Codex equivalent here. |
+| 1 | `document-writer` | Portable and self-contained; only artifact-contract stability blocks it. |
+| 2 | `intake-spec`, `design-feature`, `update-design` | Port together after the design artifact manifest stabilizes. |
+| 3 | `erd-preview`, `kanban-board` | Port after Codex asset-backed artifact packaging is standardized. |
 
 ## Recommended New-Skill Order From gstack Review
 
@@ -129,20 +143,19 @@ Completed:
 - `persona-review` now matches the Claude command name and the native free-form review contract.
 - `pr-writer` ships in both trees with a shared draft-only PR/MR description contract and platform-aware (`gh`/`glab`) context gathering.
 
-## Documented Exceptions (Claude-only, no Codex prompt)
+## Documented Non-Shared Dispositions
 
-These skills ship in the Claude plugin without a `codex/prompts/<skill>.md` counterpart. The operating rule below requires the exception to be recorded here.
+These skills ship in the Claude plugin without a shared `codex/skills/<skill>` symlink.
 
-| Skill | Why no Codex prompt (yet) |
-|---|---|
-| `harness-manager` | Meta-tool that operates on **both** harnesses' global files at once (`~/.claude/CLAUDE.md` ↔ `~/.codex/AGENTS.md`, `~/.claude.json` ↔ `~/.codex/config.toml`, commands ↔ prompts, skills). It is not a per-tool workflow to mirror; a Codex prompt that drives the same scan/report/reconcile flow from the Codex side is a reasonable future addition, not a behavioral mirror. Until authored, the Claude skill is the single entry point. |
-| `document-writer` | House-style self-contained HTML/MD document generator shipped to the Claude plugin (PR #19). v3.0.0 rewrote it in English and replaced its `~/.claude/skills/...` hardcoding with the standard `SKILL_DIR` resolver, so nothing platform-specific blocks it any more — it is now a straightforward symlink port, just not yet done. Tracked as a port candidate. |
-| `pr-review` | Multi-perspective PR/MR reviewer whose core is **parallel multi-subagent panel dispatch** — up to ~17 specialist + persona reviewers run concurrently via the Agent tool, then synthesized into one verdict. The Codex runtime cannot reproduce the concurrent panel (same limitation as `generate-teammate` / `persona-review`). A Codex prompt that drives a sequential, handoff-style review is a reasonable future addition, not a behavioral mirror. |
-| `finish-branch` | Branch-disposition workflow whose cleanup depends on the native `EnterWorktree`/`ExitWorktree` harness tools and `.claude/worktrees/` semantics, which do not exist in Codex. Its push+PR option also delegates to the Claude-side `/ship`. A Codex prompt using plain `git worktree` is a reasonable future addition, not a behavioral mirror. |
-| `erd-preview` | Self-contained "Lineage Explorer" HTML generator: fills a bundled `assets/template.html` from real data and self-checks with a Node-backed `scripts/validate.py` (referential integrity, cardinality, LAYERS ordering). The value is the shipped template + validator asset pair, not a portable prompt; a Codex prompt could describe the flow but cannot carry the template/validator the same way. Claude-only by deferral, a reasonable future port candidate, not a behavioral mirror. |
-| `intake-spec`, `design-feature`, `update-design` | The requirements → design → propagation pipeline. Their `SKILL.md` bodies are host-agnostic (they already resolve `create-document` through a `${CODEX_HOME}` fallback), so a symlink port is feasible. Deferred, not blocked: the pipeline is still changing shape (v3.0.0 moved `spec.json` into `claudedocs/<label>/` and added `tech-spec.md`), and porting a moving contract to a second tree doubles the churn. Port once the artifact set settles. |
-| `kanban-board` | Self-contained interactive HTML board generator whose value is the bundled `scripts/build_board.py` + template pair, same shape as `erd-preview`. Claude-only by deferral, a reasonable future port candidate. |
-| `spec-coverage` | Requirement-to-test coverage tracker. Its contract is "run this project's test suite now, parse the JUnit XML, and decide each acceptance criterion from the result" — that means detecting and executing a build tool, then rendering through a bundled validator/renderer pair. A Codex prompt could describe the judgement but could not carry the scripts that make it deterministic, and a prompt that guessed at status would defeat the skill's only purpose. Claude-only by design, not deferral. |
+| Skill | Disposition | Reason |
+|---|---|---|
+| `harness-manager` | Claude-only | Operates on both hosts' global harnesses and depends on Claude-side workflow semantics. |
+| `pr-review` | Claude-only | Its core is parallel multi-agent panel dispatch plus optional confirmed PR posting. |
+| `finish-branch` | Claude-only | Depends on native `EnterWorktree`/`ExitWorktree` and Claude worktree semantics. |
+| `spec-coverage` | Claude-only | Owns project test-runner discovery and bundled deterministic coverage assets. |
+| `document-writer` | Deferred | Portable renderer; port after the artifact contract settles. |
+| `intake-spec`, `design-feature`, `update-design` | Deferred | Portable requirements/design pipeline that is still changing as a unit. |
+| `erd-preview`, `kanban-board` | Deferred | Portable asset-backed generators; defer until the Codex artifact packaging path is standardized. |
 
 ## Retired Commands
 

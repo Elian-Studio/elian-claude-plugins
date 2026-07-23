@@ -31,7 +31,7 @@ Breadth (specialists) + judgment (personas) is why the panel beats one reviewer.
 
 ## Layer 1 — Functional specialists (always run)
 
-### Correctness & regression — `devil-advocate`
+### Correctness & regression — `engineering-reviewer` (correctness lens)
 - **Asks:** How does this fail in production? What input was not considered?
 - **Red flags:** unhandled null/empty/zero, off-by-one, error paths that swallow
   failures, races on shared state, conditional logic that silently returns the
@@ -39,7 +39,7 @@ Breadth (specialists) + judgment (personas) is why the panel beats one reviewer.
 - **Matters most:** state transitions, money/auth/permission logic, concurrency,
   anything with an early `return`/`continue` that skips later checks.
 
-### Security & privacy — `security-engineer`
+### Security & privacy — `engineering-reviewer` (security lens)
 - **Asks:** Can input reach somewhere dangerous? Is authority checked? Are secrets
   and PII handled?
 - **Red flags:** SQL/command/template injection, missing authorization (IDOR),
@@ -49,7 +49,7 @@ Breadth (specialists) + judgment (personas) is why the panel beats one reviewer.
 - **Matters most:** new endpoints, query construction, auth flows, file/HTTP I/O,
   anything that consumes user or model output.
 
-### Performance & scale — `performance-engineer`
+### Performance & scale — `engineering-reviewer` (performance lens)
 - **Asks:** What happens at 100x rows / requests / payload size?
 - **Red flags:** N+1 queries, queries inside loops, unbounded result sets,
   missing pagination, sync work on a hot path, no caching where it is cheap,
@@ -57,7 +57,7 @@ Breadth (specialists) + judgment (personas) is why the panel beats one reviewer.
 - **Matters most:** list/search endpoints, loops over collections, new DB access,
   serialization of large objects.
 
-### Architecture & design — `system-architect`
+### Architecture & design — `engineering-reviewer` (architecture lens)
 - **Asks:** Does this change belong here? What did it couple that should be apart?
 - **Red flags:** business logic in the controller/view, a module reaching across a
   boundary, a new dependency pointing the wrong way, leaked abstraction, a
@@ -65,13 +65,13 @@ Breadth (specialists) + judgment (personas) is why the panel beats one reviewer.
 - **Matters most:** new modules, cross-service calls, shared utilities, anything
   that changes who-depends-on-whom.
 
-### Maintainability — `quality-engineer` (same dispatch as Tests below; personas Fowler/Martin add the judgment layer)
+### Maintainability — `engineering-reviewer` (same dispatch as Tests below; personas Fowler/Martin add the judgment layer)
 - **Asks:** How expensive is the next change to this code?
 - **Red flags:** duplication, dead code, names that lie, functions doing several
   jobs, comments that restate the code, magic numbers, premature abstraction.
 - **Matters most:** code other people will touch, hot files, anything copy-pasted.
 
-### Tests & verification — `quality-engineer`
+### Tests & verification — `engineering-reviewer` (tests lens)
 - **Asks:** Would a test catch the next break? Are the new paths covered?
 - **Red flags:** new behavior with no test, only happy-path tests, tests that
   assert nothing meaningful, mocked-away integration, edge/error paths untested,
@@ -79,7 +79,7 @@ Breadth (specialists) + judgment (personas) is why the panel beats one reviewer.
 - **Matters most:** bug fixes (needs a regression test), new branches, error
   handling, boundary values.
 
-### Requirements fit & scope — `requirements-analyst`
+### Requirements fit & scope — `engineering-reviewer` (requirements lens)
 - **Asks:** Did the diff do what the PR/issue said — no more, no less?
 - **Red flags:** a stated requirement with no corresponding change, "while I was in
   there" edits unrelated to intent, partial implementation, a feature half-built
@@ -91,40 +91,40 @@ Breadth (specialists) + judgment (personas) is why the panel beats one reviewer.
 
 Run when the diff touches the area; otherwise return `NO FINDINGS` quickly.
 
-### Frontend / UX — `frontend-architect`, `ui-ux-designer`
+### Frontend / UX — `engineering-reviewer` (frontend/UX lens)
 - **Trigger:** component, template, style, or client-state files.
 - **Asks:** Does every state render? Is the interaction accessible?
 - **Red flags:** missing loading/error/empty states, unhandled rejected promises,
   layout shift, no keyboard path, missing labels, hardcoded copy that should be
   i18n, rapid-click / double-submit races.
 
-### Backend / API layering — `backend-architect`
+### Backend / API layering — `engineering-reviewer` (backend layering lens)
 - **Trigger:** service, controller, repository, or handler files.
 - **Asks:** Is the layering clean and the transaction boundary right?
 - **Red flags:** repository logic in the controller, transaction spanning a network
   call, inconsistent error contract, business rules in the persistence layer.
 
-### Data & migrations — `system-architect` (data lens)
+### Data & migrations — `engineering-reviewer` (data/migrations lens)
 - **Trigger:** migration, schema, DDL, or model files.
 - **Asks:** Is this migration safe to run against production data?
 - **Red flags:** non-idempotent migration, no rollback, long lock on a large table,
   backfill without batching, nullable/notnull change without a default, data loss
   on down-migration, new column read by code before the migration runs.
 
-### API contract — `backend-architect` (contract lens)
+### API contract — `engineering-reviewer` (API contract lens)
 - **Trigger:** public DTO, endpoint signature, event payload, or shared type.
 - **Asks:** Will this break an existing consumer?
 - **Red flags:** removed/renamed field, changed type or nullability, new required
   request field, changed status code or error shape, version not bumped.
 
-### DevOps / deploy / ops — `devops-architect`
+### DevOps / deploy / ops — `engineering-reviewer` (devops lens)
 - **Trigger:** CI, Dockerfile, IaC, config, or secret-handling files.
 - **Asks:** Is this safe to deploy and to roll back?
 - **Red flags:** secret in config, no rollback path, env-specific value hardcoded,
   pipeline step that can't fail safely, missing health/observability for a new
   service, ordering dependency between deploy and migration.
 
-### Docs — `technical-writer`
+### Docs — `engineering-reviewer` (docs lens)
 - **Trigger:** behavior change with public docs, README, or help text.
 - **Asks:** Does the documentation still match the code?
 - **Red flags:** changed flag/endpoint/behavior with stale docs, new feature with

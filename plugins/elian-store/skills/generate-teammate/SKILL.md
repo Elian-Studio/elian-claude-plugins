@@ -386,7 +386,7 @@ Failure-mode recovery: every spawn includes a verify step. Failed verifications 
 ## Where this fits in the workflow
 
 ```
-brainstorm → /generate-teammate → execute (or hand off to /implement, /fix) → /review → /ship
+brainstorm → /generate-teammate → execute (or hand off to /implement, /fix) → /review → release
                        │
                        └── This skill produces the team plan + execution.
                            Other skills consume it (decisions, code, review docs).
@@ -395,7 +395,8 @@ brainstorm → /generate-teammate → execute (or hand off to /implement, /fix) 
 Sequencing principles:
 - **Before** /generate-teammate: have a clear problem statement. If the problem is fuzzy, run /brainstorm first.
 - **During** /generate-teammate: produce phase decisions, team plan, and (if confirmed) spawn teammates.
-- **After** /generate-teammate: hand off persistent artifacts to downstream skills (/implement, /review, /ship).
+- **After** /generate-teammate: hand off persistent artifacts to downstream implementation,
+  review, and release workflows. A host-provided `/ship` skill is optional, not required.
 
 ## Manual decision gating (automated vs taste)
 

@@ -21,7 +21,8 @@ when_to_use: >
   or "start from here". If the user already has a spec.json, skip directly to
   /design-feature.
 argument-hint: "[<issue-url-or-key>] [--label <slug>]"
-allowed-tools: Bash(bash *) Bash(sh *) Bash(gh issue view*) Bash(glab issue view*) Bash(mkdir *) Bash(cat *) Read Write Glob ToolSearch
+allowed-tools: Bash(gh issue view*) Bash(glab issue view*) Bash(mkdir *) Read Write Glob ToolSearch
+disable-model-invocation: true
 ---
 
 # intake-spec — Requirements Front Door

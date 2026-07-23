@@ -17,7 +17,8 @@ when_to_use: >
   PRD", "run design-feature". Also auto-follows /intake-spec when the user
   confirms the spec and says "proceed" or "next step".
 argument-hint: "<label> [--start-from phase1|phase2|phase3|phase4|phase5] [--stop-after phase1|phase2|phase3|phase4|phase5] [--skip-value-check]"
-allowed-tools: Bash(bash *) Bash(mkdir *) Bash(ls *) Bash(python3 *) Read Write Edit Glob Agent
+allowed-tools: Bash(mkdir *) Bash(ls *) Bash(python3 *) Read Write Edit Glob Agent
+disable-model-invocation: true
 ---
 
 # design-feature — Feature Design Orchestrator
@@ -102,12 +103,10 @@ surface it. Then ask:
 
 ## Phase 2 — Solution exploration
 
-Invoke `/elian-store:brainstorm` with the spec's `requirements` and
-`constraints` as context. The brainstorm output becomes the approach used for
-Phase 3.
-
-If brainstorm is not available, run inline: present 2–3 distinct approaches
-(trade-off table: complexity / time / risk), let the user pick.
+Run the solution exploration inline: present 2–3 distinct approaches using the
+spec's `requirements` and `constraints`, compare complexity / time / risk, and
+let the user pick. This mirrors the relevant brainstorm mechanics without
+assuming another side-effect-gated skill can be model-invoked.
 
 ─ **Gate** — confirm chosen approach before generating documents. ─
 
