@@ -295,6 +295,13 @@ capability checklist (grouped ✓/◐ list, separate from `criteria`/`subs`) —
 Use `status: "dropped"` + `reason` to record a screen/task you explicitly
 decided not to build (rather than leaving it as `todo`).
 
+This skill produces design documents and the roadmap; it does **not** emit
+wireframes/mockups. Screen artifacts flow through the pipeline as:
+`design-feature` (design docs + roadmap) → `/design-ui` (writes
+`claudedocs/<label>/mockups/` incl. `tokens.css`) → `/functional-spec`
+(writes `claudedocs/<label>/functional-specs/`). All three share the same
+canonical `<label>` and live under `claudedocs/<label>/`.
+
 When a task represents a screen/menu that has a corresponding functional-spec
 document — a `functional-specs/<screen>-connected.html` from the sibling
 `functional-spec` skill, or any doc already in this feature's `docs[]` — add a

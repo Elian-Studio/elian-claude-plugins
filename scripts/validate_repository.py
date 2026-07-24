@@ -475,6 +475,31 @@ class RepositoryValidator:
                 "warning",
             )
 
+    def validate_design_artifact_contract(self) -> None:
+        # The design pipeline shares one canonical layout: /design-ui writes
+        # claudedocs/<label>/mockups/ (incl. tokens.css); /functional-spec reads
+        # it and writes claudedocs/<label>/functional-specs/. Guard the load-bearing
+        # path strings so the contract cannot silently drift back.
+        skills = self.root / "plugins" / "elian-store" / "skills"
+        design_ui = skills / "design-ui" / "SKILL.md"
+        functional_spec = skills / "functional-spec" / "SKILL.md"
+        connected = skills / "functional-spec" / "references" / "connected-template.html"
+        if design_ui.is_file():
+            text = design_ui.read_text(encoding="utf-8")
+            if "claudedocs/<label>/mockups/" not in text:
+                self.add("design-contract", design_ui, "design-ui must default its output to claudedocs/<label>/mockups/")
+            if "claudedocs/design/<feature>/" in text:
+                self.add("design-contract", design_ui, "design-ui still references the retired claudedocs/design/<feature>/ path")
+        if functional_spec.is_file():
+            text = functional_spec.read_text(encoding="utf-8")
+            if "claudedocs/<label>/mockups/" not in text:
+                self.add("design-contract", functional_spec, "functional-spec must default its input to claudedocs/<label>/mockups/")
+            if "/design-feature mockups" in text:
+                self.add("design-contract", functional_spec, "functional-spec falsely claims design-feature emits mockups")
+        if connected.is_file():
+            if 'href="../mockups/tokens.css"' not in connected.read_text(encoding="utf-8"):
+                self.add("design-contract", connected, "connected-template must link ../mockups/tokens.css")
+
     def validate_all(self) -> list[Finding]:
         self.validate_skill_contracts()
         self.validate_agents()
@@ -483,6 +508,7 @@ class RepositoryValidator:
         self.validate_links()
         self.validate_english_policy()
         self.validate_source_syntax()
+        self.validate_design_artifact_contract()
         return self.findings
 
 

@@ -33,7 +33,9 @@
   - Right `.fs-spec`: the ② decomposition table. Each <tr class="fs-row" data-n="N">
     reuses the SAME N. `.fs-row.newbe` for new-BE rows.
   - Bottom `.fs-components`: render §③ Component contract (reuse-from-catalog + new).
-  - tokens.css: link the wireframe's own (e.g. ../mockups/tokens.css).
+  - tokens.css: link the wireframe's own at ../mockups/tokens.css, which /design-ui
+    emits into claudedocs/<label>/mockups/. When absent, fall back to the shared
+    functional-spec/references/tokens.css. Keep this relative link path unchanged.
 -->
 <link rel="stylesheet" href="../mockups/tokens.css">
 <style>

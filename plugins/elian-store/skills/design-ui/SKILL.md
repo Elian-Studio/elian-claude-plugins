@@ -2,7 +2,7 @@
 name: design-ui
 description: When a user needs UI/UX design for a new screen or flow, drive Interview -> Reference -> Wireframe -> Gate -> Visual -> Deliver before implementation.
 when_to_use: "Use for new page/flow design, feature-level UX shaping, wireframes, visual HTML, and DESIGN.md handoff. Trigger phrases: 'create a wireframe', 'design this UI flow', 'prepare a visual mock', 'improve this UX', 'make the experience better', '/design-ui'. If the requirement is fuzzy, run /brainstorm first; if only one existing component needs minor styling, direct implementation is faster."
-argument-hint: "<feature-name> [--out <dir>] [--skip-gate] [--from-brief <path>] [--refs <url,url,...>]"
+argument-hint: "<label> [--out <dir>] [--skip-gate] [--from-brief <path>] [--refs <url,url,...>]"
 allowed-tools: Read, Write, Edit, Bash(mkdir *), Bash(ls *), Bash(open *), Glob, Grep, AskUserQuestion, WebFetch
 disable-model-invocation: true
 ---
@@ -37,8 +37,8 @@ This skill designs artifacts. It does not implement Vue, React, or production UI
 
 | Option | Meaning | Default |
 |---|---|---|
-| `<feature-name>` | Feature or flow name to design | required |
-| `--out <dir>` | Output directory | `claudedocs/design/<feature>/` |
+| `<label>` | Feature or flow identifier to design (same canonical `<label>` used by spec.json / design-feature / roadmap) | required |
+| `--out <dir>` | Output directory | `claudedocs/<label>/mockups/` |
 | `--skip-gate` | Skip the Phase 3 to Phase 4 approval gate | off |
 | `--from-brief <path>` | Use an existing brief or PRD as Phase 1 input | none |
 | `--refs <urls>` | Comma-separated reference URLs for Phase 2 | none |
@@ -47,7 +47,7 @@ Environment overrides:
 
 | Env var | Meaning | Default |
 |---|---|---|
-| `${DESIGN_UI_OUT}` | Output directory when `--out` is omitted | `claudedocs/design/<feature>/` |
+| `${DESIGN_UI_OUT}` | Output directory when `--out` is omitted | `claudedocs/<label>/mockups/` |
 | `${CLAUDE_PLUGIN_ROOT}` | Plugin root (Claude Code only) | set by Claude Code; unset on Codex |
 | `${CLAUDE_SKILL_DIR}` | This skill's directory (Claude Code only) | set by Claude Code; on Codex use `${CODEX_HOME:-$HOME/.codex}/skills/design-ui` |
 
@@ -164,7 +164,7 @@ Before delivery, check [references/ux-checklist.md](references/ux-checklist.md).
 
 ### Phase 5: Deliver
 
-Write the following files to `<out>/`:
+Write the following files to `<out>/` (the mockups dir, `claudedocs/<label>/mockups/` by default):
 
 ```text
 <out>/
@@ -174,15 +174,26 @@ Write the following files to `<out>/`:
   wireframe.html
   visual.html
   DESIGN.md
+  tokens.css
 ```
 
 Use [templates/DESIGN.md](templates/DESIGN.md) for DESIGN.md. It should capture tokens, reference decisions, per-page order preservation, UX checklist results, and implementation notes.
+
+`tokens.css` is the shared token source for downstream skills: `/functional-spec`'s connected view links `../mockups/tokens.css`, so this file must exist in the mockups dir. Contract:
+
+- Emit the design tokens defined in Phase 4 (color, typography, spacing, motion) as standalone CSS custom properties under `:root { ... }`.
+- Record only tokens the design actually defines; do not invent tokens or values.
+- If the design defines no project-specific tokens, base `tokens.css` on the shared neutral system at [../functional-spec/references/tokens.css](../functional-spec/references/tokens.css) (copy/adapt it) rather than writing an empty file.
+- `wireframe.html` / `visual.html` stay self-contained (their inline styles remain); `tokens.css` is the token source the connected view consumes, not a required import for the standalone mockups.
+
+If `--out` points outside the repository or at a dangerous path, refuse and ask for a safe location. If only some of the Phase 5 files are written before an error, report which files were written and which step failed — never present a partial deliverable as complete.
 
 End with:
 
 ```text
 Design ready at <out>/. Open visual.html in a browser.
-Next: /functional-spec <label> --from <out>  (bind each element to real components + APIs), then /implement.
+Next: /functional-spec <label>  (bind each element to real components + APIs), then /implement.
+(The default mockups path connects automatically; pass `--from <out>` only if you moved the output with `--out`.)
 ```
 
 Run `open <out>/visual.html` only after user approval.
