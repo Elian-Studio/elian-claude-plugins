@@ -10,6 +10,62 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## elian-store Plugin
 
+### [4.1.0] — 2026-07-29
+
+Layering work driven by measurement rather than by taxonomy. An architecture proposal
+predicted six duplicated conventions; a line-by-line audit found one, and found the largest
+duplication in the tree somewhere the proposal never looked.
+
+#### Removed
+- **`validate_skill.py`: four byte-identical copies collapsed into one** (`brainstorm`, `fix`,
+  `implement`, `improve` — 207 lines each, identical MD5, **621 lines deleted**). They were
+  identical because the script self-identified from its own location; the shared
+  `tools/validate_skill.py` takes the skill directory as an argument instead and accepts
+  several at once. Changing a structural rule is now one edit rather than four-or-three-silent-
+  divergences. Output is unchanged except for the retired `scripts/ directory exists` check,
+  which only ever passed because the checker itself lived in that directory.
+
+#### Fixed
+- **`document-writer` produced documents that were not self-contained.**
+  `assets/house-style.css` carried an `@import` of a jsDelivr-hosted webfont, and
+  `build_doc.py` inlines that file wholesale — so every "opens anywhere" document shipped a
+  CDN dependency, contradicting four separate documented rules (`document-writer/SKILL.md:30`
+  and `:109`, `decision-dashboard/SKILL.md:271`, `erd-preview/SKILL.md:146`). The `@import`
+  also sat *after* `:root {…}`, where CSS requires it to come first, so browsers were already
+  ignoring it: a broken promise that bought nothing. Removed; the existing system font stack
+  covers the fallback. A generated document now contains zero external URLs.
+- `_shared/execution-strategy.md` claimed a single consumer (`/generate-teammate`). It has four.
+
+#### Changed
+- **Review severity is defined once.** `review` and `pr-review` each carried a five-row rubric
+  and they had drifted in four of five rows — `CRITICAL` said "production outage" versus
+  "outage", `HIGH` gained "or unmet requirement" on one side only, `LOW` lost "non-blocking
+  observation". Both now read `skills/_shared/review-severity.md`, reconciled to the superset,
+  so a `HIGH` means the same thing in both lanes. The domain rubrics in
+  `agents/security-engineer.md` (exploitability) and `agents/ux-researcher.md` (task
+  completion) are deliberately left separate — they measure a different axis.
+- **The validation substrate is no longer `elian-store`-shaped.** Four checks silently skipped
+  every other plugin:
+  - `validate_versions()` walks `plugins/*/.claude-plugin/plugin.json`. Before this,
+    `elian-workflow`'s `plugin.json` could drift from its marketplace entry with nothing
+    catching it — precisely the failure that leaves installed users receiving nothing while
+    the catalog claims a new version.
+  - `_policy_files()` covers every plugin's `skills/`, so the English-only rule now applies
+    beyond the bundle.
+  - CI validates YAML frontmatter across `plugins/*/` and runs bundled validators from
+    `plugins/*/skills/*/scripts/`.
+  Both new checks were confirmed by deliberately introducing a violation and watching them fail.
+
+#### Documentation
+- `docs/plugin-layering-architecture.md` — the Workflow / Standards / Common layering, with §1.1
+  corrected against the audit. It records what the extraction *did not* find, because the useful
+  result was negative: three skills all saying "TDD" were running three different disciplines
+  (3-step, 4-step regression-first, 6-step characterization), and merging them would have
+  destroyed information. A shared vocabulary is not shared rules.
+- The root `standards/` directory with build-time vendoring and a parity validator is dropped
+  as premature — every standards document's consumers sit inside one plugin, and
+  `skills/_shared/` plus the existing `"shared": true` already covers that case.
+
 ### [4.0.0] — 2026-07-29
 
 #### Removed

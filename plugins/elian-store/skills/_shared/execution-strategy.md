@@ -1,6 +1,6 @@
 # Execution Strategy — Subagent vs Agent Team vs Direct Execution
 
-This document is the canonical **execution-strategy decision criteria** shared by skills in this plugin (currently `/generate-teammate`). Changes here affect every consumer.
+This document is the canonical **execution-strategy decision criteria** shared by skills in this plugin (`/implement`, `/fix`, `/improve`, `/generate-teammate`). Changes here affect every consumer.
 
 ## Sources
 

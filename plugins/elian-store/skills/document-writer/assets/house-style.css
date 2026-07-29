@@ -29,7 +29,11 @@
   --maxw: 860px;     /* comfortable single-column reading width */
 }
 
-@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+/* No @import, no webfont. This stylesheet is inlined into documents that must open
+   anywhere, including offline. The font stack below falls back through the platform
+   defaults, so Pretendard is used when the reader already has it and nothing breaks
+   when they do not. (The previous @import also sat after :root, so browsers ignored
+   it outright — it only ever contributed a broken promise of self-containment.) */
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 

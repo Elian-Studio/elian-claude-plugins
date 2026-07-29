@@ -120,15 +120,9 @@ Residual Risk
 Handoff
 ```
 
-Severity rubric:
-
-| Severity | Meaning |
-|---|---|
-| `CRITICAL` | likely data loss, auth bypass, production outage, or unsafe deploy |
-| `HIGH` | likely bug/regression or broken contract before merge |
-| `MEDIUM` | plausible defect, missing test for risky behavior, or maintainability risk with near-term impact |
-| `LOW` | minor issue, readability, local polish, or non-blocking observation |
-| `INFO` | useful note, not a finding |
+Severity rubric and the finding shape above are defined once in
+[../_shared/review-severity.md](../_shared/review-severity.md) — read it before ranking.
+`/pr-review` uses the same file, so a `HIGH` here means a `HIGH` there.
 
 No-findings response:
 

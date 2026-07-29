@@ -351,28 +351,41 @@ class RepositoryValidator:
                 )
 
     def validate_versions(self) -> None:
-        plugin_path = self.root / "plugins" / "elian-store" / ".claude-plugin" / "plugin.json"
+        # Every published plugin, not only the bundle. plugin.json.version is the update
+        # cache key and wins over the marketplace entry, so silent drift means installed
+        # users receive nothing while the catalog claims otherwise.
         market_path = self.root / ".claude-plugin" / "marketplace.json"
-        plugin = self._load_json(plugin_path, "version-parity")
         market = self._load_json(market_path, "version-parity")
-        if not isinstance(plugin, dict) or not isinstance(market, dict):
+        if not isinstance(market, dict):
             return
-        entry = next(
-            (
-                item
-                for item in market.get("plugins", [])
-                if isinstance(item, dict) and item.get("name") == plugin.get("name")
-            ),
-            None,
-        )
-        if entry is None:
-            self.add("version-parity", market_path, "elian-store marketplace entry is missing")
-        elif entry.get("version") != plugin.get("version"):
-            self.add(
-                "version-parity",
-                market_path,
-                f"marketplace version {entry.get('version')} does not match plugin version {plugin.get('version')}",
+        plugins_dir = self.root / "plugins"
+        if not plugins_dir.is_dir():
+            return
+        for plugin_dir in sorted(plugins_dir.iterdir()):
+            plugin_path = plugin_dir / ".claude-plugin" / "plugin.json"
+            if not plugin_path.is_file():
+                continue
+            plugin = self._load_json(plugin_path, "version-parity")
+            if not isinstance(plugin, dict):
+                continue
+            name = plugin.get("name")
+            entry = next(
+                (
+                    item
+                    for item in market.get("plugins", [])
+                    if isinstance(item, dict) and item.get("name") == name
+                ),
+                None,
             )
+            if entry is None:
+                self.add("version-parity", market_path, f"{name} marketplace entry is missing")
+            elif entry.get("version") != plugin.get("version"):
+                self.add(
+                    "version-parity",
+                    market_path,
+                    f"{name}: marketplace version {entry.get('version')} does not match "
+                    f"plugin version {plugin.get('version')}",
+                )
 
     def _markdown_files(self) -> Iterable[Path]:
         excluded_parts = {
@@ -421,8 +434,15 @@ class RepositoryValidator:
         roots = [
             self.root / "docs",
             self.root / "codex",
-            self.root / "plugins" / "elian-store" / "skills",
         ]
+        # English-only applies to every plugin's skills, not just the bundle.
+        plugins_dir = self.root / "plugins"
+        if plugins_dir.is_dir():
+            roots.extend(
+                plugin_dir / "skills"
+                for plugin_dir in sorted(plugins_dir.iterdir())
+                if (plugin_dir / "skills").is_dir()
+            )
         allowed_suffixes = {".md", ".html", ".json", ".toml", ".css"}
         for base in roots:
             if not base.exists():

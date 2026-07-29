@@ -34,7 +34,7 @@ jobs:
       - name: Validate YAML frontmatter
         run: |
           ruby -EUTF-8 -ryaml -e '
-            Dir.glob("plugins/elian-store/{skills/*/SKILL.md,agents/*.md}").each do |f|
+            Dir.glob("plugins/*/{skills/*/SKILL.md,agents/*.md}").each do |f|
               s = File.read(f, encoding: "UTF-8")
               y = s.match(/\A---\s*\n(.*?)\n---/m) or abort("no frontmatter: #{f}")
               YAML.safe_load(y[1], permitted_classes: [], aliases: false) or abort("empty frontmatter: #{f}")
@@ -44,9 +44,17 @@ jobs:
       - name: Run bundled static validators
         run: |
           set -euo pipefail
-          for validator in plugins/elian-store/skills/*/scripts/validate_skill.py; do
+          # Skills owning a bespoke validator run their own.
+          for validator in plugins/*/skills/*/scripts/validate_skill.py; do
+            [ -e "$validator" ] || continue
             python3 "$validator"
           done
+          # Skills that shared one identical copy now run the single shared validator.
+          python3 tools/validate_skill.py \
+            plugins/elian-store/skills/brainstorm \
+            plugins/elian-store/skills/fix \
+            plugins/elian-store/skills/implement \
+            plugins/elian-store/skills/improve
           python3 plugins/elian-store/skills/spec-coverage/scripts/validate.py
           python3 plugins/elian-store/skills/document-writer/scripts/build_doc.py --selftest
           bash plugins/elian-store/hooks/check-update.sh --selftest
