@@ -57,6 +57,17 @@ duplication in the tree somewhere the proposal never looked.
   Both new checks were confirmed by deliberately introducing a violation and watching them fail.
 
 #### Documentation
+- **The documented validation commands were scoped to the bundle too.** `CLAUDE.md`,
+  `README.md`, and `plugins/elian-store/README.md` all told contributors to run
+  `Dir["plugins/elian-store/skills/*/SKILL.md"]`, so anyone following the documented
+  procedure would have validated 22 of 24 skills and never known. All globs are now
+  `plugins/*`, `tools/generate.py` is listed alongside the other checks, and the shared
+  `tools/validate_skill.py` is documented next to the bespoke per-skill validators. Every
+  command in those blocks was executed verbatim to confirm it runs.
+- `TODOS.md` gains the three deferrals this release created rather than leaving them in
+  commit messages: the `generate-teammate` → `create-document` invocation conversion
+  (only blocking if the layers are published), the 18× `SKILL_DIR` snippet duplication,
+  and the fact that CI never verifies the emitted cluster output.
 - `docs/plugin-layering-architecture.md` — the Workflow / Standards / Common layering, with §1.1
   corrected against the audit. It records what the extraction *did not* find, because the useful
   result was negative: three skills all saying "TDD" were running three different disciplines

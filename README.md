@@ -253,13 +253,24 @@ version parity, and source syntax. Skill-owned validators still test skill-speci
 ```shell
 python3 scripts/validate_repository.py
 python3 -m unittest discover -s tests -v
-ruby -EUTF-8 -ryaml -e 'Dir["plugins/elian-store/skills/*/SKILL.md"].sort.each { |p| s=File.read(p, encoding: "UTF-8"); YAML.safe_load(s.split(/^---\s*$/,3)[1] || "", permitted_classes: [], aliases: false); puts "OK #{p}" }'
+python3 tools/generate.py
+ruby -EUTF-8 -ryaml -e 'Dir.glob("plugins/*/skills/*/SKILL.md").sort.each { |p| s=File.read(p, encoding: "UTF-8"); YAML.safe_load(s.split(/^---\s*$/,3)[1] || "", permitted_classes: [], aliases: false); puts "OK #{p}" }'
 ```
 
-When changing a skill, run that skill's self-validator when present:
+The globs say `plugins/*`, not `plugins/elian-store` — the repository ships more than one
+plugin, and a check scoped to the bundle silently skips the others.
+
+When changing a skill, validate it. Skills owning a bespoke validator run their own:
 
 ```shell
 python3 plugins/elian-store/skills/review/scripts/validate_skill.py
+```
+
+`brainstorm`, `fix`, `implement`, and `improve` share one structural validator (they used to
+carry four byte-identical copies), which takes the skill directories as arguments:
+
+```shell
+python3 tools/validate_skill.py plugins/elian-store/skills/implement
 ```
 
 ---

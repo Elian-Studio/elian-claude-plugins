@@ -71,9 +71,14 @@ not part of the installed plugin):
 ```shell
 python3 scripts/validate_repository.py
 python3 -m unittest discover -s tests -v
-ruby -EUTF-8 -ryaml -e 'Dir["plugins/elian-store/skills/*/SKILL.md"].sort.each { |p| s=File.read(p, encoding: "UTF-8"); YAML.safe_load(s.split(/^---\s*$/,3)[1] || "", permitted_classes: [], aliases: false); puts "OK #{p}" }'
+python3 tools/generate.py
+ruby -EUTF-8 -ryaml -e 'Dir.glob("plugins/*/skills/*/SKILL.md").sort.each { |p| s=File.read(p, encoding: "UTF-8"); YAML.safe_load(s.split(/^---\s*$/,3)[1] || "", permitted_classes: [], aliases: false); puts "OK #{p}" }'
 python3 plugins/elian-store/skills/review/scripts/validate_skill.py
+python3 tools/validate_skill.py plugins/elian-store/skills/implement
 ```
+
+`brainstorm`, `fix`, `implement`, and `improve` share `tools/validate_skill.py` rather than
+each carrying a copy of it.
 
 ## Release Boundary
 

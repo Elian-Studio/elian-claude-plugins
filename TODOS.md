@@ -56,6 +56,44 @@ repository is English-only for everything except literal output labels of a
 generated artifact, and this is console output from a validator, not a
 deliverable label. Pre-existing; out of scope for v3.1.0.
 
+## Plugin layering
+
+### Convert `generate-teammate` → `create-document` from file reads to invocation
+**Priority:** P2
+**Noticed:** v4.1.0 (2026-07-29)
+
+`generate-teammate` reads `../create-document/{templates,schemas,references}` as
+files. Inside one bundle that resolves fine, so nothing is broken today. It is the
+one dependency that would break if the layers in
+`docs/plugin-layering-architecture.md` are ever published as separate plugins — a
+relative path cannot cross a plugin boundary, and this one would put the execution
+router and the document renderer in the same plugin against their layering.
+
+Fix is behavioral: invoke `/create-document` with the payload instead of reading its
+templates. Required only if the split ships; harmless to defer until then.
+
+### Deduplicate the `SKILL_DIR` dual-host resolution snippet
+**Priority:** P3
+**Noticed:** v4.1.0 (2026-07-29)
+
+The same two-line `${CLAUDE_SKILL_DIR:-${CLAUDE_PLUGIN_ROOT:+…}}` /
+`${CODEX_HOME:-$HOME/.codex}` resolution appears 18 times across 8 files.
+`decision-dashboard/SKILL.md` already lists getting it wrong as a documented
+pitfall, so the copy-paste has bitten at least once.
+
+It has to stay inline in each bash block, so a prose extraction cannot help — a
+shared `resolve-skill-dir.sh` sourced by each block is the only shape that collapses it.
+
+### CI does not verify the emitted cluster output
+**Priority:** P3
+**Noticed:** v4.1.0 (2026-07-29)
+
+`tools/generate.py` runs in CI but only in report mode. Nothing runs `--emit` and
+checks that every `../_shared/…` reference resolves inside its own emitted plugin,
+so a cross-plugin reference could land and stay green until someone builds the
+split by hand. That check has been run manually at every step so far, which is
+exactly the kind of thing that stops happening.
+
 ## Repository
 
 ### Orphaned required status check on `main`
