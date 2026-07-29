@@ -3,7 +3,7 @@ name: issue-close
 description: "Record a finished issue's development history to Notion: interview for the design decisions and dropped alternatives that code cannot show, upsert a readable narrative into the issue page body, backfill commits missing from the audit log, and transition the task to done. Use when a piece of work is finished and the history should be captured — 'this issue is done', 'wrap up this task', 'close out KEY-123', 'finish this', 'record what we decided', 'log this to Notion', or right after a PR is opened or merged. Recording only: it never merges, pushes, or deletes a branch. Run it while the branch still exists, because the commit range is its source. Not a daily wrap-up and not a per-commit logger."
 when_to_use: "A single issue or task is finished and its decisions, architecture, verification, and remaining checks should be written down as durable history. Also use when an issue page body is stale and needs to be superseded with what actually happened. Do NOT use for per-commit logging, for end-of-day summaries across many issues, or for deciding what to do with the git branch."
 argument-hint: "[ISSUE-KEY] [--dry-run] [--no-freeze] [--setup]"
-allowed-tools: Read, Write, Grep, Glob, AskUserQuestion, Bash(git log*), Bash(git diff*), Bash(git branch*), Bash(git merge-base*), Bash(gh pr list*), Bash(glab mr list*), Bash(python3*), Bash(mkdir -p*)
+allowed-tools: Read, Write, Grep, Glob, AskUserQuestion, Bash(git log*), Bash(git diff*), Bash(git branch --show-current), Bash(git merge-base*), Bash(gh pr list*), Bash(glab mr list*), Bash(python3*), Bash(mkdir -p*)
 disable-model-invocation: true
 ---
 

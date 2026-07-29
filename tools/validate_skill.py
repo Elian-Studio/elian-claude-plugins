@@ -195,7 +195,10 @@ def main() -> int:
             print(format_human(skill_dir.name, results, overall))
 
     if args.json and not args.quiet:
-        print(json.dumps(reports[0] if len(reports) == 1 else reports, ensure_ascii=False, indent=2))
+        # Always a list, even for one skill. Returning a bare object for N==1 and a list
+        # otherwise means `jq '.[].overall'` breaks on one input and `jq '.overall'` breaks
+        # on several — and the shape flips silently when a directory is skipped.
+        print(json.dumps(reports, ensure_ascii=False, indent=2))
 
     return 0 if all_ok else 1
 

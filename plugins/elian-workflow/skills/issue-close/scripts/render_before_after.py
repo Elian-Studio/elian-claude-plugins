@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 """render_before_after.py — Notion-look tabbed before/after HTML viewer.
 
-Self-contained (stdlib only). Produces a single index.html with two tabs
-(Before / After) styled like Notion, rendering ```mermaid blocks via the
-mermaid CDN.
+Stdlib only — no build step, no Python dependencies. The output is a single
+index.html with two tabs (Before / After) styled like Notion.
+
+It is NOT fully self-contained: ```mermaid blocks are rendered by the mermaid
+library loaded from a CDN, because vendoring it would add megabytes to every
+report. Everything else (CSS, fonts, layout) is inlined. Offline or under a
+strict CSP the page still opens and reads correctly — diagrams degrade to their
+source with a visible notice rather than failing silently.
 
 Usage:
   render_before_after.py --after after.md --title "KEY-123 — worker delegation" --out out/index.html
@@ -59,7 +64,9 @@ CSS = r"""
   blockquote{ margin:.6em 0; padding:2px 0 2px 14px; border-left:3px solid var(--text); }
   table{ border-collapse:collapse; margin:.6em 0; font-size:.92em; width:100%; }
   th,td{ border:1px solid var(--border-strong); padding:7px 10px; text-align:left; vertical-align:top; }
-  table.headrow tr:first-child td{ background:var(--block-bg); font-weight:600; }
+  table.headrow th{ background:var(--block-bg); font-weight:600; text-align:left; }
+  .mermaid-offline{ font-size:13px; color:#8a6d3b; background:#fcf8e3; border:1px solid #faebcc;
+                    border-radius:6px; padding:8px 12px; margin:12px 0 4px; }
   .callout{ display:flex; gap:10px; padding:16px; border-radius:4px; margin:.8em 0; align-items:flex-start; }
   .callout .ico{ font-size:18px; line-height:1.4; }
   .callout .body{ flex:1; }
@@ -85,9 +92,23 @@ JS = r"""
   var panels = document.querySelectorAll('.panel');
   // Mermaid must render only when its panel is visible (hidden flowcharts render 0-width).
   function renderMermaid(scope){
-    if (!window.mermaid || !scope) return;
+    if (!scope) return;
     var nodes = Array.prototype.slice.call(scope.querySelectorAll('.mermaid:not([data-processed])'));
-    if (nodes.length) { try { window.mermaid.run({ nodes: nodes }); } catch(e){ console.error(e); } }
+    if (!nodes.length) return;
+    // Mermaid comes from a CDN. Offline, or under a strict CSP, it never loads — say so
+    // instead of leaving raw diagram source that looks like a broken document.
+    if (!window.mermaid) {
+      nodes.forEach(function(n){
+        if (n.getAttribute('data-nomermaid')) return;
+        n.setAttribute('data-nomermaid', '1');
+        var note = document.createElement('div');
+        note.className = 'mermaid-offline';
+        note.textContent = 'Diagram not rendered — the Mermaid library could not be loaded (offline or blocked). The source is shown below.';
+        n.parentNode.insertBefore(note, n);
+      });
+      return;
+    }
+    try { window.mermaid.run({ nodes: nodes }); } catch(e){ console.error(e); }
   }
   if (window.mermaid) { try { window.mermaid.initialize({ startOnLoad:false, theme:'neutral', securityLevel:'loose' }); } catch(e){} }
   renderMermaid(document.querySelector('.panel.active'));
@@ -110,6 +131,31 @@ CALLOUT_COLOR = {'NOTE': 'blue', 'TIP': 'blue', 'INFO': 'blue', 'IMPORTANT': 'bl
                  'WARNING': 'yellow', 'CAUTION': 'yellow', 'TODO': 'yellow'}
 
 
+# A page body is untrusted input: anyone with edit access to the source page can put
+# anything in it, and the maintainer opens the result in a browser. Only http(s), mailto,
+# and relative URLs survive; everything else (javascript:, data:, vbscript:) becomes inert.
+SAFE_URL_RE = re.compile(r'^(?:https?:|mailto:|[^a-zA-Z]|[a-zA-Z0-9._~%+-]+(?:[/?#]|$))')
+
+# Block-level HTML the template and Notion exports actually emit. Anything else starting
+# with '<' is prose (a template placeholder), not markup.
+RAW_HTML_TAGS = (
+    'div', 'details', 'summary', 'table', 'thead', 'tbody', 'tr', 'td', 'th',
+    'p', 'blockquote', 'ul', 'ol', 'li', 'img', 'a', 'span', 'pre', 'code',
+    'section', 'article', 'figure', 'figcaption', 'hr', 'br', 'h1', 'h2', 'h3', 'h4',
+)
+RAW_HTML_RE = re.compile(r'^<(?:!--|/?(?:%s)\b)' % '|'.join(RAW_HTML_TAGS), re.I)
+
+
+def safe_url(url):
+    """Return an attribute-safe URL, or '#' when the scheme is not allowlisted."""
+    u = url.strip()
+    # &#x27; etc. can arrive here because escape() already ran on the surrounding text.
+    probe = u.replace('&#x27;', "'").replace('&quot;', '"').replace('&amp;', '&')
+    if not SAFE_URL_RE.match(probe):
+        return '#'
+    return html.escape(u, quote=True)
+
+
 def inline(s):
     """Render inline markdown to HTML (code-protected, then escaped)."""
     codes = []
@@ -119,9 +165,9 @@ def inline(s):
         return '\x00%d\x00' % (len(codes) - 1)
 
     s = re.sub(r'`([^`]+)`', stash, s)
-    s = html.escape(s, quote=False)
-    s = re.sub(r'!\[(.*?)\]\((.*?)\)', lambda m: '<img alt="%s" src="%s">' % (m.group(1), m.group(2)), s)
-    s = re.sub(r'\[(.*?)\]\((.*?)\)', lambda m: '<a href="%s">%s</a>' % (m.group(2), m.group(1)), s)
+    s = html.escape(s, quote=True)
+    s = re.sub(r'!\[(.*?)\]\((.*?)\)', lambda m: '<img alt="%s" src="%s">' % (m.group(1), safe_url(m.group(2))), s)
+    s = re.sub(r'\[(.*?)\]\((.*?)\)', lambda m: '<a href="%s">%s</a>' % (safe_url(m.group(2)), m.group(1)), s)
     s = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', s)
     s = re.sub(r'(?<!\*)\*([^*\n]+?)\*(?!\*)', r'<em>\1</em>', s)
     s = re.sub(r'\x00(\d+)\x00', lambda m: '<code>' + html.escape(codes[int(m.group(1))], quote=False) + '</code>', s)
@@ -167,8 +213,12 @@ def md_to_html(md):
             out.append('<h%d>%s</h%d>' % (lvl, inline(m.group(2)), lvl))
             i += 1
             continue
-        # raw HTML block (callout/details/table written as HTML) -> passthrough until blank line
-        if stripped.startswith('<'):
+        # raw HTML block (callout/details/table written as HTML) -> passthrough until blank line.
+        # Matched against a real tag name, not a bare '<': the narrative template seeds
+        # placeholders like "<Why this work was needed — the problem and motivation.>", and
+        # treating those as HTML makes the browser swallow the line, so a freshly seeded
+        # section renders blank and looks like it was never written.
+        if RAW_HTML_RE.match(stripped):
             buf = [line]
             i += 1
             while i < n and lines[i].strip():
@@ -203,9 +253,16 @@ def md_to_html(md):
             while i < n and '|' in lines[i] and lines[i].strip():
                 rows.append(cells(lines[i]))
                 i += 1
+            # Real <th scope="col"> for the header row: a screen reader announces the column
+            # name with each cell. Faking it with CSS leaves the metadata table an unlabeled grid.
             t = ['<table class="headrow">']
-            for r in rows:
-                t.append('<tr>' + ''.join('<td>%s</td>' % inline(c) for c in r) + '</tr>')
+            if rows:
+                t.append('<thead><tr>' + ''.join('<th scope="col">%s</th>' % inline(c) for c in rows[0]) + '</tr></thead>')
+            if len(rows) > 1:
+                t.append('<tbody>')
+                for r in rows[1:]:
+                    t.append('<tr>' + ''.join('<td>%s</td>' % inline(c) for c in r) + '</tr>')
+                t.append('</tbody>')
             t.append('</table>')
             out.append('\n'.join(t))
             continue

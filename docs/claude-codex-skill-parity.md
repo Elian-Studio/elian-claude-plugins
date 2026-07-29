@@ -46,9 +46,9 @@ A Claude skill and Codex prompt are considered aligned only when all of these ma
 
 | Area | Claude | Codex | Status |
 |---|---:|---:|---|
-| Catalog entries | 26 skills | 2 prompts + 14 shared skills | 16 matched + 3 Claude-only + 7 deferred |
-| Command naming | `/elian-store:<skill>` | `/<prompt-file>` | Mostly alignable |
-| Current matched commands | `brainstorm`, `create-document`, `decision-dashboard`, `design-ui`, `fix`, `functional-spec`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `review`, `verify-implementation`, `persona-review`, `pr-writer`, `verify-before-claiming`, `respond-to-review` | `brainstorm`, `create-document`, `decision-dashboard`, `design-ui`, `fix`, `functional-spec`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `review`, `verify-implementation`, `persona-review`, `pr-writer`, `verify-before-claiming`, `respond-to-review` | Aligned |
+| Catalog entries | 22 skills (`elian-store`) + 2 (`elian-workflow`) | 2 prompts + 12 shared skills | 14 matched + 2 Claude-only + 6 deferred + 2 MCP-bound |
+| Command naming | `/elian-store:<skill>`, `/elian-workflow:<skill>` | `/<prompt-file>` | Mostly alignable |
+| Current matched commands | `brainstorm`, `create-document`, `decision-dashboard`, `fix`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `review`, `verify-implementation`, `persona-review`, `pr-writer`, `verify-before-claiming`, `respond-to-review` | `brainstorm`, `create-document`, `decision-dashboard`, `fix`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `review`, `verify-implementation`, `persona-review`, `pr-writer`, `verify-before-claiming`, `respond-to-review` | Aligned |
 | Legacy `on-call-elian` | Removed from current Claude skill catalog | Removed from current Codex prompt catalog | Aligned |
 | Validation | Repository validator + YAML + skill-owned validators | Repository validator + prompt/config parity review | Automated structure, manual semantics |
 
@@ -62,13 +62,13 @@ deliberately deferred: `document-writer`, `intake-spec`, `design-feature`, `upda
 
 **Third-host decision.** The current Claude + Codex shape should stay simple: shared `SKILL.md` symlinks for portable skills plus hand-authored Codex prompts for the two subagent-core flows. Template/adapter generation is deferred until a third host such as Gemini or Cursor becomes a real target; adding that machinery now would increase release and validation surface without solving an active parity gap.
 
-**The exceptions.** Three skills are **Claude-only** for runtime reasons. Seven portable skills are
+**The exceptions.** Two skills are **Claude-only** for runtime reasons. Six portable skills are
 **deferred**, which means omission is an explicit product choice rather than a runtime claim. Two
 stay **hand-authored Codex prompts** because their core is Claude subagent dispatch:
 `generate-teammate` and `persona-review`. Their `SKILL.md` bodies are host-agnostic, but
 symlinking them would advertise a dispatch flow Codex cannot reproduce.
 
-**Host-agnostic `SKILL.md` portability** (resolve `SKILL_DIR` / sibling `CD` with a `${CLAUDE_SKILL_DIR:-${CLAUDE_PLUGIN_ROOT:+...}}` → `${CODEX_HOME:-$HOME/.codex}/skills/...` fallback, never a bare `CLAUDE_PLUGIN_ROOT`/`CLAUDE_SKILL_DIR`) is applied to all six skills that used those vars: `create-document`, `decision-dashboard`, `design-ui`, `generate-teammate`, `manage-skills`, and `verify-implementation`. The last two were caught by the `tools/generate.py` lint; the lint now gates every skill.
+**Host-agnostic `SKILL.md` portability** (resolve `SKILL_DIR` / sibling `CD` with a `${CLAUDE_SKILL_DIR:-${CLAUDE_PLUGIN_ROOT:+...}}` → `${CODEX_HOME:-$HOME/.codex}/skills/...` fallback, never a bare `CLAUDE_PLUGIN_ROOT`/`CLAUDE_SKILL_DIR`) is applied to every skill that uses those vars: `create-document`, `decision-dashboard`, `generate-teammate`, `manage-skills`, `verify-implementation`, and `issue-close`. The last two were caught by the `tools/generate.py` lint; the lint now gates every skill.
 
 ## gstack Portfolio Lens
 
@@ -77,7 +77,7 @@ symlinking them would advertise a dispatch flow Codex cannot reproduce.
 | Lifecycle lane | Current Claude coverage | Current Codex coverage | Status |
 |---|---|---|---|
 | Product/spec planning | `brainstorm`, `intake-spec`, `design-feature`, `update-design`, `decision-dashboard` | `brainstorm`, `decision-dashboard` | Partial; pipeline deferred |
-| Design planning | `design-ui` | `design-ui` | Aligned |
+| Design planning | None (`design-ui` retired in 4.0.0) | None | Gap — slot reopened |
 | Implementation/fix/improve | `implement`, `fix`, `improve` | `implement`, `fix`, `improve` | Aligned |
 | Engineering review | `review`; `persona-review` remains persona-lens critique | `review`, `persona-review` | Aligned with runtime-specific dispatch |
 | Browser QA | None | None | Gap |

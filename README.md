@@ -5,19 +5,19 @@
 [![Plugin: elian-store](https://img.shields.io/badge/plugin-elian--store-blue)](plugins/elian-store/)
 [![Plugin: elian-workflow](https://img.shields.io/badge/plugin-elian--workflow-blue)](plugins/elian-workflow/)
 
-This repository ships `elian-store`, a Claude Code plugin marketplace bundle, plus a separate Codex CLI prompt/config tree and a small Claude workflows distribution tree.
+This repository ships two Claude Code plugins — `elian-store` (workflow bundle) and `elian-workflow` (issue-cycle work history) — plus a separate Codex CLI prompt/config tree and a small Claude workflows distribution tree.
 
 Start here:
 
-- Install the Claude plugin if you want the bundled skills, agents, and hooks.
-- Open [plugins/elian-store/README.md](plugins/elian-store/README.md) for the plugin-local operating guide.
+- Install `elian-store` for the bundled skills, agents, and hooks; `elian-workflow` if you record issue history to Notion.
+- Open [plugins/elian-store/README.md](plugins/elian-store/README.md) or [plugins/elian-workflow/README.md](plugins/elian-workflow/README.md) for the plugin-local operating guides.
 - Open [codex/README.md](codex/README.md) for the Codex companion tree.
 - Open [.claude/workflows/README.md](.claude/workflows/README.md) for the Claude Workflow-tool scripts.
 - Open [docs/claude-codex-skill-parity.md](docs/claude-codex-skill-parity.md) when you need the current parity state.
 
 This repo intentionally has three distribution surfaces:
 
-- **Claude Code plugin**: install `elian-store` from this marketplace. This is the primary product.
+- **Claude Code plugins**: install `elian-store` and/or `elian-workflow` from this marketplace. These are the primary product.
 - **Codex CLI config**: copy selected prompts/config from `codex/`. This is an independent companion tree, not a generated mirror.
 - **Claude workflows**: copy Workflow-tool `.js` scripts from `.claude/workflows/` into `~/.claude/workflows/`. Plugins cannot register workflows, so these are distributed by copy (like `codex/`).
 
@@ -100,9 +100,9 @@ cp codex/AGENTS.md ~/.codex/AGENTS.md
 cp codex/config.toml.example ~/.codex/config.toml
 ```
 
-Codex ships **14 shared skills** (`codex/skills/`, symlinked into the plugin tree so they never
+Codex ships **12 shared skills** (`codex/skills/`, symlinked into the plugin tree so they never
 drift) plus **2 reference prompts** — `/generate-teammate` and `/persona-review`, which stay
-prompts because their core is Claude subagent dispatch that Codex cannot reproduce. Four skills
+prompts because their core is Claude subagent dispatch that Codex cannot reproduce. Two skills
 are runtime-blocked Claude-only and six portable skills are explicitly deferred; see
 [codex/README.md](codex/README.md) and the
 [parity record](docs/claude-codex-skill-parity.md).
@@ -126,7 +126,7 @@ Then invoke from Claude Code, e.g. `/harness-legacy-scan`. See [.claude/workflow
 
 Path: [plugins/elian-store/](plugins/elian-store/)
 
-`elian-store` is a single bundled Claude Code plugin. One install gives all bundled skills, agents, and hooks.
+`elian-store` is the bundled workflow plugin. One install gives all its skills, agents, and hooks.
 
 | Skill | Purpose | Invocation |
 |---|---|---|
@@ -178,7 +178,7 @@ Path: [codex/](codex/)
 | File | Role |
 |---|---|
 | [codex/setup.sh](codex/setup.sh) | Installs `codex/skills/*` into `~/.codex/skills` as symlinks (idempotent). |
-| [codex/skills/](codex/skills/) | 14 shared skills — symlinks into `plugins/elian-store/skills/<name>/`, generated/lint-checked by `tools/generate.py`. |
+| [codex/skills/](codex/skills/) | 12 shared skills — symlinks into `plugins/elian-store/skills/<name>/`, generated/lint-checked by `tools/generate.py`. |
 | [codex/prompts/generate-teammate.md](codex/prompts/generate-teammate.md) | Reference prompt for `/generate-teammate` — subagent-core, stays a prompt. |
 | [codex/prompts/persona-review.md](codex/prompts/persona-review.md) | Reference prompt for `/persona-review` — subagent-core, stays a prompt. |
 | [codex/AGENTS.md](codex/AGENTS.md) | Codex project/global instruction template. |

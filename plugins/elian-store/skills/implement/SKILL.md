@@ -259,11 +259,11 @@ Resolution: extract format change to its own commit before parallel work,
 ## Skill verification
 
 ```bash
-python3 plugins/elian-store/skills/implement/scripts/validate_skill.py
-python3 plugins/elian-store/skills/implement/scripts/validate_skill.py --json
+python3 tools/validate_skill.py plugins/elian-store/skills/implement
+python3 tools/validate_skill.py plugins/elian-store/skills/implement --json
 ```
 
-The validator (stdlib only, argparse + `--json`) checks: frontmatter has the required fields, the workflow has all 8 steps, and the body contains the required policy sections (Forbidden / Pitfall / Where this fits / Manual gating / Reflection). Exits 0 on PASS, 1 on FAIL.
+The shared validator (`tools/validate_skill.py`, stdlib only, argparse + `--json`) checks: frontmatter has the required fields and `name` matches the directory, the invocation gate is set, the body contains the required policy sections (Workflow / Standing Rules / Forbidden / Pitfall / Where this fits / Manual gating / Reflection / Persistent artifacts / BEFORE-AFTER / Pre-flight), and `references/` exists and is linked. Exits 0 on PASS, 1 on FAIL. `brainstorm`, `fix`, `implement`, and `improve` share it rather than each carrying a copy.
 
 ## Pre-flight checklist
 

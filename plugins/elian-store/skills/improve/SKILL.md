@@ -252,8 +252,8 @@ Same effort, much wider payoff.
 ## Skill verification
 
 ```bash
-python3 plugins/elian-store/skills/improve/scripts/validate_skill.py
-python3 plugins/elian-store/skills/improve/scripts/validate_skill.py --json
+python3 tools/validate_skill.py plugins/elian-store/skills/improve
+python3 tools/validate_skill.py plugins/elian-store/skills/improve --json
 ```
 
 ## Pre-flight checklist

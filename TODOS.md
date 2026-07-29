@@ -84,6 +84,23 @@ pitfall, so the copy-paste has bitten at least once.
 It has to stay inline in each bash block, so a prose extraction cannot help — a
 shared `resolve-skill-dir.sh` sourced by each block is the only shape that collapses it.
 
+### `erd-preview` and `Bash(python3 *)` are unverified surfaces
+**Priority:** P3
+**Noticed:** v4.1.0 (2026-07-29)
+
+Two gaps a code review surfaced, both too wide to fix inside one release:
+
+`plugins/elian-store/skills/erd-preview/scripts/validate.py` takes a *filled* artifact, so
+its own `assets/template.html` (still holding `{{SCHEMA}}` placeholders) cannot serve as a
+fixture and CI never runs it. Its `RENDER_MARKER` constant tracks a template name — if that
+were mistyped, `extract_models` would silently return nothing and CI would stay green. Needs
+a small committed fixture.
+
+`UNSAFE_TOOL_PATTERNS` in `scripts/validate_repository.py` flags `Bash(*)`, `Bash(git *)`,
+`Bash(bash|sh *)`, `Bash(rm *)`, and `Bash(sudo`, but not `Bash(python3 *)` — which grants
+the same arbitrary execution via `python3 -c`. Eleven skills currently declare it, so adding
+the pattern is a repo-wide policy change, not a one-line fix.
+
 ### CI does not verify the emitted cluster output
 **Priority:** P3
 **Noticed:** v4.1.0 (2026-07-29)

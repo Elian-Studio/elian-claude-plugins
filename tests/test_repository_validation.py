@@ -248,6 +248,69 @@ class DesignArtifactContractTests(unittest.TestCase):
         self.assertTrue(any("update-design still references" in item.message for item in validator.findings))
 
 
+class CodexDanglingSymlinkTests(unittest.TestCase):
+    """Retiring a skill used to leave its codex/skills symlink behind, and nothing caught it:
+    both disposition loops iterate skills discovered under the plugin, so a link pointing at
+    a skill that no longer exists is invisible to them."""
+
+    def setUp(self) -> None:
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name)
+        self.skills = self.root / "plugins" / "elian-store" / "skills"
+        self.skills.mkdir(parents=True)
+        (self.root / "plugins" / "elian-store" / "agents").mkdir()
+        (self.root / "tools").mkdir()
+        self.codex = self.root / "codex" / "skills"
+        self.codex.mkdir(parents=True)
+
+    def tearDown(self) -> None:
+        self.temp.cleanup()
+
+    def write_manifest(self, skills: list[str]) -> None:
+        (self.root / "tools" / "clusters.json").write_text(
+            json.dumps(
+                {
+                    "source": {
+                        "skills_dir": "plugins/elian-store/skills",
+                        "agents_dir": "plugins/elian-store/agents",
+                    },
+                    "agent_groups": {},
+                    "plugins": {"only": {"skills": skills}},
+                    "codex": {"claude_only": [], "prompt_only": [], "deferred": []},
+                }
+            ),
+            encoding="utf-8",
+        )
+
+    def make_skill(self, name: str) -> None:
+        skill_dir = self.skills / name
+        skill_dir.mkdir()
+        (skill_dir / "SKILL.md").write_text(
+            f"---\nname: {name}\ndescription: t\nallowed-tools: Read\n---\n# {name}\n",
+            encoding="utf-8",
+        )
+
+    def test_flags_a_symlink_whose_target_was_removed(self) -> None:
+        self.make_skill("kept")
+        self.write_manifest(["kept"])
+        (self.codex / "kept").symlink_to("../../plugins/elian-store/skills/kept")
+        # The skill directory this one points at was never created — the retired case.
+        (self.codex / "retired").symlink_to("../../plugins/elian-store/skills/retired")
+        validator = RepositoryValidator(self.root)
+        validator.validate_cluster_manifest()
+        self.assertTrue(any("dangling symlink" in item.message for item in validator.findings))
+
+    def test_passes_when_every_link_resolves(self) -> None:
+        self.make_skill("kept")
+        self.write_manifest(["kept"])
+        (self.codex / "kept").symlink_to("../../plugins/elian-store/skills/kept")
+        validator = RepositoryValidator(self.root)
+        validator.validate_cluster_manifest()
+        self.assertEqual(
+            [i for i in validator.findings if i.check == "codex-disposition"], []
+        )
+
+
 class MultiPluginCoverageTests(unittest.TestCase):
     """Both checks below used to hard-code plugins/elian-store, so a second plugin
     was validated by nothing. These lock the plugin-agnostic behavior in place."""

@@ -3,7 +3,7 @@ name: issue-open
 description: "Start an issue cleanly and set it up to be recorded later: verify the branch upstream points at itself, move the task to in-progress with a start date, check whether design documents and open decisions exist, and seed the issue page body with the metadata and background that are only clear at kickoff. Use when picking up a piece of work — 'starting KEY-123', 'begin this issue', 'kicking off this task', 'I'm picking this up'. Never creates, switches, or deletes a branch. Closing is /issue-close."
 when_to_use: "Work on a single issue is about to begin on an existing branch, and the task should be marked in-progress with its background captured while it is still fresh. Do NOT use for starting a workday across many issues, for creating branches, or for requirements gathering."
 argument-hint: "[ISSUE-KEY] [--dry-run] [--setup]"
-allowed-tools: Read, Write, Grep, Glob, AskUserQuestion, Bash(git branch*), Bash(git config --get*)
+allowed-tools: Read, Write, Grep, Glob, AskUserQuestion, Bash(git branch --show-current), Bash(git config --get*)
 disable-model-invocation: true
 ---
 

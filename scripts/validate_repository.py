@@ -350,6 +350,28 @@ class RepositoryValidator:
                     f"symlink target is {link.readlink()}, expected {expected}",
                 )
 
+        # Both loops above iterate the skills discovered under the plugin, so a link for a
+        # skill that no longer exists is invisible to them. Retiring a skill left two
+        # dangling symlinks shipping to Codex users while the CHANGELOG said they were gone.
+        # Enumerate the directory itself.
+        codex_skills = self.root / "codex" / "skills"
+        if codex_skills.is_dir():
+            for link in sorted(codex_skills.iterdir()):
+                if link.name.startswith("."):
+                    continue
+                if not link.exists():
+                    self.add(
+                        "codex-disposition",
+                        link,
+                        "dangling symlink — its target was removed; delete the link too",
+                    )
+                elif link.name not in skills:
+                    self.add(
+                        "codex-disposition",
+                        link,
+                        f"'{link.name}' is not a skill in {skills_dir_rel}",
+                    )
+
     def validate_versions(self) -> None:
         # Every published plugin, not only the bundle. plugin.json.version is the update
         # cache key and wins over the marketplace entry, so silent drift means installed
