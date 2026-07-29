@@ -248,5 +248,66 @@ class DesignArtifactContractTests(unittest.TestCase):
         self.assertTrue(any("update-design still references" in item.message for item in validator.findings))
 
 
+class MultiPluginCoverageTests(unittest.TestCase):
+    """Both checks below used to hard-code plugins/elian-store, so a second plugin
+    was validated by nothing. These lock the plugin-agnostic behavior in place."""
+
+    def setUp(self) -> None:
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name)
+        (self.root / ".claude-plugin").mkdir(parents=True)
+
+    def tearDown(self) -> None:
+        self.temp.cleanup()
+
+    def write_plugin(self, name: str, version: str) -> Path:
+        plugin_dir = self.root / "plugins" / name
+        (plugin_dir / ".claude-plugin").mkdir(parents=True)
+        (plugin_dir / ".claude-plugin" / "plugin.json").write_text(
+            json.dumps({"name": name, "version": version}), encoding="utf-8"
+        )
+        skills = plugin_dir / "skills"
+        skills.mkdir()
+        return skills
+
+    def write_marketplace(self, entries: dict[str, str]) -> None:
+        (self.root / ".claude-plugin" / "marketplace.json").write_text(
+            json.dumps(
+                {"plugins": [{"name": n, "version": v} for n, v in entries.items()]}
+            ),
+            encoding="utf-8",
+        )
+
+    def test_version_parity_covers_every_plugin_not_just_the_bundle(self) -> None:
+        self.write_plugin("elian-store", "4.1.0")
+        self.write_plugin("elian-workflow", "9.9.9")
+        self.write_marketplace({"elian-store": "4.1.0", "elian-workflow": "1.0.0"})
+        validator = RepositoryValidator(self.root)
+        validator.validate_versions()
+        messages = [item.message for item in validator.findings]
+        self.assertTrue(any("elian-workflow" in message for message in messages))
+        self.assertFalse(any("elian-store" in message for message in messages))
+
+    def test_version_parity_reports_a_missing_marketplace_entry(self) -> None:
+        self.write_plugin("elian-workflow", "1.0.0")
+        self.write_marketplace({})
+        validator = RepositoryValidator(self.root)
+        validator.validate_versions()
+        self.assertTrue(
+            any("marketplace entry is missing" in item.message for item in validator.findings)
+        )
+
+    def test_english_policy_covers_a_second_plugin(self) -> None:
+        skills = self.write_plugin("elian-workflow", "1.0.0")
+        self.write_marketplace({"elian-workflow": "1.0.0"})
+        (skills / "issue-open").mkdir()
+        (skills / "issue-open" / "SKILL.md").write_text(
+            "---\nname: issue-open\n---\n한글 본문\n", encoding="utf-8"
+        )
+        validator = RepositoryValidator(self.root)
+        validator.validate_english_policy()
+        self.assertTrue(any(item.check == "english-policy" for item in validator.findings))
+
+
 if __name__ == "__main__":
     unittest.main()
