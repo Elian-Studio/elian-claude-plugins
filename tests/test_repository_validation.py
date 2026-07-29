@@ -372,5 +372,161 @@ class MultiPluginCoverageTests(unittest.TestCase):
         self.assertTrue(any(item.check == "english-policy" for item in validator.findings))
 
 
+class ComposedPluginTests(unittest.TestCase):
+    """A published composed plugin carries generated copies of another plugin's skills.
+    The copies are committed, so a hand edit would survive until the next sync silently
+    reverted it. These lock in that the copies are held byte-identical."""
+
+    def setUp(self) -> None:
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name)
+        self.source_skills = self.root / "plugins" / "elian-store" / "skills"
+        (self.source_skills / "implement").mkdir(parents=True)
+        (self.source_skills / "implement" / "SKILL.md").write_text(
+            "---\nname: implement\n---\nbody\n", encoding="utf-8"
+        )
+        (self.root / "plugins" / "elian-store" / "agents").mkdir(parents=True)
+        (self.root / "plugins" / "elian-store" / "agents" / "quality-engineer.md").write_text(
+            "agent\n", encoding="utf-8"
+        )
+        self.target_skills = self.root / "plugins" / "elian-workflow" / "skills"
+        (self.target_skills / "implement").mkdir(parents=True)
+        (self.target_skills / "implement" / "SKILL.md").write_text(
+            "---\nname: implement\n---\nbody\n", encoding="utf-8"
+        )
+        (self.target_skills / "issue-open").mkdir()
+        (self.target_skills / "issue-open" / "SKILL.md").write_text(
+            "---\nname: issue-open\n---\nnative\n", encoding="utf-8"
+        )
+        (self.root / "plugins" / "elian-workflow" / "agents").mkdir(parents=True)
+        (self.root / "plugins" / "elian-workflow" / "agents" / "quality-engineer.md").write_text(
+            "agent\n", encoding="utf-8"
+        )
+        self.manifest = self.root / "tools" / "clusters.json"
+        self.manifest.parent.mkdir(parents=True)
+        self.write_manifest()
+
+    def tearDown(self) -> None:
+        self.temp.cleanup()
+
+    def write_manifest(self) -> None:
+        self.manifest.write_text(
+            json.dumps(
+                {
+                    "source": {
+                        "skills_dir": "plugins/elian-store/skills",
+                        "agents_dir": "plugins/elian-store/agents",
+                        "shared_dir": "plugins/elian-store/skills/_shared",
+                    },
+                    "agent_groups": {"domain": ["quality-engineer"]},
+                    "plugins": {},
+                    "published": {
+                        "elian-workflow": {
+                            "target": "plugins/elian-workflow",
+                            "skills": ["implement"],
+                            "native_skills": ["issue-open"],
+                            "agents": ["domain"],
+                        }
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+
+    def test_passes_when_the_generated_copy_matches_its_source(self) -> None:
+        validator = RepositoryValidator(self.root)
+        validator.validate_composed_plugins()
+        self.assertEqual([i.message for i in validator.findings], [])
+
+    def test_flags_a_generated_copy_edited_by_hand(self) -> None:
+        (self.target_skills / "implement" / "SKILL.md").write_text(
+            "---\nname: implement\n---\nedited by hand\n", encoding="utf-8"
+        )
+        validator = RepositoryValidator(self.root)
+        validator.validate_composed_plugins()
+        self.assertTrue(
+            any("differs from" in i.message for i in validator.findings),
+            [i.message for i in validator.findings],
+        )
+
+    def test_flags_a_generated_agent_edited_by_hand(self) -> None:
+        (self.root / "plugins" / "elian-workflow" / "agents" / "quality-engineer.md").write_text(
+            "tampered\n", encoding="utf-8"
+        )
+        validator = RepositoryValidator(self.root)
+        validator.validate_composed_plugins()
+        self.assertTrue(any("quality-engineer" in i.message for i in validator.findings))
+
+    def test_native_skill_is_not_reported_as_undeclared(self) -> None:
+        validator = RepositoryValidator(self.root)
+        validator.validate_composed_plugins()
+        self.assertFalse(any("issue-open" in i.message for i in validator.findings))
+
+    def test_flags_a_skill_that_is_neither_generated_nor_native(self) -> None:
+        (self.target_skills / "stowaway").mkdir()
+        (self.target_skills / "stowaway" / "SKILL.md").write_text(
+            "---\nname: stowaway\n---\n", encoding="utf-8"
+        )
+        validator = RepositoryValidator(self.root)
+        validator.validate_composed_plugins()
+        self.assertTrue(any("stowaway" in i.path for i in validator.findings))
+
+
+class PluginSelfContainmentTests(unittest.TestCase):
+    """A plugin is copied as a unit at install time. Anything it resolves outside its
+    own root works in this repository and breaks for installed users — the failure the
+    layering document predicted but its step list under-counted."""
+
+    def setUp(self) -> None:
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name)
+        self.skills = self.root / "plugins" / "elian-workflow" / "skills"
+        (self.skills / "design-feature").mkdir(parents=True)
+
+    def tearDown(self) -> None:
+        self.temp.cleanup()
+
+    def write_skill(self, name: str, body: str) -> None:
+        (self.skills / name).mkdir(exist_ok=True)
+        (self.skills / name / "SKILL.md").write_text(
+            f"---\nname: {name}\n---\n{body}", encoding="utf-8"
+        )
+
+    def test_flags_a_runtime_reference_to_a_skill_in_another_plugin(self) -> None:
+        self.write_skill(
+            "design-feature",
+            '```bash\nCD="${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/skills/create-document}"\n'
+            'python3 "${CD}/scripts/build_roadmap.py"\n```\n',
+        )
+        validator = RepositoryValidator(self.root)
+        validator.validate_plugin_self_containment()
+        self.assertTrue(
+            any("create-document" in i.message for i in validator.findings),
+            [i.message for i in validator.findings],
+        )
+
+    def test_passes_once_the_referenced_skill_is_vendored_alongside(self) -> None:
+        self.write_skill(
+            "design-feature",
+            '```bash\nCD="${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/skills/create-document}"\n```\n',
+        )
+        self.write_skill("create-document", "renderer\n")
+        validator = RepositoryValidator(self.root)
+        validator.validate_plugin_self_containment()
+        self.assertEqual([i.message for i in validator.findings], [])
+
+    def test_flags_a_relative_link_that_escapes_the_plugin(self) -> None:
+        self.write_skill("design-feature", "See [parity](../../../docs/parity.md).\n")
+        validator = RepositoryValidator(self.root)
+        validator.validate_plugin_self_containment()
+        self.assertTrue(any("escapes the plugin" in i.message for i in validator.findings))
+
+    def test_allows_a_relative_link_that_stays_inside_the_plugin(self) -> None:
+        self.write_skill("design-feature", "See [shared](../_shared/notes.md).\n")
+        validator = RepositoryValidator(self.root)
+        validator.validate_plugin_self_containment()
+        self.assertEqual([i.message for i in validator.findings], [])
+
+
 if __name__ == "__main__":
     unittest.main()

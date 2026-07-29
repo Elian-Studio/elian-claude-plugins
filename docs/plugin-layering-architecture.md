@@ -1,8 +1,10 @@
 # Plugin layering architecture
 
 Date: 2026-07-29
-Status: proposed. Supersedes the two-cluster grouping in `tools/clusters.json` (2026-07-29),
-which grouped by "needs a repo / does not" rather than by responsibility.
+Status: **partially executed.** The Workflow layer was published as `elian-workflow` 2.0.0 —
+see §11. Standards and Common remain proposed. Supersedes the two-cluster grouping in
+`tools/clusters.json` (2026-07-29), which grouped by "needs a repo / does not" rather than by
+responsibility.
 
 Companion to [plugin-portfolio-hybrid-model.md](plugin-portfolio-hybrid-model.md), which owns
 the *publishing* decision. This document owns the *layering* decision. They are separable, and
@@ -97,7 +99,7 @@ Three layers, strictly ordered. A layer may depend downward and never upward.
 
 ```mermaid
 flowchart TD
-    W["<b>elian-workflow</b><br/>process stages + actors<br/>18 skills · 30 agents"]
+    W["<b>elian-workflow</b><br/>process stages + actors<br/>18 skills + vendored create-document · 30 agents<br/><i>published 2.0.0 — see §11</i>"]
     S["<b>elian-standards</b><br/>how things must be written<br/>2 skills · N documents"]
     C["<b>elian-common</b><br/>format and render utilities<br/>4 skills"]
 
@@ -149,9 +151,16 @@ the agents that act inside a stage.
 Plus all 30 agents (14 `domain`, 16 `reviewers`) — agents are workflow actors, and they are
 auto-discovered from the plugin's own `agents/` directory, so they must live with their consumers.
 
-**Must not contain.** Any renderer, formatter, parser, or converter. Any convention document.
-If a workflow skill needs to produce HTML, it invokes Common. If it needs to know the required
-shape of its output, it reads a vendored Standards document.
+**Must not contain.** Any renderer, formatter, parser, or converter *of its own*. Any convention
+document. If a workflow skill needs to produce HTML it goes through Common, and if it needs to
+know the required shape of its output it reads a vendored Standards document.
+
+**Amended by §7 step 3.** "Goes through Common" turned out to mean *carrying* Common's renderer,
+not invoking it across a plugin boundary: three Workflow skills execute
+`create-document/scripts/*.py` by path, and a path that leaves the plugin does not survive
+install. The shipped 2.0.0 therefore vendors `create-document`. The rule that matters is the
+dependency *direction* — Workflow may depend on Common, never the reverse — not whether the
+bytes are duplicated.
 
 ### 3.2 `elian-standards`
 
@@ -355,10 +364,25 @@ is never published.
    machinery for three documents whose consumers all sit inside one plugin. `skills/_shared/`
    already does the job, and `generate.py`'s existing `"shared": true` already vendors it into
    every cluster. Build the root layer only when a standard genuinely needs two plugins.
-3. **Break the one remaining illegal edge.** Convert `generate-teammate` → `create-document`
-   from file reads to `/create-document` invocation, and add the cross-skill relative-path rule
-   to the validator. The `_shared` consumers needed no change — that path never leaves its
-   plugin. **Only required if the layers are published**; inside one bundle nothing is broken.
+3. ~~**Break the one remaining illegal edge.**~~ **Done, and there were three, not one.**
+   This step named `generate-teammate` → `create-document` because §1.2's table counted
+   *markdown links* and never looked inside bash fences. The real dependency is a runtime one —
+   `${CLAUDE_PLUGIN_ROOT}/skills/create-document/scripts/…` — and three Workflow skills have it:
+
+   | Skill | Executes |
+   |---|---|
+   | `design-feature` | `create-document/scripts/build_roadmap.py` |
+   | `update-design` | `create-document/scripts/build_roadmap.py` |
+   | `generate-teammate` | `create-document/scripts/render.py` |
+
+   Resolved by **vendoring `create-document` into the Workflow plugin** rather than converting
+   three deterministic "run exactly this script" contracts into model-mediated invocations.
+   The layer direction is unchanged (Workflow still depends downward on Common); the Common
+   skill is carried, exactly as `"shared": true` already carries `_shared/`.
+
+   The rule this step asked for now exists in the validator as `plugin-self-containment`, and
+   it checks bash fences as well as links — the gap that let this step under-count. The
+   `_shared` consumers needed no change: that path never leaves its plugin.
 4. **Redefine the clusters.** Rewrite `tools/clusters.json` from the current two-way grouping to
    the three layers. Resolve the `elian-common` name collision (§1.4). Emit and verify every
    vendored file resolves inside its own plugin.
@@ -387,12 +411,45 @@ when a different audience, permission profile, or release cadence makes the bund
 Standards and Common share Workflow's audience and cadence today.
 
 **Recommendation: execute steps 1–5, keep the three-layer output staged in `dist/`, and publish
-a layer only when it diverges.** `elian-workflow` was published because it genuinely diverged —
-it is the only plugin that talks to an external service and is useless without local
-configuration. Neither Standards nor Common has such a trigger yet.
+a layer only when it diverges.** Neither Standards nor Common has such a trigger yet.
 
 The layering is not weakened by staying in one bundle. It is enforced by the validator, not by
 the package boundary.
+
+> **Superseded for the Workflow layer (2026-07-29).** The recommendation above still governs
+> Standards and Common. It does not govern Workflow: that layer was published as
+> `elian-workflow` 2.0.0 for a reason this section did not consider — the name was already
+> spent. See §11.
+
+---
+
+## 11. What actually happened to the Workflow layer
+
+§2 and §3.1 named this layer `elian-workflow`. So did a plugin published the same day carrying
+two skills and a Notion dependency. One name, two definitions, one of them already on `main`
+where the marketplace offers no `deprecated` / `replaces` / `alias` field to rename it.
+
+§1.4 caught exactly this failure mode for `elian-common` — "the name must be redefined before
+it is published, or it will mean two different things in two documents" — and then this
+document committed it, against a name that was no longer free.
+
+**Resolution: the published plugin grew into the layer**, rather than the layer taking a new
+name. `elian-workflow` 2.0.0 ships the 18 Workflow skills of §3.1 plus a vendored
+`create-document` (§7 step 3), and all 30 agents.
+
+What this costs, recorded so it is not rediscovered as a surprise:
+
+- **`elian-store` and `elian-workflow` overlap by 17 skills.** Users install one. §8's
+  install-granularity argument inverted here: publishing bought identity coherence, not
+  à-la-carte choice, and it bought a duplicate catalog alongside.
+- **The divergence rationale in `plugin-portfolio-hybrid-model.md` §89 is void.** "The only
+  plugin that talks to an external service, useless without local configuration" described a
+  two-skill plugin. Seventeen of nineteen skills now need no configuration at all.
+- **Nothing moved out of `elian-store`.** It stays the single source of truth and keeps all 22
+  skills at 4.1.0. The Workflow plugin's shared content is generated from it by
+  `tools/generate.py --sync` and held byte-identical by the `composed-parity` validator check.
+
+What it settles: `elian-workflow` now means one thing in this repository.
 
 ---
 
@@ -425,9 +482,13 @@ mechanism were needed — `skills/_shared/` and `"shared": true` already existed
 work was generalizing the validators away from `elian-store`-shaped paths, which was overdue
 regardless: version parity and the English-only rule were silently skipping `elian-workflow`.
 
-**Residual risk.** The `_shared/` directories are duplicated into each emitted cluster by
-`generate.py`. That copy is generated, so it cannot drift from its source — but the emitted
-output is only checked when someone runs `--emit`, and CI does not currently do so.
+**Residual risk — closed for the published target, open for `dist/`.** Generated copies cannot
+drift *in principle* because they are generated, but the copies that ship in
+`plugins/elian-workflow/` are committed, so a hand edit would survive until the next sync
+silently reverted it. `validate_repository.py`'s `composed-parity` check now compares every
+generated skill, agent, and `_shared` file against its source byte-for-byte and fails on a
+mismatch, so CI catches that without running `--sync`. The `dist/` clusters remain unchecked
+unless someone runs `--emit`; they are unpublished, so nothing installs from them.
 
 ## 11. Guidelines for adding a plugin later
 

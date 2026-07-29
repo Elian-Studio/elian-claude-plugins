@@ -13,10 +13,17 @@ checks that every skill has exactly one non-overlapping disposition.
 > exist in either tree, and the `codex/skills/design-ui` and `codex/skills/functional-spec`
 > symlinks are gone. Treat `tools/clusters.json` as authoritative wherever this doc disagrees.
 >
-> A second plugin, `elian-workflow` (`issue-open`, `issue-close`), now ships alongside
-> `elian-store`. It has no Codex counterpart yet — both skills depend on a Notion MCP server,
+> A second plugin, `elian-workflow`, now ships alongside `elian-store`. Its two native skills
+> (`issue-open`, `issue-close`) have no Codex counterpart — both depend on a Notion MCP server,
 > which is a Claude-side integration. Recorded here as a deliberate parity exception rather
 > than an oversight.
+>
+> **`elian-workflow` 2.0.0 (2026-07-29) does not change the parity surface.** It grew to 19
+> skills, but 17 of those are generated copies of `elian-store` skills, held byte-identical by
+> the validator's `composed-parity` check. `plugins/elian-store/skills/` remains the single
+> Claude-side source, and `codex/skills/*` symlinks still point there — so the Claude ↔ Codex
+> comparison below is unaffected by the second plugin's packaging. Only the two native skills
+> are new surface, and both stay Claude-only.
 
 ## Goal
 
@@ -46,7 +53,7 @@ A Claude skill and Codex prompt are considered aligned only when all of these ma
 
 | Area | Claude | Codex | Status |
 |---|---:|---:|---|
-| Catalog entries | 22 skills (`elian-store`) + 2 (`elian-workflow`) | 2 prompts + 12 shared skills | 14 matched + 2 Claude-only + 6 deferred + 2 MCP-bound |
+| Catalog entries | 22 distinct skills (`elian-store`) + 2 native (`elian-workflow`); `elian-workflow` also repackages 17 of the 22 | 2 prompts + 12 shared skills | 14 matched + 2 Claude-only + 6 deferred + 2 MCP-bound |
 | Command naming | `/elian-store:<skill>`, `/elian-workflow:<skill>` | `/<prompt-file>` | Mostly alignable |
 | Current matched commands | `brainstorm`, `create-document`, `decision-dashboard`, `fix`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `review`, `verify-implementation`, `persona-review`, `pr-writer`, `verify-before-claiming`, `respond-to-review` | `brainstorm`, `create-document`, `decision-dashboard`, `fix`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `review`, `verify-implementation`, `persona-review`, `pr-writer`, `verify-before-claiming`, `respond-to-review` | Aligned |
 | Legacy `on-call-elian` | Removed from current Claude skill catalog | Removed from current Codex prompt catalog | Aligned |

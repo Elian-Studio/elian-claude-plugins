@@ -1,0 +1,61 @@
+{
+  "team_name": "notification-retry-build",
+  "phase": "Build",
+  "context_summary": "PROJ-123 notification resend feature. The design team has settled the API contract and data model. This build phase splits backend, frontend, and test ownership so work can proceed in parallel without file conflicts.",
+  "teammates": [
+    {
+      "name": "backend-builder",
+      "subagent_type": "backend-architect",
+      "role": "Implement the Spring Boot notification retry API and failure classification policy.",
+      "owned_files": [
+        "src/main/java/com/example/notifications/retry/**",
+        "src/test/java/com/example/notifications/retry/**"
+      ],
+      "tech_stack": ["Spring Boot", "JUnit 5", "PostgreSQL"],
+      "task": "Implement retry queue entry and consumption endpoints with a three-attempt cap, exponential backoff, idempotency, and channel-specific failure classification.",
+      "reference_docs": [
+        "docs/features/notification-retry/spec.md",
+        "docs/features/notification-retry/api-contract.md"
+      ],
+      "interfaces": "Expose POST /api/notifications/retry with body { channel, original_id } and response { retry_id, status }. Frontend calls it and test verifies it.",
+      "definition_of_done": "Unit and integration tests cover success, cap exceeded, duplicate request, and backoff behavior. Lint passes and the API contract tests pass.",
+      "communication": "Post contract changes in the PR thread and notify frontend-builder before changing request or response shape."
+    },
+    {
+      "name": "frontend-builder",
+      "subagent_type": "frontend-architect",
+      "role": "Build the Vue 3 admin retry trigger UI and resend status display.",
+      "owned_files": [
+        "src/features/notifications/retry/**",
+        "src/components/notifications/**"
+      ],
+      "tech_stack": ["Vue 3", "TypeScript", "Pinia", "Vitest"],
+      "task": "Build the retry trigger button, progress polling, and failure-reason display components with loading, error, success, and cap-exceeded states.",
+      "reference_docs": [
+        "docs/features/notification-retry/spec.md",
+        "docs/features/notification-retry/DESIGN.md"
+      ],
+      "interfaces": "Call the backend retry endpoint and cache response state in Pinia. The test owner verifies component rendering.",
+      "definition_of_done": "vue-tsc passes. Unit tests cover loading, error, success, and cap-exceeded states. Keyboard navigation is verified.",
+      "communication": "Ask backend-builder in the PR thread before changing API assumptions and ask the user before changing product copy."
+    },
+    {
+      "name": "scenario-tester",
+      "subagent_type": "quality-engineer",
+      "role": "Verify the end-to-end resend success, failure, cap-exceeded, and duplicate-trigger flows.",
+      "owned_files": [
+        "tests/e2e/notification-retry.spec.ts",
+        "tests/fixtures/notification-retry/**"
+      ],
+      "tech_stack": ["Playwright", "Vitest"],
+      "task": "Write end-to-end scenarios where an admin triggers retry for a failed notification and verifies success, cap-exceeded, and duplicate-trigger behavior.",
+      "reference_docs": [
+        "docs/features/notification-retry/spec.md",
+        "docs/features/notification-retry/test-plan.md"
+      ],
+      "interfaces": "Verify integrated backend and frontend behavior. Do not modify backend or frontend production files.",
+      "definition_of_done": "Three Playwright scenarios pass and are registered in CI. Fixtures cover success, cap-exceeded, and duplicate-trigger cases.",
+      "communication": "Share reproduction steps in the PR thread and tag the owning builder when a scenario fails."
+    }
+  ]
+}

@@ -581,6 +581,49 @@ migration paths are recorded in `docs/claude-codex-skill-parity.md`
 
 ## elian-workflow Plugin
 
+### [2.0.0] — 2026-07-29
+
+The plugin becomes what its name already claimed. Two definitions of `elian-workflow` existed
+in this repository: the published 1.0.0 (two issue-cycle skills) and
+`docs/plugin-layering-architecture.md` §3.1 (the 18-skill Workflow layer owning the whole
+development process). Both were written the same day. This release resolves them in favor of
+the second.
+
+#### Added
+- **17 generated skills and 30 agents**, taking the plugin from 2 skills to 19. Stage order:
+  `brainstorm` → `intake-spec` → `issue-open` → `design-feature` / `update-design` →
+  `implement` / `fix` / `improve` → `review` / `persona-review` / `pr-review` /
+  `respond-to-review` → `spec-coverage` / `verify-implementation` / `verify-before-claiming` →
+  `pr-writer` → `issue-close`, with `generate-teammate` routing across stages.
+- **`create-document` is vendored rather than invoked across the plugin boundary.** Three
+  skills (`design-feature`, `update-design`, `generate-teammate`) execute its renderer scripts
+  by path — `${CLAUDE_PLUGIN_ROOT}/skills/create-document/scripts/…`. A plugin is copied as a
+  unit at install time, so that path resolves in this repository and breaks for installed
+  users unless the renderer ships alongside. Copying one skill was cheaper than rewriting
+  three deterministic "run exactly this script" contracts into model-mediated invocations, and
+  it leaves `elian-store`'s shipped content untouched.
+
+#### Changed
+- **The Notion dependency is now scoped, not global.** 17 of the 19 skills need no
+  configuration; only `issue-open` and `issue-close` require a Notion MCP server and a
+  workspace config. `plugin.json`, the marketplace entry, and both READMEs say so.
+- `docs/plugin-portfolio-hybrid-model.md`'s justification for publishing this plugin
+  separately — "the only plugin that talks to an external service, and it carries no value
+  unless the user configures a Notion workspace locally" — no longer holds and is superseded
+  there.
+
+#### Notes
+- **`elian-workflow` and `elian-store` now overlap by 17 skills. Install one, not both.** With
+  both installed every shared skill appears twice (`/elian-store:implement` and
+  `/elian-workflow:implement`) and the 30 agents are duplicated in the picker. Nothing breaks;
+  every choice is asked twice. This is the accepted cost of the identity decision, and it is
+  stated in both READMEs and the marketplace description.
+- Only `issue-open` and `issue-close` are unique to this plugin; only `document-writer`,
+  `erd-preview`, `decision-dashboard`, `manage-skills`, and `harness-manager` are unique to
+  `elian-store`.
+- `plugins/elian-store/` is unchanged and stays the single source of truth for the 17 shared
+  skills. Its version stays 4.1.0 — no shipped content moved or changed.
+
 ### [1.0.0] — 2026-07-29
 
 Initial release. Issue-cycle bookends that record engineering work history to Notion.
@@ -628,6 +671,24 @@ deliberate parity exception in `docs/claude-codex-skill-parity.md`, not an overs
 ### Unreleased
 
 #### Added
+- **`tools/generate.py --sync` and a `published` section in `tools/clusters.json`** — a second
+  composition mechanism alongside the `dist/` staging partition. `plugins` stays the
+  mutually-exclusive cluster split; `published` describes a *published* plugin composed from
+  generated copies plus hand-authored native content, and `--sync` refreshes it in place.
+  Unlike the `dist/` emit it never wipes the target directory: it deletes only what the
+  manifest names, and reports anything unexpected instead of removing it.
+- **Two validator checks**, both in `scripts/validate_repository.py` and covered by tests:
+  - `composed-parity` — every generated copy in a published composed plugin must be
+    byte-identical to its source. The copies are committed, so a hand edit would otherwise
+    survive until the next sync silently reverted it. This also closes the residual risk
+    recorded in `docs/plugin-layering-architecture.md` §10 (emitted output was only checked
+    when someone ran `--emit`, and CI never did).
+  - `plugin-self-containment` — a relative path must not escape its plugin root, and a bash
+    block must not resolve a sibling skill that ships in a different plugin. The layering
+    document's §7 step 3 named one illegal edge (`generate-teammate` → `create-document`);
+    this check found **three** — `design-feature` and `update-design` execute
+    `create-document/scripts/build_roadmap.py` the same way. §1.2's table counted markdown
+    links only and never looked inside bash fences.
 - Added a **thematic-cluster generator** at `tools/generate.py` (config: `tools/clusters.json`) for the Phase A dual-tool distribution. Report-only by default; lints every `SKILL.md` for host-agnostic script paths, reports `codex/skills/` symlink status, gates version drift (`plugin.json` vs marketplace entry), and (with `--emit`) renders five composition-respecting plugins (`elian-artifacts`, `elian-tdd`, `elian-review`, `elian-design`, `elian-harness`) plus a marketplace catalog to the gitignored `dist/`. `--bump {patch|minor|major}` automates the release ratchet (bump `plugin.json` + the marketplace entry + a dated CHANGELOG stub). The live `plugins/elian-store/` bundle is untouched; the split is staged, not cut over. Design recorded in `.claude/plans/dual-tool-skill-distribution.md`.
 - Added a **Claude workflows distribution tree** at `.claude/workflows/` — a third copy-distributed surface (alongside `codex/`), since Claude Code plugins cannot register Workflow-tool workflows. Ships `harness-legacy-scan.js`, a portable, read-only AI-coding-harness audit (`/harness-legacy-scan [project-path]`) that discovers the environment at runtime and classifies findings KEEP/SHRINK/MOVE/SPLIT/CONVERT/DELETE. Documented in `.claude/workflows/README.md`, the root README, and `docs/repository-operating-map.md`. (`harness-diet` is intentionally not included — its existing form is a machine-specific one-time replay, not a reusable tool.)
 - Removed the duplicate `.agents/skills/` tree (a byte-for-byte copy of `.claude/skills/`) and documented `.claude/skills/` ownership (maintainer dev tooling, not product) in `docs/repository-operating-map.md`.

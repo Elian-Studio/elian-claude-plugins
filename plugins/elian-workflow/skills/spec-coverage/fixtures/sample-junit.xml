@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.OrderTest" tests="7" failures="2" errors="1" skipped="1">
+  <!-- R1-AC1: two passing tests -> pass -->
+  <testcase name="R1-AC1 an order is created with a valid cart" classname="com.example.OrderTest" time="0.031"/>
+  <testcase name="R1-AC1 an order is created twice with the same idempotency key" classname="com.example.OrderTest" time="0.012"/>
+
+  <!-- R1-AC2: one failing test -> fail -->
+  <testcase name="R1-AC2 an order with quantity 0 is rejected" classname="com.example.OrderTest" time="0.008">
+    <failure message="expected 400 but was 200" type="org.opentest4j.AssertionFailedError">stack trace here</failure>
+  </testcase>
+
+  <!-- R1-AC3: only a skipped test -> skipped -->
+  <testcase name="R1-AC3 a coupon is applied to the order total" classname="com.example.OrderTest" time="0">
+    <skipped message="pending backend endpoint"/>
+  </testcase>
+
+  <!-- R2-AC1: one passing + one failing -> fail -->
+  <testcase name="R2-AC1 the order button is disabled when stock is 0" classname="com.example.StockTest" time="0.004"/>
+  <testcase name="R2-AC1 a stock warning is shown at the threshold" classname="com.example.StockTest" time="0.006">
+    <failure message="warning element not found" type="AssertionError">stack trace here</failure>
+  </testcase>
+
+  <!-- R2-AC2: an erroring test -> fail -->
+  <testcase name="R2-AC2 stock is released when the order is cancelled" classname="com.example.StockTest" time="0.002">
+    <error message="NullPointerException" type="java.lang.NullPointerException">stack trace here</error>
+  </testcase>
+
+  <!-- No AC ID at all: must be ignored entirely -->
+  <testcase name="context loads" classname="com.example.SmokeTest" time="1.204"/>
+  <testcase name="a helper formats currency" classname="com.example.UtilTest" time="0.001"/>
+</testsuite>

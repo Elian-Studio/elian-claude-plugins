@@ -91,6 +91,19 @@ changed is the shape of the staged split and the arrival of a second published p
   in Operating Principle 1: it is the only plugin that talks to an external service, and it
   carries no value unless the user configures a Notion workspace locally. Publishing it
   alongside is exactly the coexistence mechanism prescribed below.
+
+  > **Superseded by `elian-workflow` 2.0.0 (2026-07-29).** The justification above described a
+  > two-skill plugin. 2.0.0 ships 19 skills, and 17 of them need no configuration at all — so
+  > "useless without local configuration" no longer distinguishes it from `elian-store`. The
+  > plugin was expanded to resolve a name collision, not because the divergence deepened:
+  > `docs/plugin-layering-architecture.md` §2 reserved the same name for the 18-skill Workflow
+  > layer, and the name was already published and unrenameable. See that document's §11.
+  >
+  > **Consequence for Operating Principle 1: the two plugins now overlap by 17 skills, and
+  > users must install one, not both.** This is the first case in this portfolio where
+  > coexistence costs a duplicate catalog rather than buying à-la-carte choice. Read it as
+  > evidence for the principle, not against it — the bar exists precisely to stop this, and it
+  > was bypassed by a naming mistake rather than by a considered trade.
 - **The two clusters remain staged in `dist/`, still unpublished.** Nothing about the two-way
   regrouping changes the reasoning below — they still share one audience, one permission
   profile, and one release cadence, and removing `elian-store` would still orphan installs.
@@ -141,7 +154,7 @@ Before adding or materially changing a skill, answer:
 | Feature planning | `intake-spec` + `design-feature` + `update-design` | Covered. `ai-assisted-feature-development` was retired in v3.0.0 — it ran a parallel 9-phase pipeline over the same lanes without sharing the `claudedocs/<label>/` artifact set. |
 | UI design | Missing | `design-ui` retired in 4.0.0 (3 invocations in 67 days). The slot is open; Operating Principle 8 applies before refilling it. |
 | Wireframe-to-code spec | Missing | `functional-spec` retired in 4.0.0 (0 invocations in 22 days). Reopen only with a repeatable workflow. |
-| Issue work-history | `elian-workflow` (`issue-open`, `issue-close`) | Added 2026-07-29 as a separate plugin. The issue cycle sits between per-commit logs and daily summaries and carries the decisions a diff cannot show. |
+| Issue work-history | `elian-workflow` (`issue-open`, `issue-close`) | Added 2026-07-29 as a separate plugin. The issue cycle sits between per-commit logs and daily summaries and carries the decisions a diff cannot show. These two remain the only skills unique to `elian-workflow`; as of 2.0.0 the plugin also carries stage-ordered copies of 17 `elian-store` skills. |
 | Implementation | `implement` | Covered. Should hand off to review/QA instead of absorbing release behavior. |
 | Bug fixing | `fix` | Covered. Keep root-cause-first and regression-test-first posture. |
 | Improvement | `improve` | Covered. Keep BEFORE/AFTER evidence and characterization tests. |
