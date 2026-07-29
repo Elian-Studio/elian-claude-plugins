@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Claude Code plugin marketplace shipping one bundled plugin (`plugins/elian-store/`, multiple skills) plus an independent Codex CLI distribution tree (`codex/`). Process details live in CONTRIBUTING.md — this file holds only the facts that prevent mistakes.
+Claude Code plugin marketplace shipping two plugins — `plugins/elian-store/` (bundled workflow skills, agents, hooks) and `plugins/elian-workflow/` (issue-cycle work-history recording to Notion) — plus an independent Codex CLI distribution tree (`codex/`). Process details live in CONTRIBUTING.md — this file holds only the facts that prevent mistakes.
 
 ## Rules
 

@@ -24,10 +24,10 @@ dispatch**, which Codex cannot reproduce:
 - `persona-review` — per-persona subagent dispatch + aggregation.
 
 For these two only, the Codex prompt and the Claude `SKILL.md` are separate files; a change on one
-side must be checked against the other. Three skills are runtime-blocked **Claude-only**
-(`harness-manager`, `pr-review`, `finish-branch`) and seven portable skills are
+side must be checked against the other. Two skills are runtime-blocked **Claude-only**
+(`harness-manager`, `pr-review`) and six portable skills are
 explicitly **deferred** (`document-writer`, `intake-spec`, `design-feature`, `update-design`,
-`erd-preview`, `kanban-board`, `spec-coverage`). Everything else is a drift-free shared skill. See
+`erd-preview`, `spec-coverage`). Everything else is a drift-free shared skill. See
 [`../docs/claude-codex-skill-parity.md`](../docs/claude-codex-skill-parity.md).
 
 ## Install
@@ -57,8 +57,6 @@ After installation, use this command in Codex TUI:
 /brainstorm <topic> [--depth shallow|deep] [--output plan|doc|none]
 /create-document --template <name> --data <json-path> --out <out-path> [--schema <name>] [--json]
 /decision-dashboard [issue-id] [--mode generate|finalize]
-/design-ui <feature-name> [--out <dir>] [--skip-gate] [--from-brief <path>] [--refs <url,url,...>]
-/functional-spec <wireframe-paths...> [--out <dir>]
 /implement <issue-id> [--side back|front|both] [--step N] [--skip-docs]
 /fix <issue-id> [--side back|front|both] [--step N] [--skip-docs]
 /improve <issue-id> [--side back|front|both] [--step N] [--skip-docs]

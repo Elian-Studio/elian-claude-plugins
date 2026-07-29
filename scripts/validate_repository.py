@@ -42,7 +42,7 @@ UNSAFE_TOOL_PATTERNS = {
     "privilege escalation": re.compile(r"\bBash\(sudo"),
 }
 READ_ONLY_REVIEW_AGENTS = {"engineering-reviewer"}
-HIGH_IMPACT_SKILLS = {"finish-branch", "harness-manager"}
+HIGH_IMPACT_SKILLS = {"harness-manager"}
 # PR/MR posting commands must never be pre-allowlisted: posting a review is a
 # hard-to-reverse external write that has to pass an explicit confirm plus a
 # capability approval, not run silently because it sits in allowed-tools.
@@ -143,16 +143,31 @@ class RepositoryValidator:
             self.add(check, path, f"invalid JSON: {exc}")
             return None
 
-    def skill_directories(self) -> list[Path]:
-        skills_dir = self.root / "plugins" / "elian-store" / "skills"
-        if not skills_dir.is_dir():
-            self.add("skill-contract", skills_dir, "skills directory does not exist")
-            return []
+    def _skills_in(self, skills_dir: Path) -> list[Path]:
         return sorted(
             path
             for path in skills_dir.iterdir()
             if path.is_dir() and not path.name.startswith(("_", "."))
         )
+
+    def store_skill_directories(self) -> list[Path]:
+        """Skills of the bundled elian-store plugin only — the cluster manifest's domain."""
+        skills_dir = self.root / "plugins" / "elian-store" / "skills"
+        if not skills_dir.is_dir():
+            self.add("skill-contract", skills_dir, "skills directory does not exist")
+            return []
+        return self._skills_in(skills_dir)
+
+    def skill_directories(self) -> list[Path]:
+        """Every skill in every plugin. The SKILL.md contract applies to all of them."""
+        directories = self.store_skill_directories()
+        for plugin_dir in sorted((self.root / "plugins").iterdir()):
+            if not plugin_dir.is_dir() or plugin_dir.name == "elian-store":
+                continue
+            skills_dir = plugin_dir / "skills"
+            if skills_dir.is_dir():
+                directories.extend(self._skills_in(skills_dir))
+        return directories
 
     def validate_skill_contracts(self) -> None:
         seen: dict[str, Path] = {}
@@ -247,7 +262,7 @@ class RepositoryValidator:
         manifest = self._load_json(manifest_path, "cluster-manifest")
         if not isinstance(manifest, dict):
             return
-        skills = {path.name for path in self.skill_directories()}
+        skills = {path.name for path in self.store_skill_directories()}
         assigned: dict[str, str] = {}
         plugins = manifest.get("plugins", {})
         for plugin_name, config in plugins.items():
@@ -476,29 +491,22 @@ class RepositoryValidator:
             )
 
     def validate_design_artifact_contract(self) -> None:
-        # The design pipeline shares one canonical layout: /design-ui writes
-        # claudedocs/<label>/mockups/ (incl. tokens.css); /functional-spec reads
-        # it and writes claudedocs/<label>/functional-specs/. Guard the load-bearing
-        # path strings so the contract cannot silently drift back.
+        # Design documents share one canonical root: claudedocs/<label>/. The skills
+        # that wrote mockups/ and functional-specs/ under it were retired, so what is
+        # left to guard is that the surviving design skills have not drifted back to
+        # the older per-feature layout.
         skills = self.root / "plugins" / "elian-store" / "skills"
-        design_ui = skills / "design-ui" / "SKILL.md"
-        functional_spec = skills / "functional-spec" / "SKILL.md"
-        connected = skills / "functional-spec" / "references" / "connected-template.html"
-        if design_ui.is_file():
-            text = design_ui.read_text(encoding="utf-8")
-            if "claudedocs/<label>/mockups/" not in text:
-                self.add("design-contract", design_ui, "design-ui must default its output to claudedocs/<label>/mockups/")
+        for name in ("design-feature", "update-design"):
+            skill_md = skills / name / "SKILL.md"
+            if not skill_md.is_file():
+                continue
+            text = skill_md.read_text(encoding="utf-8")
             if "claudedocs/design/<feature>/" in text:
-                self.add("design-contract", design_ui, "design-ui still references the retired claudedocs/design/<feature>/ path")
-        if functional_spec.is_file():
-            text = functional_spec.read_text(encoding="utf-8")
-            if "claudedocs/<label>/mockups/" not in text:
-                self.add("design-contract", functional_spec, "functional-spec must default its input to claudedocs/<label>/mockups/")
-            if "/design-feature mockups" in text:
-                self.add("design-contract", functional_spec, "functional-spec falsely claims design-feature emits mockups")
-        if connected.is_file():
-            if 'href="../mockups/tokens.css"' not in connected.read_text(encoding="utf-8"):
-                self.add("design-contract", connected, "connected-template must link ../mockups/tokens.css")
+                self.add(
+                    "design-contract",
+                    skill_md,
+                    f"{name} still references the retired claudedocs/design/<feature>/ path",
+                )
 
     def validate_all(self) -> list[Finding]:
         self.validate_skill_contracts()

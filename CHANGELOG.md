@@ -10,6 +10,64 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## elian-store Plugin
 
+### [4.0.0] — 2026-07-29
+
+#### Removed
+- **Four skills retired on usage evidence** (26 → 22): `finish-branch` (0 invocations in 36
+  days), `functional-spec` (0 in 22), `design-ui` (3 in 67), and `kanban-board` (2 in 28).
+  Counts come from the maintainer's `skillUsage` record cross-checked against each skill's
+  first commit, so "unused" is distinguished from "too new to judge" — `spec-coverage` also
+  shows 0 but is 7 days old and stays, and `respond-to-review` / `verify-before-claiming`
+  show 0 only because `disable-model-invocation: false` reflex gates are not counted as
+  invocations at all.
+- Their Codex symlinks (`codex/skills/design-ui`, `codex/skills/functional-spec`) are gone,
+  leaving 12 shared skills.
+
+#### Changed
+- `design-feature` no longer routes screens through a mockup → functional-spec pipeline. Its
+  roadmap `links[]` guidance is now tool-agnostic ("whatever UI tooling the project uses"),
+  and its Next steps hand off to `/spec-coverage` and `/implement` instead of the retired
+  `/finish-branch`.
+- `update-design` drops the `functional-specs/` artifact row, its conditional-update rule, and
+  its handoff-table entry.
+- The `design-contract` validator no longer guards the retired mockups/functional-specs path
+  strings. What remains worth guarding is that the surviving design skills (`design-feature`,
+  `update-design`) have not drifted back to the older `claudedocs/design/<feature>/` layout,
+  so the check now covers exactly that. Its tests were rewritten to match.
+- `HIGH_IMPACT_SKILLS` drops `finish-branch`; `harness-manager` remains.
+- **`validate_repository.py` now enforces the `SKILL.md` contract across every plugin**, not
+  just `elian-store`. `skill_directories()` walks all of `plugins/*/skills/`, while the new
+  `store_skill_directories()` keeps the cluster-manifest check scoped to the bundle it
+  describes. Without this a second plugin would ship with no frontmatter, naming, line-limit,
+  or side-effect-gate validation at all.
+- **`tools/generate.py`'s bare-`${CLAUDE_*}` lint now scans every plugin**, not just the
+  cluster source directory. A bare `${CLAUDE_PLUGIN_ROOT}` is host-dependent wherever it
+  lives, and scoping the lint to `elian-store` meant the first `elian-workflow` draft shipped
+  one — caught only by reading the lint's own scope. Found and fixed in review.
+- **`tools/clusters.json` regrouped from five thematic clusters into two by purpose** —
+  `elian-dev` (13 skills: needs a code repository, git, and tests) and `elian-common`
+  (9 skills: works outside one). This also fixes a latent bug in the staged split:
+  `generate-teammate` hard-references `../_shared/execution-strategy.md`, but the cluster
+  that owned it did not carry `shared: true`, so `--emit` would have shipped a broken link.
+  Both clusters now carry `_shared`.
+
+#### Added
+- **New plugin `elian-workflow` 1.0.0** (`/issue-open`, `/issue-close`) — the issue cycle,
+  which had no skill of its own. Commit-level and day-level records existed; the level that
+  carries design decisions, architecture, and remaining checks did not.
+  `/issue-close` interviews against the commit list (recognition beats recall on a blank
+  page), upserts a narrative into the issue page body under section-scoped supersede rules,
+  backfills commits missing from the audit log, transitions status, and renders a
+  before/after viewer.
+  Workspace-agnostic: every database id, property name, and status value is read from a local
+  config file the skill builds on first run by inspecting live databases. No workspace
+  identifiers are baked into the distributed skills.
+
+#### Marketplace
+- Catalog version 2.8.2 → 2.9.0 for the added plugin entry. `elian-store` stays published —
+  the marketplace has no `deprecated` / `replaces` / `alias` field, so removing an entry
+  silently orphans existing installs.
+
 ### [3.2.0] — 2026-07-23
 
 Aligns the design pipeline on one canonical artifact layout. **Breaking / migration

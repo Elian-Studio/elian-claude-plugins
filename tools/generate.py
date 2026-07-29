@@ -307,12 +307,24 @@ def main():
         fail(1, f"manifest invalid ({len(errs)} error(s))")
     print("Manifest OK: every skill assigned to exactly one plugin; agents resolve.")
 
-    # 2) lint
+    # 2) lint — every plugin, not just the cluster source. A bare ${CLAUDE_*} is
+    #    host-dependent wherever it lives, and a second plugin would otherwise ship unlinted.
     lint_map = {}
     for s in skills:
         v = lint_skill(skills_dir / s / "SKILL.md")
         if v:
             lint_map[s] = v
+    for other in sorted((REPO / "plugins").iterdir()):
+        other_skills = other / "skills"
+        if not other_skills.is_dir() or other_skills == skills_dir:
+            continue
+        for s in discover_skills(other_skills):
+            skill_md = other_skills / s / "SKILL.md"
+            if not skill_md.is_file():
+                continue
+            v = lint_skill(skill_md)
+            if v:
+                lint_map[f"{other.name}/{s}"] = v
     if lint_map:
         print("\nLint — bare ${CLAUDE_PLUGIN_ROOT}/${CLAUDE_SKILL_DIR} in bash blocks:")
         for s, vs in lint_map.items():

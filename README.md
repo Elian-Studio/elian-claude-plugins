@@ -120,8 +120,6 @@ Path: [plugins/elian-store/](plugins/elian-store/)
 | [design-feature](plugins/elian-store/skills/design-feature/) | Self-contained design orchestrator. Generates design.md, architecture, a non-developer PRD **and its developer-facing `tech-spec.md` counterpart** (requirement → implementation mapping, AC-ID cross-checked against the PRD), API spec, QA checklist, and a Mermaid-capable roadmap hub (index.html) through five gated phases. When a `ddl.sql` is produced, Phase 3 optionally emits an interactive `erd-preview.html` lineage explorer from it. Roadmap tasks support an optional product-facing `features[]` capability checklist and a `dropped` status (with `reason`) for recording descoped work. | `/elian-store:design-feature` |
 | [brainstorm](plugins/elian-store/skills/brainstorm/) | Clarify fuzzy thoughts and surface criteria before committing to a direction. | `/elian-store:brainstorm` |
 | [decision-dashboard](plugins/elian-store/skills/decision-dashboard/) | Turn 3+ blocking decisions into a printable HTML + downstream JSON artifact. | `/elian-store:decision-dashboard` |
-| [design-ui](plugins/elian-store/skills/design-ui/) | Produce UI/UX design artifacts through interview, references, wireframe, gate, visual, and delivery. | `/elian-store:design-ui` |
-| [functional-spec](plugins/elian-store/skills/functional-spec/) | Turn wireframes into a code-grounded implementation contract: first a cross-wireframe **shared component catalog** (design recurring UI once), then per-screen functional decomposition + component contract (reuse catalog/existing vs new; codebase `file:line` or greenfield designed-API grounding), plus a robust responsive wireframe↔spec "connected" HTML view. Sits after `/design-ui` mockups, before `/implement`. | `/elian-store:functional-spec` |
 | [implement](plugins/elian-store/skills/implement/) | Build new features through approval-gated TDD. | `/elian-store:implement` |
 | [fix](plugins/elian-store/skills/fix/) | Repair bugs through root-cause analysis and regression-test-first TDD. | `/elian-store:fix` |
 | [improve](plugins/elian-store/skills/improve/) | Make behavior-changing improvements with BEFORE/AFTER evidence. | `/elian-store:improve` |
@@ -138,10 +136,26 @@ Path: [plugins/elian-store/](plugins/elian-store/)
 | [pr-review](plugins/elian-store/skills/pr-review/) | Review an existing PR/MR through a panel of specialist + persona perspectives, synthesize one verdict, and post to the PR only on confirmation. | `/elian-store:pr-review` |
 | [verify-before-claiming](plugins/elian-store/skills/verify-before-claiming/) | Claim-time honesty gate — require fresh verification evidence before any pass/fixed/done claim. | `/elian-store:verify-before-claiming` |
 | [respond-to-review](plugins/elian-store/skills/respond-to-review/) | Consumer side of review — verify feedback before implementing, no performative agreement, push back with reasoning. | `/elian-store:respond-to-review` |
-| [finish-branch](plugins/elian-store/skills/finish-branch/) | Decide how to finish a branch (merge / push+PR / keep / discard) with worktree-safe cleanup; delegates the release flow to `/ship`. | `/elian-store:finish-branch` |
 | [update-design](plugins/elian-store/skills/update-design/) | Design-change propagation orchestrator — runs an impact matrix across existing `/design-feature` docs and updates only the affected ones. | `/elian-store:update-design` |
-| [kanban-board](plugins/elian-store/skills/kanban-board/) | Generate a self-contained, interactive HTML Kanban board (drag-drop, card detail panel, filters, themes) from local task data — no GitHub/GitLab/Jira integration; edits persist via localStorage plus Export/Import JSON. | `/elian-store:kanban-board` |
 | [erd-preview](plugins/elian-store/skills/erd-preview/) | Turn a schema + real rows into a single self-contained "Lineage Explorer" HTML: click a record to trace its lineage (upstream FK ancestors → downstream impacts), with hard-FK (solid) vs soft-reference (dashed) links, an ancestors/impacts summary panel, and a Figma-style zoom/pan viewer. Fills a validated template from a live read-only DB, DDL, design docs, or pasted query results. | `/elian-store:erd-preview` |
+
+### Claude Plugin: `elian-workflow`
+
+Path: [plugins/elian-workflow/](plugins/elian-workflow/)
+
+Issue-cycle bookends that record engineering work history to Notion. Development work has three
+nested cycles — commit, issue, day — and this plugin owns the **issue** cycle: the one that
+carries the decisions, architecture, and remaining checks that a diff can never show.
+
+Workspace-agnostic by construction. Every database id, property name, and status value comes
+from a local config file (`~/.claude/notion-workspace.json`, or `.claude/notion-workspace.json`
+per repository) that the skill helps you build on first run by reading your live databases.
+Nothing about any particular Notion workspace is baked into the skills.
+
+| Skill | Purpose | Invocation |
+|---|---|---|
+| [issue-open](plugins/elian-workflow/skills/issue-open/) | Start an issue: verify the branch upstream points at itself, move the task to in-progress with a start date, report whether design documents and open decisions exist, and seed the issue page body with the metadata and background that are only clear at kickoff. Never creates, switches, or deletes a branch. | `/elian-workflow:issue-open` |
+| [issue-close](plugins/elian-workflow/skills/issue-close/) | Close an issue: interview for the design decisions and dropped alternatives that code cannot show, upsert a readable narrative into the issue page body under section-scoped supersede rules, backfill commits missing from the audit log, transition status, and render a before/after HTML viewer. Recording only — it never merges, pushes, or deletes. | `/elian-workflow:issue-close` |
 
 ### Codex Companion Tree
 
@@ -158,10 +172,10 @@ Path: [codex/](codex/)
 
 Shared skills read one host-agnostic `SKILL.md` and cannot drift between the trees. Only the two
 subagent-core prompts (`generate-teammate`, `persona-review`) are independent files that must be
-kept in sync by hand. Four skills are Claude-only because of runtime constraints
-(`harness-manager`, `pr-review`, `finish-branch`, `spec-coverage`), and six portable skills are
+kept in sync by hand. Two skills are Claude-only because of runtime constraints
+(`harness-manager`, `pr-review`), and six portable skills are
 explicitly deferred (`document-writer`, `intake-spec`, `design-feature`, `update-design`,
-`erd-preview`, `kanban-board`). Parity status is tracked in
+`erd-preview`, `spec-coverage`). Parity status is tracked in
 [docs/claude-codex-skill-parity.md](docs/claude-codex-skill-parity.md).
 
 ### Claude Workflows

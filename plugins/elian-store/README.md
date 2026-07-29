@@ -20,7 +20,6 @@
 | `update-design` | Design docs already exist and a decision, review, or requirement changed — propagate it to only the affected documents. | `/elian-store:update-design` |
 | `brainstorm` | The request is still fuzzy and needs scope, criteria, or options. | `/elian-store:brainstorm` |
 | `decision-dashboard` | You need a printable decision artifact for 3+ blocking choices. | `/elian-store:decision-dashboard` |
-| `design-ui` | You need interview-driven UI/UX design artifacts. | `/elian-store:design-ui` |
 | `implement` | You are building a new feature through approval-gated TDD. | `/elian-store:implement` |
 | `fix` | You are repairing a confirmed bug with regression tests first. | `/elian-store:fix` |
 | `improve` | You are changing working behavior with explicit before/after evidence. | `/elian-store:improve` |
@@ -37,7 +36,6 @@
 | `pr-review` | You want an existing PR/MR reviewed from many perspectives (specialists + personas) with one synthesized verdict, posted only on confirmation. | `/elian-store:pr-review` |
 | `verify-before-claiming` | You are about to claim work passes/builds/is fixed/done and want to force fresh evidence first. | `/elian-store:verify-before-claiming` |
 | `respond-to-review` | You received review feedback on your change and need to respond with rigor before implementing. | `/elian-store:respond-to-review` |
-| `finish-branch` | Your branch is done and you need to decide merge / push+PR / keep / discard with safe cleanup. | `/elian-store:finish-branch` |
 
 ## Package Layout
 

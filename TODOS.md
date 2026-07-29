@@ -35,8 +35,8 @@ turns out to be something people act on.
 **Priority:** P2
 **Noticed:** v3.0.0 (2026-07-22)
 
-`intake-spec`, `design-feature`, `update-design`, `erd-preview`, and
-`kanban-board` have no `codex/skills/<name>` symlink. Recorded as a documented
+`intake-spec`, `design-feature`, `update-design`, and `erd-preview` have no
+`codex/skills/<name>` symlink (`kanban-board` was retired in 4.0.0). Recorded as a documented
 exception in `docs/claude-codex-skill-parity.md`: the artifact contract was still
 moving (v3.0.0 relocated `spec.json`, v3.1.0 added `tech-spec.md`), and porting a
 moving contract doubles the churn. Revisit once the design set is stable.

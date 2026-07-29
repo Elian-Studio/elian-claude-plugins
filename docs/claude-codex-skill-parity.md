@@ -1,11 +1,22 @@
 # Claude / Codex Skill Parity Review
 
 Date: 2026-06-02
-Last updated: 2026-07-23. The Claude catalog has 26 skills. Codex ships 14 shared
-skill symlinks and two hand-authored prompts; three skills are blocked by runtime
-constraints and seven portable skills are explicitly deferred. `tools/clusters.json`
+Last updated: 2026-07-29. The `elian-store` catalog has 22 skills. Codex ships 12 shared
+skill symlinks and two hand-authored prompts; two skills are blocked by runtime
+constraints and six portable skills are explicitly deferred. `tools/clusters.json`
 is the machine-readable disposition source and `scripts/validate_repository.py`
 checks that every skill has exactly one non-overlapping disposition.
+
+> **4.0.0 (2026-07-29) — four skills retired, so parts of the tables below are historical.**
+> `finish-branch`, `functional-spec`, `design-ui`, and `kanban-board` were removed on usage
+> evidence. Their rows are kept as a record of the disposition reasoning, but they no longer
+> exist in either tree, and the `codex/skills/design-ui` and `codex/skills/functional-spec`
+> symlinks are gone. Treat `tools/clusters.json` as authoritative wherever this doc disagrees.
+>
+> A second plugin, `elian-workflow` (`issue-open`, `issue-close`), now ships alongside
+> `elian-store`. It has no Codex counterpart yet — both skills depend on a Notion MCP server,
+> which is a Claude-side integration. Recorded here as a deliberate parity exception rather
+> than an oversight.
 
 ## Goal
 
@@ -41,13 +52,13 @@ A Claude skill and Codex prompt are considered aligned only when all of these ma
 | Legacy `on-call-elian` | Removed from current Claude skill catalog | Removed from current Codex prompt catalog | Aligned |
 | Validation | Repository validator + YAML + skill-owned validators | Repository validator + prompt/config parity review | Automated structure, manual semantics |
 
-Current conclusion: **the two trees cover the same 16-command ported catalog, but they are
-not runtime-identical**. Three skills are Claude-only because of real runtime behavior:
-`harness-manager`, `pr-review`, and `finish-branch`. Seven are portable but
+Current conclusion: **the two trees cover the same 14-command ported catalog, but they are
+not runtime-identical**. Two skills are Claude-only because of real runtime behavior:
+`harness-manager` and `pr-review`. Six are portable but
 deliberately deferred: `document-writer`, `intake-spec`, `design-feature`, `update-design`,
-`erd-preview`, `kanban-board`, and `spec-coverage`.
+`erd-preview`, and `spec-coverage`.
 
-**Skills-based Codex distribution.** Instead of hand-mirrored prompts, `codex/skills/<name>` is a relative symlink into `plugins/elian-store/skills/<name>/`, and `codex/setup.sh` symlinks it into `~/.codex/skills/`. Both tools read one `SKILL.md`, so migrated commands cannot drift. `tools/generate.py` (manifest `tools/clusters.json`) maintains the symlinks and lints every `SKILL.md` for host-agnostic script paths. **14 commands are now shared skills** — everything except the exceptions below.
+**Skills-based Codex distribution.** Instead of hand-mirrored prompts, `codex/skills/<name>` is a relative symlink into `plugins/elian-store/skills/<name>/`, and `codex/setup.sh` symlinks it into `~/.codex/skills/`. Both tools read one `SKILL.md`, so migrated commands cannot drift. `tools/generate.py` (manifest `tools/clusters.json`) maintains the symlinks and lints every `SKILL.md` for host-agnostic script paths **across every plugin, not only the cluster source** — a bare `${CLAUDE_*}` is host-dependent wherever it lives, and scoping the lint to one plugin let a second plugin ship unlinted. **12 commands are now shared skills** — everything except the exceptions below.
 
 **Third-host decision.** The current Claude + Codex shape should stay simple: shared `SKILL.md` symlinks for portable skills plus hand-authored Codex prompts for the two subagent-core flows. Template/adapter generation is deferred until a third host such as Gemini or Cursor becomes a real target; adding that machinery now would increase release and validation surface without solving an active parity gap.
 

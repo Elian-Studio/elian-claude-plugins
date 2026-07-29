@@ -1,5 +1,13 @@
 # Design artifact path migration (v3.2.0)
 
+> **Superseded by 4.0.0 (2026-07-29).** `/design-ui` and `/functional-spec` were retired on
+> usage evidence, so the pipeline this migration aligns no longer exists. The guide is kept
+> for anyone upgrading from a pre-3.2 version, where the old `claudedocs/design/<feature>/`
+> paths may still be on disk — those files are yours to keep or delete, and nothing reads
+> them anymore. On 4.0.0 the only surviving rule is that design documents live under
+> `claudedocs/<label>/`, which `scripts/validate_repository.py` still enforces for
+> `design-feature` and `update-design`.
+
 Version 3.2.0 changes the **default** output location of `/design-ui` and aligns the
 design pipeline on a single canonical layout. This is a migration-required change:
 nothing is moved or deleted automatically, but automation that assumed the old default

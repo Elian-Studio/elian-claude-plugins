@@ -72,7 +72,36 @@ codex/
 8. Avoid shallow command growth.
    A lifecycle gap is not enough reason to add a skill. Add one only when it has a repeatable workflow, clear boundary, expected output, and verification method.
 
-## Split decision (2026-06-12)
+## Split decision — superseded (2026-07-29)
+
+The 2026-06-12 decision below stands as the record of *why* the split was held back, and its
+central constraint still holds: **`elian-store` is never removed from the marketplace.** What
+changed is the shape of the staged split and the arrival of a second published plugin.
+
+- **The five thematic clusters were regrouped into two by purpose.** `tools/clusters.json` now
+  renders `elian-dev` (13 skills that need a code repository, git, and tests) and `elian-common`
+  (9 skills that work outside one). The five-way split cut across that line — `elian-design`
+  in particular mixed document authoring with code-grounded screen specs.
+- **A latent bug in the staged output is fixed.** `generate-teammate` hard-references
+  `../_shared/execution-strategy.md`, but `elian-artifacts` did not carry `shared: true`, so
+  `--emit` would have shipped a broken link. Both clusters now carry `_shared`; the duplicated
+  file is 263 lines and the alternative was welding the document skills to the TDD skills.
+- **`elian-workflow` 1.0.0 is published alongside `elian-store`**, not carved out of it. It is
+  new surface (the issue cycle), and it meets the "different audience / permission profile" bar
+  in Operating Principle 1: it is the only plugin that talks to an external service, and it
+  carries no value unless the user configures a Notion workspace locally. Publishing it
+  alongside is exactly the coexistence mechanism prescribed below.
+- **The two clusters remain staged in `dist/`, still unpublished.** Nothing about the two-way
+  regrouping changes the reasoning below — they still share one audience, one permission
+  profile, and one release cadence, and removing `elian-store` would still orphan installs.
+  The regrouping keeps the staged output correct and drift-free; it is not a decision to ship it.
+
+Also of note: four skills were retired in `elian-store` 4.0.0 on usage evidence
+(`finish-branch`, `functional-spec`, `design-ui`, `kanban-board`), so the Lifecycle Map below
+has gaps where UI design and wireframe-to-code specs used to sit. Those slots are open again,
+and Operating Principle 8 applies before refilling them.
+
+## Split decision (2026-06-12) — historical
 
 The dual-tool distribution work built a generator (`tools/generate.py`, manifest `tools/clusters.json`) that can render `elian-store`'s skills (16 at the time; 26 as of v3.1.0) into **five composition-respecting thematic plugins** (`elian-artifacts`, `elian-tdd`, `elian-review`, `elian-design`, `elian-harness`) plus a marketplace catalog. The split is **validated and staged in the gitignored `dist/`, but deliberately not published.**
 
@@ -110,7 +139,9 @@ Before adding or materially changing a skill, answer:
 | Intent shaping | `brainstorm` | Exists, but keep its core as thought clarification, not forced handoff. |
 | Decision artifact | `decision-dashboard` | Strong. Preserve narrow scope and downstream JSON. |
 | Feature planning | `intake-spec` + `design-feature` + `update-design` | Covered. `ai-assisted-feature-development` was retired in v3.0.0 — it ran a parallel 9-phase pipeline over the same lanes without sharing the `claudedocs/<label>/` artifact set. |
-| UI design | `design-ui` | Covered. Needs stronger browser-visible follow-up lane later. |
+| UI design | Missing | `design-ui` retired in 4.0.0 (3 invocations in 67 days). The slot is open; Operating Principle 8 applies before refilling it. |
+| Wireframe-to-code spec | Missing | `functional-spec` retired in 4.0.0 (0 invocations in 22 days). Reopen only with a repeatable workflow. |
+| Issue work-history | `elian-workflow` (`issue-open`, `issue-close`) | Added 2026-07-29 as a separate plugin. The issue cycle sits between per-commit logs and daily summaries and carries the decisions a diff cannot show. |
 | Implementation | `implement` | Covered. Should hand off to review/QA instead of absorbing release behavior. |
 | Bug fixing | `fix` | Covered. Keep root-cause-first and regression-test-first posture. |
 | Improvement | `improve` | Covered. Keep BEFORE/AFTER evidence and characterization tests. |
