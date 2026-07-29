@@ -98,7 +98,7 @@ allowed-tools: {tools}{gate}
         self.assertTrue(any(item.check == "side-effect-gate" for item in validator.findings))
 
     def test_requires_invocation_gate_for_known_high_impact_skill(self) -> None:
-        self.write_skill("finish-branch", tools="Read")
+        self.write_skill("harness-manager", tools="Read")
         validator = RepositoryValidator(self.root)
         validator.validate_skill_contracts()
         self.assertTrue(any(item.check == "side-effect-gate" for item in validator.findings))
@@ -217,40 +217,159 @@ class DesignArtifactContractTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
         self.skills = self.root / "plugins" / "elian-store" / "skills"
-        (self.skills / "design-ui").mkdir(parents=True)
-        (self.skills / "functional-spec" / "references").mkdir(parents=True)
+        (self.skills / "design-feature").mkdir(parents=True)
+        (self.skills / "update-design").mkdir(parents=True)
 
     def tearDown(self) -> None:
         self.temp.cleanup()
 
-    def write(self, design_ui: str, functional_spec: str, connected: str) -> None:
-        (self.skills / "design-ui" / "SKILL.md").write_text(design_ui, encoding="utf-8")
-        (self.skills / "functional-spec" / "SKILL.md").write_text(functional_spec, encoding="utf-8")
-        (self.skills / "functional-spec" / "references" / "connected-template.html").write_text(
-            connected, encoding="utf-8"
-        )
+    def write(self, design_feature: str, update_design: str) -> None:
+        (self.skills / "design-feature" / "SKILL.md").write_text(design_feature, encoding="utf-8")
+        (self.skills / "update-design" / "SKILL.md").write_text(update_design, encoding="utf-8")
 
-    GOOD_DUI = "Output dir: claudedocs/<label>/mockups/\n"
-    GOOD_FS = "Resolve: claudedocs/<label>/mockups/, from /design-ui\n"
-    GOOD_CONNECTED = '<link rel="stylesheet" href="../mockups/tokens.css">\n'
+    GOOD = "Everything lives under claudedocs/<label>/\n"
 
     def test_passes_on_aligned_contract(self) -> None:
-        self.write(self.GOOD_DUI, self.GOOD_FS, self.GOOD_CONNECTED)
+        self.write(self.GOOD, self.GOOD)
         validator = RepositoryValidator(self.root)
         validator.validate_design_artifact_contract()
         self.assertEqual([item for item in validator.findings if item.check == "design-contract"], [])
 
     def test_flags_retired_design_path(self) -> None:
-        self.write(self.GOOD_DUI + "legacy claudedocs/design/<feature>/\n", self.GOOD_FS, self.GOOD_CONNECTED)
+        self.write(self.GOOD + "legacy claudedocs/design/<feature>/\n", self.GOOD)
         validator = RepositoryValidator(self.root)
         validator.validate_design_artifact_contract()
         self.assertTrue(any("retired" in item.message for item in validator.findings))
 
-    def test_flags_false_design_feature_mockups_claim(self) -> None:
-        self.write(self.GOOD_DUI, self.GOOD_FS + "from /design-feature mockups\n", self.GOOD_CONNECTED)
+    def test_flags_retired_path_in_update_design(self) -> None:
+        self.write(self.GOOD, self.GOOD + "legacy claudedocs/design/<feature>/\n")
         validator = RepositoryValidator(self.root)
         validator.validate_design_artifact_contract()
-        self.assertTrue(any("falsely claims design-feature" in item.message for item in validator.findings))
+        self.assertTrue(any("update-design still references" in item.message for item in validator.findings))
+
+
+class CodexDanglingSymlinkTests(unittest.TestCase):
+    """Retiring a skill used to leave its codex/skills symlink behind, and nothing caught it:
+    both disposition loops iterate skills discovered under the plugin, so a link pointing at
+    a skill that no longer exists is invisible to them."""
+
+    def setUp(self) -> None:
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name)
+        self.skills = self.root / "plugins" / "elian-store" / "skills"
+        self.skills.mkdir(parents=True)
+        (self.root / "plugins" / "elian-store" / "agents").mkdir()
+        (self.root / "tools").mkdir()
+        self.codex = self.root / "codex" / "skills"
+        self.codex.mkdir(parents=True)
+
+    def tearDown(self) -> None:
+        self.temp.cleanup()
+
+    def write_manifest(self, skills: list[str]) -> None:
+        (self.root / "tools" / "clusters.json").write_text(
+            json.dumps(
+                {
+                    "source": {
+                        "skills_dir": "plugins/elian-store/skills",
+                        "agents_dir": "plugins/elian-store/agents",
+                    },
+                    "agent_groups": {},
+                    "plugins": {"only": {"skills": skills}},
+                    "codex": {"claude_only": [], "prompt_only": [], "deferred": []},
+                }
+            ),
+            encoding="utf-8",
+        )
+
+    def make_skill(self, name: str) -> None:
+        skill_dir = self.skills / name
+        skill_dir.mkdir()
+        (skill_dir / "SKILL.md").write_text(
+            f"---\nname: {name}\ndescription: t\nallowed-tools: Read\n---\n# {name}\n",
+            encoding="utf-8",
+        )
+
+    def test_flags_a_symlink_whose_target_was_removed(self) -> None:
+        self.make_skill("kept")
+        self.write_manifest(["kept"])
+        (self.codex / "kept").symlink_to("../../plugins/elian-store/skills/kept")
+        # The skill directory this one points at was never created — the retired case.
+        (self.codex / "retired").symlink_to("../../plugins/elian-store/skills/retired")
+        validator = RepositoryValidator(self.root)
+        validator.validate_cluster_manifest()
+        self.assertTrue(any("dangling symlink" in item.message for item in validator.findings))
+
+    def test_passes_when_every_link_resolves(self) -> None:
+        self.make_skill("kept")
+        self.write_manifest(["kept"])
+        (self.codex / "kept").symlink_to("../../plugins/elian-store/skills/kept")
+        validator = RepositoryValidator(self.root)
+        validator.validate_cluster_manifest()
+        self.assertEqual(
+            [i for i in validator.findings if i.check == "codex-disposition"], []
+        )
+
+
+class MultiPluginCoverageTests(unittest.TestCase):
+    """Both checks below used to hard-code plugins/elian-store, so a second plugin
+    was validated by nothing. These lock the plugin-agnostic behavior in place."""
+
+    def setUp(self) -> None:
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name)
+        (self.root / ".claude-plugin").mkdir(parents=True)
+
+    def tearDown(self) -> None:
+        self.temp.cleanup()
+
+    def write_plugin(self, name: str, version: str) -> Path:
+        plugin_dir = self.root / "plugins" / name
+        (plugin_dir / ".claude-plugin").mkdir(parents=True)
+        (plugin_dir / ".claude-plugin" / "plugin.json").write_text(
+            json.dumps({"name": name, "version": version}), encoding="utf-8"
+        )
+        skills = plugin_dir / "skills"
+        skills.mkdir()
+        return skills
+
+    def write_marketplace(self, entries: dict[str, str]) -> None:
+        (self.root / ".claude-plugin" / "marketplace.json").write_text(
+            json.dumps(
+                {"plugins": [{"name": n, "version": v} for n, v in entries.items()]}
+            ),
+            encoding="utf-8",
+        )
+
+    def test_version_parity_covers_every_plugin_not_just_the_bundle(self) -> None:
+        self.write_plugin("elian-store", "4.1.0")
+        self.write_plugin("elian-workflow", "9.9.9")
+        self.write_marketplace({"elian-store": "4.1.0", "elian-workflow": "1.0.0"})
+        validator = RepositoryValidator(self.root)
+        validator.validate_versions()
+        messages = [item.message for item in validator.findings]
+        self.assertTrue(any("elian-workflow" in message for message in messages))
+        self.assertFalse(any("elian-store" in message for message in messages))
+
+    def test_version_parity_reports_a_missing_marketplace_entry(self) -> None:
+        self.write_plugin("elian-workflow", "1.0.0")
+        self.write_marketplace({})
+        validator = RepositoryValidator(self.root)
+        validator.validate_versions()
+        self.assertTrue(
+            any("marketplace entry is missing" in item.message for item in validator.findings)
+        )
+
+    def test_english_policy_covers_a_second_plugin(self) -> None:
+        skills = self.write_plugin("elian-workflow", "1.0.0")
+        self.write_marketplace({"elian-workflow": "1.0.0"})
+        (skills / "issue-open").mkdir()
+        (skills / "issue-open" / "SKILL.md").write_text(
+            "---\nname: issue-open\n---\n한글 본문\n", encoding="utf-8"
+        )
+        validator = RepositoryValidator(self.root)
+        validator.validate_english_policy()
+        self.assertTrue(any(item.check == "english-policy" for item in validator.findings))
 
 
 if __name__ == "__main__":

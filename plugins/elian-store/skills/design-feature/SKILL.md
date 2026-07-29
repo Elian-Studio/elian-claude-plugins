@@ -296,21 +296,16 @@ Use `status: "dropped"` + `reason` to record a screen/task you explicitly
 decided not to build (rather than leaving it as `todo`).
 
 This skill produces design documents and the roadmap; it does **not** emit
-wireframes/mockups. Screen artifacts flow through the pipeline as:
-`design-feature` (design docs + roadmap) → `/design-ui` (writes
-`claudedocs/<label>/mockups/` incl. `tokens.css`) → `/functional-spec`
-(writes `claudedocs/<label>/functional-specs/`). All three share the same
-canonical `<label>` and live under `claudedocs/<label>/`.
+wireframes or mockups. Everything it writes lives under the canonical
+`claudedocs/<label>/`.
 
-When a task represents a screen/menu that has a corresponding functional-spec
-document — a `functional-specs/<screen>-connected.html` from the sibling
-`functional-spec` skill, or any doc already in this feature's `docs[]` — add a
-`links[]` entry on that task pointing to it, e.g.
-`{"label": "Functional spec", "url": "functional-specs/<screen>-connected.html"}`.
-Check the actual emitted filename before linking — do not guess.
-A reviewer opening the screen's task drawer can then jump straight to its spec
-instead of hunting through `docs[]`. Reuse the existing `links[]` field — no new
-schema.
+When a task represents a screen or menu that has a supporting document — anything
+already in this feature's `docs[]`, or a screen artifact produced by whatever UI
+tooling the project uses — add a `links[]` entry on that task pointing to it, e.g.
+`{"label": "Screen spec", "url": "<path under claudedocs/<label>/>"}`.
+Check the actual filename before linking — do not guess.
+A reviewer opening the screen's task drawer can then jump straight to it instead of
+hunting through `docs[]`. Reuse the existing `links[]` field — no new schema.
 
 ### 5.2 Render index.html
 
@@ -358,12 +353,10 @@ Print a structured completion report:
 
 ### Next steps
 - Roadmap hub: claudedocs/<label>/index.html
-- If screens change: /functional-spec <label> — bind each wireframe element to
-  real components + APIs (code-grounded contract) before /implement.
 - When implementation starts: /spec-coverage init <label> — seed the requirement
   → test checklist from these docs, so every AC is tracked until a passing test
   proves it.
-- Commit and open PR: /finish-branch
+- Build it: /implement <label>
 ```
 
 ---

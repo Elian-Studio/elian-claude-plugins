@@ -25,41 +25,27 @@
   },
 
   "plugins": {
-    "elian-artifacts": {
-      "displayName": "Elian Artifacts",
-      "description": "Artifact generation and team orchestration: route to the right workflow, render schema-validated documents, build decision dashboards, spawn teammates, and brainstorm before committing.",
-      "skills": ["create-document", "decision-dashboard", "generate-teammate", "brainstorm"],
-      "agents": "domain"
-    },
-    "elian-tdd": {
-      "displayName": "Elian TDD",
-      "description": "Approval-gated TDD development flow: implement features, fix bugs, and make behavior-changing improvements with shared execution strategy.",
-      "skills": ["implement", "fix", "improve"],
+    "elian-dev": {
+      "displayName": "Elian Dev",
+      "description": "The workflow that needs a code repository: approval-gated TDD implementation, root-cause bug fixing, evidence-backed improvement, findings-first engineering review, persona-lens review, multi-perspective PR review, PR/MR description drafting, the consumer side of receiving review feedback, verify-skill discovery and drift repair, a claim-time evidence gate, requirement-to-test coverage tracking, and harness reconciliation.",
+      "skills": ["implement", "fix", "improve", "review", "persona-review", "pr-review", "pr-writer", "respond-to-review", "verify-implementation", "verify-before-claiming", "spec-coverage", "manage-skills", "harness-manager"],
+      "agents": "reviewers",
       "shared": true
     },
-    "elian-review": {
-      "displayName": "Elian Review",
-      "description": "Engineering review and verification: findings-first code review, persona-lens review, verify-skill discovery, verify-skill drift repair, a claim-time evidence gate, requirement-to-test coverage tracking, and the consumer side of receiving review feedback.",
-      "skills": ["review", "persona-review", "pr-review", "verify-implementation", "manage-skills", "verify-before-claiming", "respond-to-review", "spec-coverage"],
-      "agents": "reviewers"
-    },
-    "elian-design": {
-      "displayName": "Elian Design",
-      "description": "Design and authoring: requirements intake, gated design-document generation, design-change propagation, UI/UX design artifacts, wireframe-to-code functional specs, schema lineage previews, local task boards, and self-contained house-styled documents.",
-      "skills": ["intake-spec", "design-feature", "update-design", "design-ui", "functional-spec", "erd-preview", "kanban-board", "document-writer"]
-    },
-    "elian-harness": {
-      "displayName": "Elian Harness",
-      "description": "Maintainer tooling: reconcile Claude/Codex global harness drift, draft review-friendly PR/MR descriptions, and finish a development branch (merge / PR / keep / discard) with worktree-safe cleanup.",
-      "skills": ["harness-manager", "pr-writer", "finish-branch"]
+    "elian-common": {
+      "displayName": "Elian Common",
+      "description": "The workflow that works outside a code repository: requirements intake, gated design-document generation, design-change propagation, decision dashboards, schema-validated document rendering, self-contained house-styled documents, schema lineage previews, execution routing across subagents and teams, and structured brainstorming.",
+      "skills": ["intake-spec", "design-feature", "update-design", "create-document", "decision-dashboard", "document-writer", "erd-preview", "generate-teammate", "brainstorm"],
+      "agents": "domain",
+      "shared": true
     }
   },
 
   "codex": {
     "_comment": "Codex distribution per skill. claude_only = blocked by a real runtime limitation; prompt_only = hand-authored Codex prompt; deferred = portable but intentionally not shipped yet; everything else ships as a codex/skills/<name> symlink.",
-    "claude_only": ["harness-manager", "pr-review", "finish-branch"],
+    "claude_only": ["harness-manager", "pr-review"],
     "prompt_only": ["generate-teammate", "persona-review"],
     "deferred": ["document-writer", "intake-spec", "design-feature", "update-design",
-      "erd-preview", "kanban-board", "spec-coverage"]
+      "erd-preview", "spec-coverage"]
   }
 }

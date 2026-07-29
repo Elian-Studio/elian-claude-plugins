@@ -260,8 +260,8 @@ Fix all in one PR with shared regression tests.
 ## Skill verification
 
 ```bash
-python3 plugins/elian-store/skills/fix/scripts/validate_skill.py
-python3 plugins/elian-store/skills/fix/scripts/validate_skill.py --json
+python3 tools/validate_skill.py plugins/elian-store/skills/fix
+python3 tools/validate_skill.py plugins/elian-store/skills/fix --json
 ```
 
 ## Pre-flight checklist

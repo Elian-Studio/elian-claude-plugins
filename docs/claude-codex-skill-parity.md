@@ -1,11 +1,22 @@
 # Claude / Codex Skill Parity Review
 
 Date: 2026-06-02
-Last updated: 2026-07-23. The Claude catalog has 26 skills. Codex ships 14 shared
-skill symlinks and two hand-authored prompts; three skills are blocked by runtime
-constraints and seven portable skills are explicitly deferred. `tools/clusters.json`
+Last updated: 2026-07-29. The `elian-store` catalog has 22 skills. Codex ships 12 shared
+skill symlinks and two hand-authored prompts; two skills are blocked by runtime
+constraints and six portable skills are explicitly deferred. `tools/clusters.json`
 is the machine-readable disposition source and `scripts/validate_repository.py`
 checks that every skill has exactly one non-overlapping disposition.
+
+> **4.0.0 (2026-07-29) — four skills retired, so parts of the tables below are historical.**
+> `finish-branch`, `functional-spec`, `design-ui`, and `kanban-board` were removed on usage
+> evidence. Their rows are kept as a record of the disposition reasoning, but they no longer
+> exist in either tree, and the `codex/skills/design-ui` and `codex/skills/functional-spec`
+> symlinks are gone. Treat `tools/clusters.json` as authoritative wherever this doc disagrees.
+>
+> A second plugin, `elian-workflow` (`issue-open`, `issue-close`), now ships alongside
+> `elian-store`. It has no Codex counterpart yet — both skills depend on a Notion MCP server,
+> which is a Claude-side integration. Recorded here as a deliberate parity exception rather
+> than an oversight.
 
 ## Goal
 
@@ -35,29 +46,29 @@ A Claude skill and Codex prompt are considered aligned only when all of these ma
 
 | Area | Claude | Codex | Status |
 |---|---:|---:|---|
-| Catalog entries | 26 skills | 2 prompts + 14 shared skills | 16 matched + 3 Claude-only + 7 deferred |
-| Command naming | `/elian-store:<skill>` | `/<prompt-file>` | Mostly alignable |
-| Current matched commands | `brainstorm`, `create-document`, `decision-dashboard`, `design-ui`, `fix`, `functional-spec`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `review`, `verify-implementation`, `persona-review`, `pr-writer`, `verify-before-claiming`, `respond-to-review` | `brainstorm`, `create-document`, `decision-dashboard`, `design-ui`, `fix`, `functional-spec`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `review`, `verify-implementation`, `persona-review`, `pr-writer`, `verify-before-claiming`, `respond-to-review` | Aligned |
+| Catalog entries | 22 skills (`elian-store`) + 2 (`elian-workflow`) | 2 prompts + 12 shared skills | 14 matched + 2 Claude-only + 6 deferred + 2 MCP-bound |
+| Command naming | `/elian-store:<skill>`, `/elian-workflow:<skill>` | `/<prompt-file>` | Mostly alignable |
+| Current matched commands | `brainstorm`, `create-document`, `decision-dashboard`, `fix`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `review`, `verify-implementation`, `persona-review`, `pr-writer`, `verify-before-claiming`, `respond-to-review` | `brainstorm`, `create-document`, `decision-dashboard`, `fix`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `review`, `verify-implementation`, `persona-review`, `pr-writer`, `verify-before-claiming`, `respond-to-review` | Aligned |
 | Legacy `on-call-elian` | Removed from current Claude skill catalog | Removed from current Codex prompt catalog | Aligned |
 | Validation | Repository validator + YAML + skill-owned validators | Repository validator + prompt/config parity review | Automated structure, manual semantics |
 
-Current conclusion: **the two trees cover the same 16-command ported catalog, but they are
-not runtime-identical**. Three skills are Claude-only because of real runtime behavior:
-`harness-manager`, `pr-review`, and `finish-branch`. Seven are portable but
+Current conclusion: **the two trees cover the same 14-command ported catalog, but they are
+not runtime-identical**. Two skills are Claude-only because of real runtime behavior:
+`harness-manager` and `pr-review`. Six are portable but
 deliberately deferred: `document-writer`, `intake-spec`, `design-feature`, `update-design`,
-`erd-preview`, `kanban-board`, and `spec-coverage`.
+`erd-preview`, and `spec-coverage`.
 
-**Skills-based Codex distribution.** Instead of hand-mirrored prompts, `codex/skills/<name>` is a relative symlink into `plugins/elian-store/skills/<name>/`, and `codex/setup.sh` symlinks it into `~/.codex/skills/`. Both tools read one `SKILL.md`, so migrated commands cannot drift. `tools/generate.py` (manifest `tools/clusters.json`) maintains the symlinks and lints every `SKILL.md` for host-agnostic script paths. **14 commands are now shared skills** — everything except the exceptions below.
+**Skills-based Codex distribution.** Instead of hand-mirrored prompts, `codex/skills/<name>` is a relative symlink into `plugins/elian-store/skills/<name>/`, and `codex/setup.sh` symlinks it into `~/.codex/skills/`. Both tools read one `SKILL.md`, so migrated commands cannot drift. `tools/generate.py` (manifest `tools/clusters.json`) maintains the symlinks and lints every `SKILL.md` for host-agnostic script paths **across every plugin, not only the cluster source** — a bare `${CLAUDE_*}` is host-dependent wherever it lives, and scoping the lint to one plugin let a second plugin ship unlinted. **12 commands are now shared skills** — everything except the exceptions below.
 
 **Third-host decision.** The current Claude + Codex shape should stay simple: shared `SKILL.md` symlinks for portable skills plus hand-authored Codex prompts for the two subagent-core flows. Template/adapter generation is deferred until a third host such as Gemini or Cursor becomes a real target; adding that machinery now would increase release and validation surface without solving an active parity gap.
 
-**The exceptions.** Three skills are **Claude-only** for runtime reasons. Seven portable skills are
+**The exceptions.** Two skills are **Claude-only** for runtime reasons. Six portable skills are
 **deferred**, which means omission is an explicit product choice rather than a runtime claim. Two
 stay **hand-authored Codex prompts** because their core is Claude subagent dispatch:
 `generate-teammate` and `persona-review`. Their `SKILL.md` bodies are host-agnostic, but
 symlinking them would advertise a dispatch flow Codex cannot reproduce.
 
-**Host-agnostic `SKILL.md` portability** (resolve `SKILL_DIR` / sibling `CD` with a `${CLAUDE_SKILL_DIR:-${CLAUDE_PLUGIN_ROOT:+...}}` → `${CODEX_HOME:-$HOME/.codex}/skills/...` fallback, never a bare `CLAUDE_PLUGIN_ROOT`/`CLAUDE_SKILL_DIR`) is applied to all six skills that used those vars: `create-document`, `decision-dashboard`, `design-ui`, `generate-teammate`, `manage-skills`, and `verify-implementation`. The last two were caught by the `tools/generate.py` lint; the lint now gates every skill.
+**Host-agnostic `SKILL.md` portability** (resolve `SKILL_DIR` / sibling `CD` with a `${CLAUDE_SKILL_DIR:-${CLAUDE_PLUGIN_ROOT:+...}}` → `${CODEX_HOME:-$HOME/.codex}/skills/...` fallback, never a bare `CLAUDE_PLUGIN_ROOT`/`CLAUDE_SKILL_DIR`) is applied to every skill that uses those vars: `create-document`, `decision-dashboard`, `generate-teammate`, `manage-skills`, `verify-implementation`, and `issue-close`. The last two were caught by the `tools/generate.py` lint; the lint now gates every skill.
 
 ## gstack Portfolio Lens
 
@@ -66,7 +77,7 @@ symlinking them would advertise a dispatch flow Codex cannot reproduce.
 | Lifecycle lane | Current Claude coverage | Current Codex coverage | Status |
 |---|---|---|---|
 | Product/spec planning | `brainstorm`, `intake-spec`, `design-feature`, `update-design`, `decision-dashboard` | `brainstorm`, `decision-dashboard` | Partial; pipeline deferred |
-| Design planning | `design-ui` | `design-ui` | Aligned |
+| Design planning | None (`design-ui` retired in 4.0.0) | None | Gap — slot reopened |
 | Implementation/fix/improve | `implement`, `fix`, `improve` | `implement`, `fix`, `improve` | Aligned |
 | Engineering review | `review`; `persona-review` remains persona-lens critique | `review`, `persona-review` | Aligned with runtime-specific dispatch |
 | Browser QA | None | None | Gap |

@@ -131,15 +131,9 @@ The panel returns many overlapping voices. Turn that into a decision:
 5. **Rank** by severity (see rubric) then confidence. Drop confidence < 4 to an appendix.
 6. **Decide one verdict:** `Request changes` if any CRITICAL/HIGH or unmet requirement remains; `Comment` if only MEDIUM/LOW notes; `Approve` if nothing blocks. State residual risk either way.
 
-Severity rubric:
-
-| Severity | Meaning |
-|---|---|
-| CRITICAL | likely data loss, auth bypass, outage, or unsafe deploy |
-| HIGH | likely bug/regression, broken contract, or unmet requirement before merge |
-| MEDIUM | plausible defect, missing test for risky behavior, near-term maintainability risk |
-| LOW | minor issue, readability, local polish |
-| INFO | useful note, not a finding |
+Severity rubric and finding shape are defined once in
+[../_shared/review-severity.md](../_shared/review-severity.md) — read it before ranking.
+`/review` uses the same file, so severities are comparable across both lanes.
 
 ### 4. REPORT — the output contract
 

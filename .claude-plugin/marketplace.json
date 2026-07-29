@@ -5,16 +5,16 @@
     "email": "danielmrbang@gmail.com"
   },
   "metadata": {
-    "description": "Daniel (Elian-Studio)'s Claude Code plugin marketplace. Ships one bundled plugin, elian-store, with workflow skills, agents, hooks, and skill-owned validators.",
-    "version": "2.8.2",
+    "description": "Daniel (Elian-Studio)'s Claude Code plugin marketplace. Ships elian-store (bundled workflow skills, agents, hooks, and skill-owned validators) and elian-workflow (issue-cycle work-history recording to Notion).",
+    "version": "2.9.0",
     "pluginRoot": "./plugins"
   },
   "plugins": [
     {
       "name": "elian-store",
       "source": "./plugins/elian-store",
-      "description": "Workflow bundle with requirements intake, gated design-document generation and change propagation, decision artifacts, UI design, TDD implementation flows, engineering and persona review, verification orchestration, harness sync, and bundled domain agents.",
-      "version": "3.2.0",
+      "description": "Workflow bundle with requirements intake, gated design-document generation and change propagation, decision artifacts, TDD implementation flows, engineering and persona review, PR review and drafting, verification orchestration, requirement coverage, harness sync, and bundled domain agents.",
+      "version": "4.1.0",
       "author": {
         "name": "Daniel (Elian-Studio)"
       },
@@ -28,6 +28,26 @@
         "harness",
         "routing",
         "workflow"
+      ],
+      "license": "MIT"
+    },
+    {
+      "name": "elian-workflow",
+      "source": "./plugins/elian-workflow",
+      "description": "Issue-cycle bookends that record engineering work history to Notion: open an issue and close it with a readable narrative of decisions, architecture, verification, and remaining checks. Workspace-agnostic — database ids and property names come from a local config the skill helps you create on first run.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Daniel (Elian-Studio)"
+      },
+      "category": "productivity",
+      "tags": [
+        "elian",
+        "workflow",
+        "issue",
+        "notion",
+        "work-history",
+        "decision-record",
+        "narrative"
       ],
       "license": "MIT"
     }

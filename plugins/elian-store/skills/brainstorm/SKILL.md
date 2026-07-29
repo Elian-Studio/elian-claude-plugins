@@ -427,8 +427,8 @@ Decisions made cleanly, one at a time.
 ## Skill verification
 
 ```bash
-python3 [scripts/validate_skill.py](scripts/validate_skill.py)
-python3 [scripts/validate_skill.py](scripts/validate_skill.py) --json
+python3 tools/validate_skill.py plugins/elian-store/skills/brainstorm
+python3 tools/validate_skill.py plugins/elian-store/skills/brainstorm --json
 ```
 
 ## Pre-flight checklist

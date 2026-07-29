@@ -10,6 +10,131 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## elian-store Plugin
 
+### [4.1.0] — 2026-07-29
+
+Layering work driven by measurement rather than by taxonomy. An architecture proposal
+predicted six duplicated conventions; a line-by-line audit found one, and found the largest
+duplication in the tree somewhere the proposal never looked.
+
+#### Removed
+- **`validate_skill.py`: four byte-identical copies collapsed into one** (`brainstorm`, `fix`,
+  `implement`, `improve` — 207 lines each, identical MD5, **621 lines deleted**). They were
+  identical because the script self-identified from its own location; the shared
+  `tools/validate_skill.py` takes the skill directory as an argument instead and accepts
+  several at once. Changing a structural rule is now one edit rather than four-or-three-silent-
+  divergences. Output is unchanged except for the retired `scripts/ directory exists` check,
+  which only ever passed because the checker itself lived in that directory.
+
+#### Fixed
+- **`document-writer` produced documents that were not self-contained.**
+  `assets/house-style.css` carried an `@import` of a jsDelivr-hosted webfont, and
+  `build_doc.py` inlines that file wholesale — so every "opens anywhere" document shipped a
+  CDN dependency, contradicting four separate documented rules (`document-writer/SKILL.md:30`
+  and `:109`, `decision-dashboard/SKILL.md:271`, `erd-preview/SKILL.md:146`). The `@import`
+  also sat *after* `:root {…}`, where CSS requires it to come first, so browsers were already
+  ignoring it: a broken promise that bought nothing. Removed; the existing system font stack
+  covers the fallback. A generated document now contains zero external URLs.
+- `_shared/execution-strategy.md` claimed a single consumer (`/generate-teammate`). It has four.
+
+#### Changed
+- **Review severity is defined once.** `review` and `pr-review` each carried a five-row rubric
+  and they had drifted in four of five rows — `CRITICAL` said "production outage" versus
+  "outage", `HIGH` gained "or unmet requirement" on one side only, `LOW` lost "non-blocking
+  observation". Both now read `skills/_shared/review-severity.md`, reconciled to the superset,
+  so a `HIGH` means the same thing in both lanes. The domain rubrics in
+  `agents/security-engineer.md` (exploitability) and `agents/ux-researcher.md` (task
+  completion) are deliberately left separate — they measure a different axis.
+- **The validation substrate is no longer `elian-store`-shaped.** Four checks silently skipped
+  every other plugin:
+  - `validate_versions()` walks `plugins/*/.claude-plugin/plugin.json`. Before this,
+    `elian-workflow`'s `plugin.json` could drift from its marketplace entry with nothing
+    catching it — precisely the failure that leaves installed users receiving nothing while
+    the catalog claims a new version.
+  - `_policy_files()` covers every plugin's `skills/`, so the English-only rule now applies
+    beyond the bundle.
+  - CI validates YAML frontmatter across `plugins/*/` and runs bundled validators from
+    `plugins/*/skills/*/scripts/`.
+  Both new checks were confirmed by deliberately introducing a violation and watching them fail.
+
+#### Documentation
+- **The documented validation commands were scoped to the bundle too.** `CLAUDE.md`,
+  `README.md`, and `plugins/elian-store/README.md` all told contributors to run
+  `Dir["plugins/elian-store/skills/*/SKILL.md"]`, so anyone following the documented
+  procedure would have validated 22 of 24 skills and never known. All globs are now
+  `plugins/*`, `tools/generate.py` is listed alongside the other checks, and the shared
+  `tools/validate_skill.py` is documented next to the bespoke per-skill validators. Every
+  command in those blocks was executed verbatim to confirm it runs.
+- `TODOS.md` gains the three deferrals this release created rather than leaving them in
+  commit messages: the `generate-teammate` → `create-document` invocation conversion
+  (only blocking if the layers are published), the 18× `SKILL_DIR` snippet duplication,
+  and the fact that CI never verifies the emitted cluster output.
+- `docs/plugin-layering-architecture.md` — the Workflow / Standards / Common layering, with §1.1
+  corrected against the audit. It records what the extraction *did not* find, because the useful
+  result was negative: three skills all saying "TDD" were running three different disciplines
+  (3-step, 4-step regression-first, 6-step characterization), and merging them would have
+  destroyed information. A shared vocabulary is not shared rules.
+- The root `standards/` directory with build-time vendoring and a parity validator is dropped
+  as premature — every standards document's consumers sit inside one plugin, and
+  `skills/_shared/` plus the existing `"shared": true` already covers that case.
+
+### [4.0.0] — 2026-07-29
+
+#### Removed
+- **Four skills retired on usage evidence** (26 → 22): `finish-branch` (0 invocations in 36
+  days), `functional-spec` (0 in 22), `design-ui` (3 in 67), and `kanban-board` (2 in 28).
+  Counts come from the maintainer's `skillUsage` record cross-checked against each skill's
+  first commit, so "unused" is distinguished from "too new to judge" — `spec-coverage` also
+  shows 0 but is 7 days old and stays, and `respond-to-review` / `verify-before-claiming`
+  show 0 only because `disable-model-invocation: false` reflex gates are not counted as
+  invocations at all.
+- Their Codex symlinks (`codex/skills/design-ui`, `codex/skills/functional-spec`) are gone,
+  leaving 12 shared skills.
+
+#### Changed
+- `design-feature` no longer routes screens through a mockup → functional-spec pipeline. Its
+  roadmap `links[]` guidance is now tool-agnostic ("whatever UI tooling the project uses"),
+  and its Next steps hand off to `/spec-coverage` and `/implement` instead of the retired
+  `/finish-branch`.
+- `update-design` drops the `functional-specs/` artifact row, its conditional-update rule, and
+  its handoff-table entry.
+- The `design-contract` validator no longer guards the retired mockups/functional-specs path
+  strings. What remains worth guarding is that the surviving design skills (`design-feature`,
+  `update-design`) have not drifted back to the older `claudedocs/design/<feature>/` layout,
+  so the check now covers exactly that. Its tests were rewritten to match.
+- `HIGH_IMPACT_SKILLS` drops `finish-branch`; `harness-manager` remains.
+- **`validate_repository.py` now enforces the `SKILL.md` contract across every plugin**, not
+  just `elian-store`. `skill_directories()` walks all of `plugins/*/skills/`, while the new
+  `store_skill_directories()` keeps the cluster-manifest check scoped to the bundle it
+  describes. Without this a second plugin would ship with no frontmatter, naming, line-limit,
+  or side-effect-gate validation at all.
+- **`tools/generate.py`'s bare-`${CLAUDE_*}` lint now scans every plugin**, not just the
+  cluster source directory. A bare `${CLAUDE_PLUGIN_ROOT}` is host-dependent wherever it
+  lives, and scoping the lint to `elian-store` meant the first `elian-workflow` draft shipped
+  one — caught only by reading the lint's own scope. Found and fixed in review.
+- **`tools/clusters.json` regrouped from five thematic clusters into two by purpose** —
+  `elian-dev` (13 skills: needs a code repository, git, and tests) and `elian-common`
+  (9 skills: works outside one). This also fixes a latent bug in the staged split:
+  `generate-teammate` hard-references `../_shared/execution-strategy.md`, but the cluster
+  that owned it did not carry `shared: true`, so `--emit` would have shipped a broken link.
+  Both clusters now carry `_shared`.
+
+#### Added
+- **New plugin `elian-workflow` 1.0.0** (`/issue-open`, `/issue-close`) — the issue cycle,
+  which had no skill of its own. Commit-level and day-level records existed; the level that
+  carries design decisions, architecture, and remaining checks did not.
+  `/issue-close` interviews against the commit list (recognition beats recall on a blank
+  page), upserts a narrative into the issue page body under section-scoped supersede rules,
+  backfills commits missing from the audit log, transitions status, and renders a
+  before/after viewer.
+  Workspace-agnostic: every database id, property name, and status value is read from a local
+  config file the skill builds on first run by inspecting live databases. No workspace
+  identifiers are baked into the distributed skills.
+
+#### Marketplace
+- Catalog version 2.8.2 → 2.9.0 for the added plugin entry. `elian-store` stays published —
+  the marketplace has no `deprecated` / `replaces` / `alias` field, so removing an entry
+  silently orphans existing installs.
+
 ### [3.2.0] — 2026-07-23
 
 Aligns the design pipeline on one canonical artifact layout. **Breaking / migration
@@ -451,6 +576,50 @@ migration paths are recorded in `docs/claude-codex-skill-parity.md`
   before editing those documents. Delegates 3+ pending decisions to
   `/decision-dashboard`. Pair with `/design-feature` (creates docs) and
   `/intake-spec` (re-capture requirements if they changed dramatically).
+
+---
+
+## elian-workflow Plugin
+
+### [1.0.0] — 2026-07-29
+
+Initial release. Issue-cycle bookends that record engineering work history to Notion.
+
+#### Added
+- **`/issue-open`** — start an issue: verify the branch upstream points at itself (a
+  base-branch upstream makes `git pull` drag the base into the feature branch and `git push`
+  risk overwriting it, and worktrees inherit it silently), move the task to in-progress with
+  a start date, report whether design documents and open decisions exist, and seed the issue
+  page body with the metadata and background that are only clear at kickoff. Never creates,
+  switches, or deletes a branch.
+- **`/issue-close`** — close an issue: interview against the commit list for the design
+  decisions and dropped alternatives that a diff cannot show, upsert a narrative into the
+  issue page body under section-scoped supersede rules, backfill commits missing from the
+  audit log, transition status, and render a before/after HTML viewer. Recording only — it
+  never merges, pushes, or deletes, and it must run while the branch still exists because
+  the commit range is its source.
+- `skills/_shared/narrative-template.md` — the canonical issue-history format (metadata →
+  summary → background → decisions → alternatives → changes → verification → outcome →
+  references → collapsed commit log), with the supersede safety rules that keep an update
+  from overwriting hand-written sections.
+- `skills/_shared/notion-workspace-config.md` — the local config schema and its
+  discovery-based first-run setup.
+
+#### Why this plugin exists
+Development work has three nested cycles — commit, issue, day. Per-commit logging and daily
+wrap-ups existed; the issue level, which carries the decisions, architecture, and remaining
+checks, had no skill at all. That content is exactly what a diff cannot reconstruct.
+
+#### Design constraint
+Workspace-agnostic by construction. Every database id, property name, and status value is
+read from `~/.claude/notion-workspace.json` (or `.claude/notion-workspace.json` per
+repository), which the skill helps build on first run by inspecting live databases rather
+than guessing. No workspace identifier is baked into the distributed skills — that is what
+makes them publishable rather than personal.
+
+#### Not shipped to Codex
+Both skills depend on a Notion MCP server, which is a Claude-side integration. Recorded as a
+deliberate parity exception in `docs/claude-codex-skill-parity.md`, not an oversight.
 
 ---
 

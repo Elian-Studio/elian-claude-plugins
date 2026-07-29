@@ -80,7 +80,6 @@ Show the user a table of what exists:
 | roadmap.json | `claudedocs/<label>/roadmap.json` | ✅ / ❌ |
 | index.html | `claudedocs/<label>/index.html` | ✅ / ❌ |
 | erd-preview.html | `claudedocs/<label>/erd-preview.html` | ✅ / ❌ |
-| functional-specs/ (directory) | `claudedocs/<label>/functional-specs/` | ✅ / ❌ |
 
 ### 0.3 No-documents guard
 
@@ -139,9 +138,6 @@ row each:
 
 - `erd-preview.html` — **cond** on "Schema / table change": regenerate only if
   the file already exists (Phase 5 step 13). Never create it here.
-- `functional-specs/` — **cond** on "UX / screen change": a screen document is
-  only touched when that specific screen changed. Regenerate with
-  `/functional-spec`, do not hand-edit the connected HTML.
 
 `spec.json` is ✅ only where requirements themselves move — it stores
 `requirements[]` / `acceptanceCriteria[]` / `outOfScope[]` and nothing else.
@@ -421,5 +417,4 @@ git commit -m "docs(<label>): propagate <one-line change summary>"
 | `/decision-dashboard` | Explicit handoff from Phase 3 when 3+ decisions are pending |
 | `/spec-coverage` | Explicit handoff or direct bundled-script use for coverage artifacts |
 | `/erd-preview` | Explicit handoff offered when `ddl.sql` changed |
-| `/functional-spec` | Explicit handoff for an affected connected screen artifact |
 | `/commit` | Optional, host-provided, and only after commit authorization |

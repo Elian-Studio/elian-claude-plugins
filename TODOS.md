@@ -35,8 +35,8 @@ turns out to be something people act on.
 **Priority:** P2
 **Noticed:** v3.0.0 (2026-07-22)
 
-`intake-spec`, `design-feature`, `update-design`, `erd-preview`, and
-`kanban-board` have no `codex/skills/<name>` symlink. Recorded as a documented
+`intake-spec`, `design-feature`, `update-design`, and `erd-preview` have no
+`codex/skills/<name>` symlink (`kanban-board` was retired in 4.0.0). Recorded as a documented
 exception in `docs/claude-codex-skill-parity.md`: the artifact contract was still
 moving (v3.0.0 relocated `spec.json`, v3.1.0 added `tech-spec.md`), and porting a
 moving contract doubles the churn. Revisit once the design set is stable.
@@ -55,6 +55,61 @@ emits localized status lines (`Discovered verify-* skills`, `Automatically runna
 repository is English-only for everything except literal output labels of a
 generated artifact, and this is console output from a validator, not a
 deliverable label. Pre-existing; out of scope for v3.1.0.
+
+## Plugin layering
+
+### Convert `generate-teammate` → `create-document` from file reads to invocation
+**Priority:** P2
+**Noticed:** v4.1.0 (2026-07-29)
+
+`generate-teammate` reads `../create-document/{templates,schemas,references}` as
+files. Inside one bundle that resolves fine, so nothing is broken today. It is the
+one dependency that would break if the layers in
+`docs/plugin-layering-architecture.md` are ever published as separate plugins — a
+relative path cannot cross a plugin boundary, and this one would put the execution
+router and the document renderer in the same plugin against their layering.
+
+Fix is behavioral: invoke `/create-document` with the payload instead of reading its
+templates. Required only if the split ships; harmless to defer until then.
+
+### Deduplicate the `SKILL_DIR` dual-host resolution snippet
+**Priority:** P3
+**Noticed:** v4.1.0 (2026-07-29)
+
+The same two-line `${CLAUDE_SKILL_DIR:-${CLAUDE_PLUGIN_ROOT:+…}}` /
+`${CODEX_HOME:-$HOME/.codex}` resolution appears 18 times across 8 files.
+`decision-dashboard/SKILL.md` already lists getting it wrong as a documented
+pitfall, so the copy-paste has bitten at least once.
+
+It has to stay inline in each bash block, so a prose extraction cannot help — a
+shared `resolve-skill-dir.sh` sourced by each block is the only shape that collapses it.
+
+### `erd-preview` and `Bash(python3 *)` are unverified surfaces
+**Priority:** P3
+**Noticed:** v4.1.0 (2026-07-29)
+
+Two gaps a code review surfaced, both too wide to fix inside one release:
+
+`plugins/elian-store/skills/erd-preview/scripts/validate.py` takes a *filled* artifact, so
+its own `assets/template.html` (still holding `{{SCHEMA}}` placeholders) cannot serve as a
+fixture and CI never runs it. Its `RENDER_MARKER` constant tracks a template name — if that
+were mistyped, `extract_models` would silently return nothing and CI would stay green. Needs
+a small committed fixture.
+
+`UNSAFE_TOOL_PATTERNS` in `scripts/validate_repository.py` flags `Bash(*)`, `Bash(git *)`,
+`Bash(bash|sh *)`, `Bash(rm *)`, and `Bash(sudo`, but not `Bash(python3 *)` — which grants
+the same arbitrary execution via `python3 -c`. Eleven skills currently declare it, so adding
+the pattern is a repo-wide policy change, not a one-line fix.
+
+### CI does not verify the emitted cluster output
+**Priority:** P3
+**Noticed:** v4.1.0 (2026-07-29)
+
+`tools/generate.py` runs in CI but only in report mode. Nothing runs `--emit` and
+checks that every `../_shared/…` reference resolves inside its own emitted plugin,
+so a cross-plugin reference could land and stay green until someone builds the
+split by hand. That check has been run manually at every step so far, which is
+exactly the kind of thing that stops happening.
 
 ## Repository
 

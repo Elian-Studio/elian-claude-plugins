@@ -248,15 +248,25 @@ def bump_semver(version, level):
     }[level]
 
 
-def _replace_version(path, old, new):
-    """Replace exactly the one "version": "<old>" field (the elian-store entry / plugin).
-    marketplace.json metadata.version differs from the plugin version, so this is unambiguous."""
-    text = path.read_text(encoding="utf-8")
-    needle = f'"version": "{old}"'
-    n = text.count(needle)
-    if n != 1:
-        fail(4, f"{path.name}: expected exactly one {needle!r}, found {n}")
-    path.write_text(text.replace(needle, f'"version": "{new}"'), encoding="utf-8")
+def _replace_plugin_version(path, plugin_name, new):
+    """Rewrite one plugin's version by name, not by matching the version string.
+
+    The previous implementation required exactly one `"version": "<old>"` in the file and
+    justified it with "metadata.version differs from the plugin version, so this is
+    unambiguous". A second marketplace entry broke that: the moment two plugins share a
+    version string it aborts, and a coincidental match against metadata.version would
+    rewrite the wrong record. Parse the JSON and target the named entry instead."""
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if "plugins" in data and isinstance(data["plugins"], list):
+        entry = next((p for p in data["plugins"] if p.get("name") == plugin_name), None)
+        if entry is None:
+            fail(4, f"{path.name}: no marketplace entry named {plugin_name!r}")
+        entry["version"] = new
+    elif data.get("name") == plugin_name:
+        data["version"] = new
+    else:
+        fail(4, f"{path.name}: does not describe plugin {plugin_name!r}")
+    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
 def scaffold_changelog(newver, date):
@@ -278,8 +288,8 @@ def do_bump(level, date):
     if pj_ver != entry_ver:
         fail(4, f"version drift before bump: plugin.json={pj_ver} marketplace entry={entry_ver}")
     newver = bump_semver(pj_ver, level)
-    _replace_version(PLUGIN_JSON, pj_ver, newver)
-    _replace_version(MARKET_JSON, pj_ver, newver)
+    _replace_plugin_version(PLUGIN_JSON, "elian-store", newver)
+    _replace_plugin_version(MARKET_JSON, "elian-store", newver)
     scaffolded = scaffold_changelog(newver, date)
     print(f"Bumped elian-store {pj_ver} -> {newver} (plugin.json + marketplace entry).")
     print(f"  CHANGELOG: {'scaffolded a stub — fill it in' if scaffolded else 'NO insertion point; add an entry manually'}.")
@@ -307,12 +317,24 @@ def main():
         fail(1, f"manifest invalid ({len(errs)} error(s))")
     print("Manifest OK: every skill assigned to exactly one plugin; agents resolve.")
 
-    # 2) lint
+    # 2) lint — every plugin, not just the cluster source. A bare ${CLAUDE_*} is
+    #    host-dependent wherever it lives, and a second plugin would otherwise ship unlinted.
     lint_map = {}
     for s in skills:
         v = lint_skill(skills_dir / s / "SKILL.md")
         if v:
             lint_map[s] = v
+    for other in sorted((REPO / "plugins").iterdir()):
+        other_skills = other / "skills"
+        if not other_skills.is_dir() or other_skills == skills_dir:
+            continue
+        for s in discover_skills(other_skills):
+            skill_md = other_skills / s / "SKILL.md"
+            if not skill_md.is_file():
+                continue
+            v = lint_skill(skill_md)
+            if v:
+                lint_map[f"{other.name}/{s}"] = v
     if lint_map:
         print("\nLint — bare ${CLAUDE_PLUGIN_ROOT}/${CLAUDE_SKILL_DIR} in bash blocks:")
         for s, vs in lint_map.items():
