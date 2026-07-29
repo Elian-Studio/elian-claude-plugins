@@ -3,6 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Latest Release](https://img.shields.io/github/v/release/Elian-Studio/elian-claude-plugins?label=release)](https://github.com/Elian-Studio/elian-claude-plugins/releases)
 [![Plugin: elian-store](https://img.shields.io/badge/plugin-elian--store-blue)](plugins/elian-store/)
+[![Plugin: elian-workflow](https://img.shields.io/badge/plugin-elian--workflow-blue)](plugins/elian-workflow/)
 
 This repository ships `elian-store`, a Claude Code plugin marketplace bundle, plus a separate Codex CLI prompt/config tree and a small Claude workflows distribution tree.
 
@@ -33,15 +34,28 @@ For the full structure and edit map, see [docs/repository-operating-map.md](docs
 /plugin install elian-store@elian
 ```
 
+The marketplace ships two plugins. Install either or both — they are independent.
+
+```shell
+/plugin install elian-store@elian       # workflow bundle: design, TDD, review, verification
+/plugin install elian-workflow@elian    # issue-cycle work history recorded to Notion
+```
+
+`elian-workflow` needs one local setup step before it does anything: a Notion MCP server and a
+`~/.claude/notion-workspace.json` describing your databases. The skills build that file with
+you on first run by inspecting your live databases — nothing about any particular workspace is
+baked into the plugin. Skip the install if you do not use Notion.
+
 Update later:
 
 ```shell
 /plugin marketplace update elian
 /plugin update elian-store@elian
+/plugin update elian-workflow@elian
 ```
 
 If you prefer Claude Code's native marketplace auto-update behavior, enable marketplace/plugin
-auto-update in your Claude Code settings. `elian-store` already uses `plugin.json.version` as the
+auto-update in your Claude Code settings. Both plugins use `plugin.json.version` as the
 installed update cache key, so installed users receive plugin-content releases when Claude Code
 performs marketplace auto-update. Keep the manual commands above for explicit refreshes or when
 auto-update is disabled.
@@ -196,15 +210,21 @@ Workflow-tool scripts are not plugin components, so they are distributed by copy
 .claude-plugin/
   marketplace.json                 # Claude marketplace catalog
 plugins/
-  elian-store/                     # Primary Claude plugin
+  elian-store/                     # Workflow bundle plugin
     README.md                      # Plugin-local usage guide
     .claude-plugin/plugin.json      # Plugin metadata and version
     agents/                         # Plugin-bundled Claude agents
     hooks/                          # Plugin hooks
+    skills/_shared/                 # Documents shared by sibling skills in this plugin
     skills/<skill>/                 # Skill packages
       SKILL.md
       scripts/
       references/
+  elian-workflow/                  # Issue-cycle work-history plugin
+    README.md
+    .claude-plugin/plugin.json
+    skills/_shared/                 # Narrative template + workspace config schema
+    skills/<skill>/
 codex/                              # Independent Codex CLI companion tree
   prompts/
   AGENTS.md
@@ -217,8 +237,12 @@ docs/                               # Architecture, parity, and roadmap docs
 
 Important distinction:
 
-- `.claude-plugin/marketplace.json` is the marketplace entrypoint.
-- `plugins/elian-store/.claude-plugin/plugin.json` is the installed plugin manifest.
+- `.claude-plugin/marketplace.json` is the marketplace entrypoint and lists every plugin.
+- Each `plugins/<name>/.claude-plugin/plugin.json` is that plugin's installed manifest. Its
+  `version` is the update cache key and wins over the marketplace entry, so the two must move
+  together — `scripts/validate_repository.py` enforces this for every plugin, not just the bundle.
+- A relative path inside a skill (`../_shared/x.md`) cannot cross a plugin boundary; a plugin is
+  copied as a unit. Cross-plugin dependencies must be skill invocations, not file references.
 - `codex/` is not part of the Claude plugin install.
 - `.claude/workflows/` is a copy-distributed Workflow-tool tree (not a plugin component); `.claude/skills/` is maintainer-only dev tooling; `.claude/settings.local.json` is local state. None are the plugin source of truth.
 
@@ -228,10 +252,12 @@ Important distinction:
 
 | Task | Edit |
 |---|---|
-| Change a Claude skill | `plugins/elian-store/skills/<skill>/SKILL.md` and its `references/` or `scripts/` |
-| Add a Claude skill | new `plugins/elian-store/skills/<skill>/`, then update plugin metadata, marketplace metadata, README, CHANGELOG, and parity docs |
-| Change plugin-local usage guide | `plugins/elian-store/README.md` |
-| Change plugin install metadata | `plugins/elian-store/.claude-plugin/plugin.json` |
+| Change a Claude skill | `plugins/<plugin>/skills/<skill>/SKILL.md` and its `references/` or `scripts/` |
+| Add a Claude skill | new `plugins/<plugin>/skills/<skill>/`, then update that plugin's metadata, marketplace metadata, README, CHANGELOG, and parity docs |
+| Change issue-cycle / Notion behavior | `plugins/elian-workflow/skills/issue-{open,close}/SKILL.md` |
+| Change the issue-history format | `plugins/elian-workflow/skills/_shared/narrative-template.md` |
+| Change plugin-local usage guide | `plugins/<plugin>/README.md` |
+| Change plugin install metadata | `plugins/<plugin>/.claude-plugin/plugin.json` (bump with the marketplace entry) |
 | Change marketplace catalog metadata | `.claude-plugin/marketplace.json` |
 | Change Codex prompt behavior | `codex/prompts/<command>.md` |
 | Change Codex setup guidance | `codex/README.md`, `codex/AGENTS.md`, or `codex/config.toml.example` |

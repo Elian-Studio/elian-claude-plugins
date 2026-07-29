@@ -579,6 +579,50 @@ migration paths are recorded in `docs/claude-codex-skill-parity.md`
 
 ---
 
+## elian-workflow Plugin
+
+### [1.0.0] — 2026-07-29
+
+Initial release. Issue-cycle bookends that record engineering work history to Notion.
+
+#### Added
+- **`/issue-open`** — start an issue: verify the branch upstream points at itself (a
+  base-branch upstream makes `git pull` drag the base into the feature branch and `git push`
+  risk overwriting it, and worktrees inherit it silently), move the task to in-progress with
+  a start date, report whether design documents and open decisions exist, and seed the issue
+  page body with the metadata and background that are only clear at kickoff. Never creates,
+  switches, or deletes a branch.
+- **`/issue-close`** — close an issue: interview against the commit list for the design
+  decisions and dropped alternatives that a diff cannot show, upsert a narrative into the
+  issue page body under section-scoped supersede rules, backfill commits missing from the
+  audit log, transition status, and render a before/after HTML viewer. Recording only — it
+  never merges, pushes, or deletes, and it must run while the branch still exists because
+  the commit range is its source.
+- `skills/_shared/narrative-template.md` — the canonical issue-history format (metadata →
+  summary → background → decisions → alternatives → changes → verification → outcome →
+  references → collapsed commit log), with the supersede safety rules that keep an update
+  from overwriting hand-written sections.
+- `skills/_shared/notion-workspace-config.md` — the local config schema and its
+  discovery-based first-run setup.
+
+#### Why this plugin exists
+Development work has three nested cycles — commit, issue, day. Per-commit logging and daily
+wrap-ups existed; the issue level, which carries the decisions, architecture, and remaining
+checks, had no skill at all. That content is exactly what a diff cannot reconstruct.
+
+#### Design constraint
+Workspace-agnostic by construction. Every database id, property name, and status value is
+read from `~/.claude/notion-workspace.json` (or `.claude/notion-workspace.json` per
+repository), which the skill helps build on first run by inspecting live databases rather
+than guessing. No workspace identifier is baked into the distributed skills — that is what
+makes them publishable rather than personal.
+
+#### Not shipped to Codex
+Both skills depend on a Notion MCP server, which is a Claude-side integration. Recorded as a
+deliberate parity exception in `docs/claude-codex-skill-parity.md`, not an oversight.
+
+---
+
 ## Marketplace (`elian`)
 
 ### Unreleased
