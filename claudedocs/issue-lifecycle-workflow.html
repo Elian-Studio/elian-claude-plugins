@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Issue Lifecycle Workflow</title>
+<style>
+/* ============================================================
+   House Style — document-writer
+   A single, fixed theme so every document looks like it came
+   from the same desk. Warm off-white, ink near-black, one
+   restrained blue accent. No purple gradients, no AI slop.
+   Korean-first font stack (Pretendard + Apple SD Gothic Neo).
+   ============================================================ */
+
+:root {
+  --bg:        #FAFAF8;  /* warm off-white page */
+  --surface:   #FFFFFF;  /* cards, code, tables */
+  --ink:       #2C2C2A;  /* primary text */
+  --ink-soft:  #444441;  /* secondary text */
+  --muted:     #73726C;  /* captions, meta */
+  --faint:     #888780;  /* labels, sub-subtitles */
+  --line:      #E8E6DF;  /* borders */
+  --line-soft: #F2F1ED;  /* hairlines, row dividers */
+
+  --accent:    #185FA5;  /* the one accent */
+  --accent-bg: #E6F1FB;  /* accent tint */
+
+  --tip:    #2E7D32; --tip-bg:    #E8F5E9;
+  --warn:   #856404; --warn-bg:   #FFF3CD;
+  --danger: #C62828; --danger-bg: #FFEBEE;
+  --code-ink: #7B1FA2; --code-bg: #F3E5F5;  /* inline code / paths */
+
+  --radius: 12px;
+  --radius-sm: 8px;
+  --maxw: 1120px;    /* wide enough for the lifecycle diagram */
+}
+
+/* No @import, no webfont. This stylesheet is inlined into documents that must open
+   anywhere, including offline. The font stack below falls back through the platform
+   defaults, so Pretendard is used when the reader already has it and nothing breaks
+   when they do not. (The previous @import also sat after :root, so browsers ignored
+   it outright — it only ever contributed a broken promise of self-containment.) */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont,
+               'Apple SD Gothic Neo', 'Segoe UI', 'Noto Sans KR', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.7;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.doc {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 64px 28px 140px;
+}
+
+/* ---------- Document header ---------- */
+.doc-header { margin-bottom: 48px; }
+.doc-header h1 {
+  font-size: 30px; font-weight: 700; line-height: 1.25;
+  letter-spacing: -0.5px; margin-bottom: 10px;
+}
+.doc-header .subtitle {
+  font-size: 16px; color: var(--muted); line-height: 1.5;
+}
+.doc-meta {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-top: 18px;
+}
+.doc-meta .tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 500; color: var(--ink-soft);
+  background: var(--surface); border: 1px solid var(--line);
+  padding: 4px 11px; border-radius: 999px;
+}
+.doc-meta .tag b { font-weight: 600; color: var(--faint); font-weight: 600; }
+
+/* ---------- Headings ---------- */
+h2 {
+  font-size: 13px; font-weight: 600; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--faint);
+  margin: 56px 0 18px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+  scroll-margin-top: 24px;
+}
+h3 {
+  font-size: 20px; font-weight: 650; margin: 32px 0 12px;
+  letter-spacing: -0.2px; scroll-margin-top: 24px;
+}
+h4 {
+  font-size: 16px; font-weight: 650; color: var(--ink-soft);
+  margin: 24px 0 8px;
+}
+
+/* ---------- Body text ---------- */
+p { margin: 14px 0; }
+a { color: var(--accent); text-decoration: none; border-bottom: 1px solid var(--accent-bg); }
+a:hover { border-bottom-color: var(--accent); }
+strong { font-weight: 650; color: var(--ink); }
+em { font-style: italic; }
+small { font-size: 13px; color: var(--muted); }
+
+ul, ol { margin: 14px 0; padding-left: 26px; }
+li { margin: 6px 0; }
+li > ul, li > ol { margin: 6px 0; }
+
+hr { border: none; border-top: 1px solid var(--line); margin: 40px 0; }
+
+/* ---------- Inline code & paths ---------- */
+code {
+  font-family: 'JetBrains Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+  font-size: 0.86em;
+  background: var(--code-bg); color: var(--code-ink);
+  padding: 2px 6px; border-radius: 5px;
+}
+
+/* ---------- Code blocks ---------- */
+pre {
+  background: #1E1E1C; color: #E8E6DF;
+  border-radius: var(--radius); padding: 18px 20px;
+  margin: 18px 0; overflow-x: auto;
+  font-size: 13.5px; line-height: 1.6;
+  border: 1px solid #2C2C2A;
+}
+pre code {
+  background: none; color: inherit; padding: 0;
+  font-size: inherit;
+}
+.code-label {
+  display: inline-block; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--faint); margin: 16px 0 -8px;
+}
+
+/* ---------- Blockquote ---------- */
+blockquote {
+  margin: 18px 0; padding: 4px 20px;
+  border-left: 3px solid var(--line);
+  color: var(--muted); font-style: italic;
+}
+blockquote p { margin: 8px 0; }
+
+/* ---------- Callouts ---------- */
+.callout {
+  display: flex; gap: 12px;
+  padding: 14px 18px; margin: 20px 0;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  border-left: 3px solid var(--accent);
+  background: var(--accent-bg);
+  font-size: 14.5px; line-height: 1.6;
+}
+.callout .ico { font-size: 16px; line-height: 1.5; flex-shrink: 0; }
+.callout .body { flex: 1; }
+.callout .body > :first-child { margin-top: 0; }
+.callout .body > :last-child { margin-bottom: 0; }
+.callout b.lead { display: block; margin-bottom: 2px; font-weight: 650; }
+
+.callout-note   { border-left-color: var(--accent); background: var(--accent-bg); color: #134a82; }
+.callout-tip    { border-left-color: var(--tip);    background: var(--tip-bg);    color: #1f5e23; }
+.callout-warn   { border-left-color: var(--warn);   background: var(--warn-bg);   color: #6b5103; }
+.callout-danger { border-left-color: var(--danger); background: var(--danger-bg); color: #9b1f1f; }
+.callout-info   { border-left-color: var(--faint);  background: var(--line-soft); color: var(--ink-soft); }
+
+/* ---------- Cards ---------- */
+.card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 22px 24px; margin: 18px 0;
+}
+.card > :first-child { margin-top: 0; }
+.card > :last-child { margin-bottom: 0; }
+.card-title { font-size: 16px; font-weight: 650; margin-bottom: 10px; }
+
+.card-grid {
+  display: grid; gap: 16px; margin: 20px 0;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+.card-grid .card { margin: 0; }
+
+/* ---------- KPI tiles ---------- */
+.kpi-grid {
+  display: grid; gap: 16px; margin: 20px 0;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+.kpi {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 20px;
+}
+.kpi .num { font-size: 30px; font-weight: 700; letter-spacing: -1px; line-height: 1; }
+.kpi .label { font-size: 13px; color: var(--muted); margin-top: 8px; }
+.kpi .delta { font-size: 12px; font-weight: 600; margin-top: 6px; }
+.kpi .delta.up   { color: var(--tip); }
+.kpi .delta.down { color: var(--danger); }
+
+/* ---------- Two-column comparison ---------- */
+.cols2 {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;
+}
+@media (max-width: 640px) { .cols2 { grid-template-columns: 1fr; } }
+
+/* ---------- Step list ---------- */
+.steps { margin: 20px 0; counter-reset: step; }
+.step {
+  display: flex; gap: 16px; padding: 14px 0;
+  border-bottom: 1px solid var(--line-soft);
+}
+.step:last-child { border-bottom: none; }
+.step .n {
+  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+  background: var(--accent-bg); color: var(--accent);
+  font-size: 13px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.step .st-body { flex: 1; }
+.step .st-body > :first-child { margin-top: 0; }
+.step .st-body > :last-child { margin-bottom: 0; }
+
+/* ---------- Workflow diagram ---------- */
+.workflow-figure {
+  margin: 24px 0 34px;
+  padding: 22px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.phase-grid {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 16px 164px;
+}
+.phase-grid span {
+  padding: 7px 4px;
+  border-radius: 6px;
+  background: var(--line-soft);
+  color: var(--faint);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-align: center;
+  text-transform: uppercase;
+}
+.skill-lane {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 14px;
+  align-items: stretch;
+  padding: 17px 0;
+  border-top: 1px solid var(--line-soft);
+}
+.skill-lane:first-of-type { border-top: 0; }
+.lane-heading {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.lane-heading b {
+  font-size: 14px;
+  line-height: 1.35;
+}
+.lane-heading small {
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+.skill-track {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 8px;
+  align-items: center;
+  min-height: 76px;
+}
+.skill-track::before {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  left: 5%;
+  right: 5%;
+  top: 50%;
+  border-top: 2px solid #A8B0B8;
+}
+.skill-node {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: 58px;
+  padding: 8px 5px;
+  border: 2px solid #A8B0B8;
+  border-radius: 10px;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: 'JetBrains Mono', 'SF Mono', ui-monospace, Menlo, Consolas, monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+}
+.skill-node::after {
+  content: "›";
+  position: absolute;
+  right: -13px;
+  top: 50%;
+  width: 16px;
+  transform: translateY(-54%);
+  background: var(--surface);
+  color: #747D86;
+  font-family: sans-serif;
+  font-size: 25px;
+  font-weight: 400;
+  line-height: 1;
+}
+.skill-node:last-child::after,
+.skill-node.no-arrow::after { display: none; }
+.skill-node.entry-skill { border-color: var(--accent); background: var(--accent-bg); }
+.skill-node.plan-skill { border-color: #C69B21; background: #FFF8E6; }
+.skill-node.feature-skill { border-color: #4B86B4; background: #EAF3FB; }
+.skill-node.improve-skill { border-color: #5D9261; background: #EDF6EE; }
+.skill-node.fix-skill { border-color: #B86464; background: #FCEEEE; }
+.skill-node.verify-skill { border-color: #7D6AA3; background: #F3EFF9; }
+.skill-node.release-skill { border-color: #C69B21; background: #FFF8E6; }
+.skill-node.close-skill { border-color: var(--tip); background: var(--tip-bg); }
+.skill-node.host-event {
+  border-style: dashed;
+  border-color: #9D9B95;
+  background: var(--line-soft);
+  font-family: inherit;
+  font-weight: 600;
+}
+.skill-node.optional { border-style: dashed; }
+.skill-node.stack {
+  flex-direction: column;
+  gap: 2px;
+}
+.skill-node.stack small {
+  font-family: inherit;
+  font-size: 9px;
+  font-weight: 500;
+}
+.skill-node.col-1 { grid-column: 1; }
+.skill-node.col-2 { grid-column: 2; }
+.skill-node.col-3 { grid-column: 3; }
+.skill-node.col-4 { grid-column: 4; }
+.skill-node.col-5 { grid-column: 5; }
+.skill-node.col-6 { grid-column: 6; }
+.skill-node.col-7 { grid-column: 7; }
+.skill-node.col-8 { grid-column: 8; }
+.skill-node.col-9 { grid-column: 9; }
+.planning-return {
+  grid-column: 1 / 4;
+  align-self: end;
+  margin: 62px 12% 0;
+  padding-top: 7px;
+  border-top: 2px dashed #C69B21;
+  color: #856404;
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+}
+.lane-note {
+  grid-column: 1 / -1;
+  position: relative;
+  z-index: 1;
+  justify-self: start;
+  margin-top: -4px;
+  padding: 3px 8px;
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 10px;
+}
+.correction-loop {
+  margin: 20px 0 4px 164px;
+  padding: 13px 15px;
+  border: 1px dashed #B86464;
+  border-radius: var(--radius-sm);
+  background: #FFF8F8;
+  color: var(--ink-soft);
+  font-size: 12px;
+  text-align: center;
+}
+.correction-loop code { margin: 0 3px; }
+.always-gate {
+  margin: 12px 0 0 164px;
+  padding: 9px 12px;
+  border-left: 3px solid #7D6AA3;
+  background: #F3EFF9;
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+.workflow-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line-soft);
+  color: var(--muted);
+  font-size: 12px;
+}
+.workflow-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.workflow-legend i {
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  display: inline-block;
+  border: 1px solid #A8B0B8;
+}
+.legacy-workflow { display: none; }
+
+@media (max-width: 760px) {
+  .workflow-figure { padding: 16px; }
+  .phase-grid { display: none; }
+  .skill-lane {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 20px 0;
+  }
+  .lane-heading { padding-bottom: 2px; }
+  .skill-track {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 22px;
+  }
+  .skill-track::before {
+    left: 24px;
+    right: auto;
+    top: 8%;
+    bottom: 8%;
+    height: auto;
+    border-top: 0;
+    border-left: 2px solid #A8B0B8;
+  }
+  .skill-node {
+    min-height: 48px;
+    margin-left: 48px;
+    font-size: 12px;
+  }
+  .skill-node::after {
+    content: "↓";
+    right: auto;
+    left: -39px;
+    top: auto;
+    bottom: -25px;
+    width: 28px;
+    transform: none;
+    font-size: 18px;
+    text-align: center;
+  }
+  .planning-return {
+    align-self: stretch;
+    margin: 0 0 0 48px;
+  }
+  .lane-note {
+    align-self: stretch;
+    margin: 0 0 0 48px;
+    text-align: center;
+  }
+  .correction-loop,
+  .always-gate { margin-left: 0; }
+}
+
+/* ---------- Badges / tags ---------- */
+.badge {
+  display: inline-block; font-size: 11px; font-weight: 600;
+  padding: 2px 9px; border-radius: 5px; vertical-align: middle;
+}
+.badge-accent { background: var(--accent-bg); color: var(--accent); }
+.badge-tip    { background: var(--tip-bg);    color: var(--tip); }
+.badge-warn   { background: var(--warn-bg);   color: var(--warn); }
+.badge-danger { background: var(--danger-bg); color: var(--danger); }
+.badge-muted  { background: var(--line-soft); color: var(--muted); }
+
+/* ---------- Tables ---------- */
+table {
+  width: 100%; border-collapse: collapse; margin: 20px 0;
+  font-size: 14px; background: var(--surface);
+  border: 1px solid var(--line); border-radius: var(--radius);
+  overflow: hidden;
+}
+th {
+  text-align: left; font-weight: 600; color: var(--ink-soft);
+  padding: 11px 14px; background: var(--line-soft);
+  border-bottom: 1px solid var(--line);
+}
+td { padding: 11px 14px; border-bottom: 1px solid var(--line-soft); }
+tr:last-child td { border-bottom: none; }
+td code, th code { font-size: 0.82em; }
+
+/* ---------- Table of contents ---------- */
+.toc {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 20px 24px; margin: 0 0 40px;
+}
+.toc .toc-title {
+  font-size: 12px; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--faint); margin-bottom: 12px;
+}
+.toc ul { margin: 0; padding-left: 0; list-style: none; }
+.toc li { margin: 4px 0; }
+.toc a { border: none; color: var(--ink-soft); font-size: 14px; }
+.toc a:hover { color: var(--accent); }
+.toc .lvl-3 { padding-left: 16px; font-size: 13px; }
+.toc .lvl-3 a { color: var(--muted); }
+
+/* ---------- Figures / images ---------- */
+img { max-width: 100%; height: auto; border-radius: var(--radius-sm); }
+figure { margin: 24px 0; }
+figcaption { font-size: 13px; color: var(--muted); margin-top: 8px; text-align: center; }
+
+/* ---------- Footer ---------- */
+.doc-footer {
+  margin-top: 80px; padding-top: 24px;
+  border-top: 1px solid var(--line);
+  font-size: 13px; color: var(--muted);
+}
+
+/* ---------- Print / PDF ---------- */
+@media print {
+  body { background: #fff; font-size: 12pt; }
+  .doc { max-width: none; padding: 0; }
+  pre { background: #f5f5f3; color: #1E1E1C; border: 1px solid var(--line); }
+  .card, .kpi, table, .callout { break-inside: avoid; }
+  a { color: var(--ink); border: none; }
+  .toc { break-after: page; }
+}
+
+</style>
+</head>
+<body>
+<main class="doc">
+<header class="doc-header">
+<h1>Issue Lifecycle Workflow</h1>
+<p class="subtitle">issue-open as the single intake and routing entry point</p>
+<div class="doc-meta"><span class="tag"><b>Date</b> 2026-07-30</span><span class="tag"><b>Type</b> Workflow design</span><span class="tag"><b>Status</b> Intended state</span></div>
+</header>
+<nav class="toc"><div class="toc-title">Contents</div><ul>
+<li class="lvl-2"><a href="#workflow-at-a-glance">Workflow at a glance</a></li>
+<li class="lvl-2"><a href="#planning-readiness">Planning readiness</a></li>
+<li class="lvl-2"><a href="#work-type-routing">Work-type routing</a></li>
+<li class="lvl-2"><a href="#scenario-1-insufficient-planning">Scenario 1 — insufficient planning</a></li>
+<li class="lvl-2"><a href="#scenario-2-firm-planning">Scenario 2 — firm planning</a></li>
+<li class="lvl-2"><a href="#scenario-3-new-development">Scenario 3 — new development</a></li>
+<li class="lvl-2"><a href="#scenario-4-existing-feature-change">Scenario 4 — existing feature change</a></li>
+<li class="lvl-2"><a href="#scenario-5-bug-fix">Scenario 5 — bug fix</a></li>
+<li class="lvl-2"><a href="#ownership-summary">Ownership summary</a></li>
+<li class="lvl-2"><a href="#intended-state-versus-current-repository">Intended state versus current repository</a></li>
+</ul></nav>
+<div class="callout callout-note"><span class="ico">📌</span><div class="body"><p><code>issue-open</code> is the single intake entry point for feature work, existing-feature changes, and bug fixes. A separate <code>intake-spec</code> step does not appear in the intended workflow.</p></div></div>
+<h2 id="workflow-at-a-glance">Workflow at a glance</h2>
+<figure class="workflow-figure">
+  <div class="phase-grid" aria-hidden="true">
+    <span>Start</span>
+    <span>Clarify</span>
+    <span>Design</span>
+    <span>Execute</span>
+    <span>Code review</span>
+    <span>Verify</span>
+    <span>Describe PR</span>
+    <span>Review PR</span>
+    <span>Record</span>
+  </div>
+
+  <div class="skill-lane">
+    <div class="lane-heading">
+      <b>Planning is insufficient</b>
+      <small>Clarify, then re-enter routing</small>
+    </div>
+    <div class="skill-track">
+      <div class="skill-node entry-skill col-1">/issue-open</div>
+      <div class="skill-node plan-skill optional stack col-2">
+        <span>/brainstorm</span>
+        <small>when choices are unclear</small>
+      </div>
+      <div class="skill-node entry-skill stack col-3 no-arrow">
+        <span>/issue-open</span>
+        <small>readiness recheck</small>
+      </div>
+      <div class="planning-return">Basic fact gaps stay inside /issue-open · /brainstorm is only a detour for competing options · Ready → enter the matching lane below</div>
+    </div>
+  </div>
+
+  <div class="skill-lane">
+    <div class="lane-heading">
+      <b>New capability</b>
+      <small>Including new behavior on an existing screen</small>
+    </div>
+    <div class="skill-track">
+      <div class="skill-node entry-skill col-1">/issue-open</div>
+      <div class="skill-node feature-skill optional stack col-3">
+        <span>/design-feature</span>
+        <small>only if design is needed</small>
+      </div>
+      <div class="skill-node feature-skill col-4">/implement</div>
+      <div class="skill-node feature-skill col-5">/review</div>
+      <div class="skill-node verify-skill col-6">/verify-implementation</div>
+      <div class="skill-node release-skill col-7">/pr-writer</div>
+      <div class="skill-node release-skill stack col-8">
+        <span>/pr-review</span>
+        <small>after the PR exists</small>
+      </div>
+      <div class="skill-node close-skill col-9 no-arrow">/issue-close</div>
+      <div class="lane-note">With PRD acceptance criteria: run <code>/spec-coverage</code> during implementation and before final verification.</div>
+    </div>
+  </div>
+
+  <div class="skill-lane">
+    <div class="lane-heading">
+      <b>Existing feature change</b>
+      <small>Working behavior changes intentionally</small>
+    </div>
+    <div class="skill-track">
+      <div class="skill-node entry-skill col-1">/issue-open</div>
+      <div class="skill-node improve-skill optional stack col-3">
+        <span>/update-design</span>
+        <small>if design docs change</small>
+      </div>
+      <div class="skill-node improve-skill col-4">/improve</div>
+      <div class="skill-node improve-skill col-5">/review</div>
+      <div class="skill-node verify-skill col-6">/verify-implementation</div>
+      <div class="skill-node release-skill col-7">/pr-writer</div>
+      <div class="skill-node release-skill stack col-8">
+        <span>/pr-review</span>
+        <small>after the PR exists</small>
+      </div>
+      <div class="skill-node close-skill col-9 no-arrow">/issue-close</div>
+    </div>
+  </div>
+
+  <div class="skill-lane">
+    <div class="lane-heading">
+      <b>Bug fix</b>
+      <small>Actual behavior violates the intended contract</small>
+    </div>
+    <div class="skill-track">
+      <div class="skill-node entry-skill col-1">/issue-open</div>
+      <div class="skill-node fix-skill col-4">/fix</div>
+      <div class="skill-node fix-skill col-5">/review</div>
+      <div class="skill-node verify-skill col-6">/verify-implementation</div>
+      <div class="skill-node release-skill col-7">/pr-writer</div>
+      <div class="skill-node release-skill stack col-8">
+        <span>/pr-review</span>
+        <small>after the PR exists</small>
+      </div>
+      <div class="skill-node close-skill col-9 no-arrow">/issue-close</div>
+    </div>
+  </div>
+
+  <div class="correction-loop">
+    <b>When PR review finds a problem:</b>
+    <code>/pr-review</code> → <code>/respond-to-review</code> →
+    <code>/fix</code> or <code>/improve</code> →
+    <code>/verify-implementation</code> → <code>/pr-review</code>
+  </div>
+
+  <div class="always-gate">
+    <b>/verify-before-claiming</b> is an always-on claim gate, not a separate project phase:
+    run fresh proof immediately before saying the work passes, is fixed, or is complete.
+  </div>
+
+  <div class="workflow-legend" aria-label="Workflow legend">
+    <span><i style="background:#E6F1FB;border-color:#185FA5"></i> Intake</span>
+    <span><i style="background:#FFF8E6;border-color:#C69B21"></i> Conditional planning or PR step</span>
+    <span><i style="background:#EAF3FB;border-color:#4B86B4"></i> New development</span>
+    <span><i style="background:#EDF6EE;border-color:#5D9261"></i> Existing-feature change</span>
+    <span><i style="background:#FCEEEE;border-color:#B86464"></i> Bug repair</span>
+    <span><i style="background:#F3EFF9;border-color:#7D6AA3"></i> Verification</span>
+    <span><i style="background:#E8F5E9;border-color:#2E7D32"></i> Record and close</span>
+  </div>
+</figure>
+
+<figure class="legacy-workflow" hidden>
+  <div class="workflow-desktop">
+    <svg viewBox="0 0 1080 1020" role="img" aria-labelledby="workflow-title workflow-description">
+      <title id="workflow-title">Issue lifecycle routing workflow</title>
+      <desc id="workflow-description">A request enters issue-open. Insufficient planning loops through clarification. Ready work is classified as new capability, existing behavior change, or bug fix. The three execution paths merge for verification, pull request preparation, and issue-close.</desc>
+      <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#8B949E"></path>
+        </marker>
+        <marker id="arrow-warn" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#B28A16"></path>
+        </marker>
+      </defs>
+
+      <rect class="node entry" x="440" y="20" width="200" height="64" rx="32"></rect>
+      <text class="node-title" x="540" y="48">User request</text>
+      <text class="node-subtitle" x="540" y="68">feature, change, or bug</text>
+
+      <path class="edge" d="M540 84 V118"></path>
+      <rect class="node entry" x="410" y="120" width="260" height="82" rx="12"></rect>
+      <text class="node-title" x="540" y="151">issue-open</text>
+      <text class="node-subtitle" x="540" y="173">intake · context · readiness · routing</text>
+
+      <path class="edge" d="M540 202 V235"></path>
+      <polygon class="decision" points="540,235 670,300 540,365 410,300"></polygon>
+      <text class="node-title" x="540" y="294">Planning ready?</text>
+      <text class="node-subtitle" x="540" y="315">scope + constraints + acceptance</text>
+
+      <path class="edge-loop" d="M410 300 H212 V405"></path>
+      <text class="edge-label" x="315" y="286">NO</text>
+      <rect class="node clarify" x="92" y="405" width="240" height="92" rx="12"></rect>
+      <text class="node-title" x="212" y="437">Clarify in issue-open</text>
+      <text class="node-subtitle" x="212" y="459">one question at a time</text>
+      <text class="node-subtitle" x="212" y="478">brainstorm only for option choice</text>
+      <path class="edge-loop" d="M212 405 V335 H410"></path>
+      <text class="edge-label" x="294" y="327">RECHECK</text>
+
+      <path class="edge" d="M670 300 H748"></path>
+      <text class="edge-label" x="710" y="286">YES</text>
+      <polygon class="decision" points="858,240 968,300 858,360 748,300"></polygon>
+      <text class="node-title" x="858" y="294">Work type?</text>
+      <text class="node-subtitle" x="858" y="315">classify by behavior</text>
+
+      <path class="edge" d="M808 333 V400 H230 V432"></path>
+      <path class="edge" d="M858 360 V432"></path>
+      <path class="edge" d="M908 333 V400 H970 V432"></path>
+
+      <text class="lane-label" x="230" y="418">NEW CAPABILITY</text>
+      <text class="lane-label" x="540" y="418">EXISTING SURFACE + NEW CAPABILITY</text>
+      <text class="lane-label" x="795" y="418">WORKING BEHAVIOR CHANGE</text>
+      <text class="lane-label" x="970" y="418">BUG</text>
+
+      <rect class="node new-work" x="105" y="432" width="250" height="72" rx="12"></rect>
+      <text class="node-title" x="230" y="463">Design required?</text>
+      <text class="node-subtitle" x="230" y="484">architecture or contract decisions</text>
+
+      <rect class="node new-work" x="415" y="432" width="250" height="72" rx="12"></rect>
+      <text class="node-title" x="540" y="463">Treat as new work</text>
+      <text class="node-subtitle" x="540" y="484">location does not determine type</text>
+
+      <rect class="node change-work" x="690" y="432" width="210" height="72" rx="12"></rect>
+      <text class="node-title" x="795" y="463">improve</text>
+      <text class="node-subtitle" x="795" y="484">intentional behavior change</text>
+
+      <rect class="node bug-work" x="920" y="432" width="120" height="72" rx="12"></rect>
+      <text class="node-title" x="980" y="463">fix</text>
+      <text class="node-subtitle" x="980" y="484">root cause</text>
+
+      <path class="edge" d="M230 504 V542"></path>
+      <rect class="node new-work" x="105" y="544" width="250" height="66" rx="12"></rect>
+      <text class="node-title" x="230" y="573">design-feature</text>
+      <text class="node-subtitle" x="230" y="593">only when the design gate is real</text>
+
+      <path class="edge" d="M230 610 V648"></path>
+      <path class="edge" d="M540 504 V648"></path>
+      <rect class="node new-work" x="360" y="650" width="250" height="70" rx="12"></rect>
+      <text class="node-title" x="485" y="680">implement</text>
+      <text class="node-subtitle" x="485" y="701">build the new capability</text>
+      <path class="edge" d="M355 577 H485 V648"></path>
+
+      <path class="edge" d="M485 720 V758 H540"></path>
+      <path class="edge" d="M795 504 V758 H660"></path>
+      <path class="edge" d="M980 504 V758 H660"></path>
+      <rect class="node shared-work" x="420" y="760" width="240" height="68" rx="12"></rect>
+      <text class="node-title" x="540" y="789">Verify + review</text>
+      <text class="node-subtitle" x="540" y="810">tests · checks · lean review</text>
+
+      <path class="edge" d="M540 828 V856"></path>
+      <rect class="node shared-work" x="440" y="858" width="200" height="56" rx="12"></rect>
+      <text class="node-title" x="540" y="892">pr-writer</text>
+
+      <path class="edge" d="M540 914 V940"></path>
+      <rect class="node close-work" x="430" y="942" width="220" height="56" rx="28"></rect>
+      <text class="node-title" x="540" y="976">issue-close</text>
+    </svg>
+  </div>
+
+  <div class="workflow-mobile" aria-label="Issue lifecycle routing workflow">
+    <div class="mobile-flow">
+      <div class="mobile-node"><b>User request</b><small>Feature, existing-feature change, or bug</small></div>
+      <div class="mobile-arrow">↓</div>
+      <div class="mobile-node"><b>issue-open</b><small>Intake, context, readiness, and routing</small></div>
+      <div class="mobile-arrow">↓</div>
+      <div class="mobile-node decision-mobile"><b>Planning ready?</b><small>No → clarify one missing decision at a time, then recheck</small></div>
+      <div class="mobile-arrow">↓ Yes</div>
+      <div class="mobile-node decision-mobile"><b>Classify by behavior</b><small>Do not classify by screen, file, or module location</small></div>
+      <div class="mobile-branch">
+        <div class="mobile-branch-label">New capability</div>
+        <div class="mobile-node new-mobile"><b>design-feature, when needed → implement</b><small>Also applies to a new capability added on an existing surface</small></div>
+        <div class="mobile-branch-label">Intentional change</div>
+        <div class="mobile-node change-mobile"><b>improve</b><small>Working behavior changes by product intent</small></div>
+        <div class="mobile-branch-label">Bug</div>
+        <div class="mobile-node bug-mobile"><b>fix</b><small>Actual behavior violates the intended contract</small></div>
+      </div>
+      <div class="mobile-arrow">↓ paths merge</div>
+      <div class="mobile-node"><b>Verify + review → pr-writer</b><small>Tests, checks, evidence, and lean review</small></div>
+      <div class="mobile-arrow">↓</div>
+      <div class="mobile-node close-mobile"><b>issue-close</b><small>Record decisions, proof, trade-offs, and remaining work</small></div>
+    </div>
+  </div>
+
+  <div class="workflow-legend" aria-label="Workflow legend">
+    <span><i style="background:#E6F1FB;border-color:#185FA5"></i> Intake</span>
+    <span><i style="background:#FFF3CD;border-color:#C69B21"></i> Decision or clarification</span>
+    <span><i style="background:#EAF3FB;border-color:#4B86B4"></i> New development</span>
+    <span><i style="background:#EDF6EE;border-color:#5D9261"></i> Existing-feature change</span>
+    <span><i style="background:#FCEEEE;border-color:#B86464"></i> Bug repair</span>
+    <span><i style="background:#E8F5E9;border-color:#2E7D32"></i> Completion</span>
+  </div>
+</figure>
+<div class="callout callout-info"><span class="ico">↳</span><div class="body"><p>The decisive split is behavioral: a new capability routes to <code>implement</code>, an intentional change to working behavior routes to <code>improve</code>, and behavior that violates its contract routes to <code>fix</code>.</p></div></div>
+</div>
+<h2 id="planning-readiness">Planning readiness</h2>
+<div class="cols2">
+  <div class="card">
+    <div class="card-title">Planning is insufficient</div>
+    <span class="badge badge-warn">Clarify inside issue-open</span>
+    <ol>
+      <li>Identify the largest missing fact.</li>
+      <li>Ask one question at a time.</li>
+      <li>Capture problem, scope, constraints, exclusions, and acceptance criteria.</li>
+      <li>Use <code>brainstorm</code> only when competing solution options need a decision.</li>
+      <li>Return to the readiness check.</li>
+    </ol>
+  </div>
+  <div class="card">
+    <div class="card-title">Planning is already firm</div>
+    <span class="badge badge-tip">Route immediately</span>
+    <ol>
+      <li>Compare the issue statement with current code.</li>
+      <li>Confirm the understood scope in a short summary.</li>
+      <li>Do not repeat the interview.</li>
+      <li>Do not rewrite the same plan into duplicate documents.</li>
+      <li>Classify and route the work.</li>
+    </ol>
+  </div>
+</div>
+<div class="callout callout-note"><span class="ico">📝</span><div class="body"><p>Missing facts stay within <code>issue-open</code>. <code>brainstorm</code> is optional and handles solution choice, not routine requirements capture.</p></div></div>
+<h2 id="work-type-routing">Work-type routing</h2>
+<table><thead><tr><th>Work type</th><th>Detection rule</th><th>Design gate</th><th>Execution workflow</th></tr></thead><tbody><tr><td>New capability</td><td>The system gains behavior that did not exist before</td><td>Use <code>design-feature</code> for DB, API, UI-flow, cross-module, or cross-service decisions</td><td><code>implement</code></td></tr><tr><td>Existing feature change</td><td>Current behavior works, but the target behavior intentionally changes</td><td>Use design only when the change alters contracts or architecture</td><td><code>improve</code></td></tr><tr><td>Existing surface with a new capability</td><td>The request is attached to an existing screen or service but expands the product contract</td><td>Treat as new development, not a cosmetic improvement</td><td><code>design-feature</code> when needed, then <code>implement</code></td></tr><tr><td>Bug fix</td><td>Actual behavior violates the intended or documented behavior</td><td>No design step unless the fix changes the contract</td><td><code>fix</code></td></tr></tbody></table>
+<h2 id="scenario-1-insufficient-planning">Scenario 1 — insufficient planning</h2>
+<div class="card">
+  <div class="card-title">Example issue: “Improve the appointment screen”</div>
+  The issue does not identify the affected user, the failing journey, the target behavior, exclusions, or a testable completion condition.
+</div>
+<div class="steps">
+  <div class="step">
+    <div class="n">1</div>
+    <div class="st-body"><b>issue-open detects the gaps</b><br>The issue cannot be routed safely yet.</div>
+  </div>
+  <div class="step">
+    <div class="n">2</div>
+    <div class="st-body"><b>Clarify one decision at a time</b><br>Start with the question that most changes scope: “Which user journey is currently failing?”</div>
+  </div>
+  <div class="step">
+    <div class="n">3</div>
+    <div class="st-body"><b>Capture the boundary</b><br>Record the chosen behavior, exclusions, constraints, and acceptance criteria in the issue context.</div>
+  </div>
+  <div class="step">
+    <div class="n">4</div>
+    <div class="st-body"><b>Route only after readiness</b><br>If this changes working behavior, continue with <code>improve</code>. If it introduces a new capability, continue with <code>implement</code>.</div>
+  </div>
+</div>
+<h2 id="scenario-2-firm-planning">Scenario 2 — firm planning</h2>
+<div class="card">
+  <div class="card-title">Example issue: precise behavior and acceptance criteria</div>
+  The issue already defines the affected user, current behavior, target behavior, out-of-scope items, API or UI constraints, and testable acceptance criteria.
+</div>
+<div class="steps">
+  <div class="step">
+    <div class="n">1</div>
+    <div class="st-body"><b>issue-open validates the issue against the repository</b><br>It checks that named components and assumptions exist.</div>
+  </div>
+  <div class="step">
+    <div class="n">2</div>
+    <div class="st-body"><b>Confirm once</b><br>Return a short scope summary instead of starting another requirements interview.</div>
+  </div>
+  <div class="step">
+    <div class="n">3</div>
+    <div class="st-body"><b>Route directly</b><br>Choose <code>implement</code>, <code>improve</code>, or <code>fix</code> from the requested behavioral change.</div>
+  </div>
+</div>
+<h2 id="scenario-3-new-development">Scenario 3 — new development</h2>
+<div class="cols2">
+  <div class="card">
+    <div class="card-title">Small and clear</div>
+    <code>issue-open</code><br>
+    → planning ready<br>
+    → new capability<br>
+    → <code>implement</code><br>
+    → verify and review<br>
+    → <code>issue-close</code>
+  </div>
+  <div class="card">
+    <div class="card-title">Design decisions required</div>
+    <code>issue-open</code><br>
+    → planning ready<br>
+    → new capability<br>
+    → <code>design-feature</code><br>
+    → <code>implement</code><br>
+    → verify and review<br>
+    → <code>issue-close</code>
+  </div>
+</div>
+<p><code>design-feature</code> is conditional. It is justified when the issue changes database shape, public contracts, user journeys, module boundaries, infrastructure, or multiple services.</p>
+<h2 id="scenario-4-existing-feature-change">Scenario 4 — existing feature change</h2>
+<div class="card-grid">
+  <div class="card">
+    <div class="card-title">Intentional behavior change</div>
+    The current feature works as designed, but the desired behavior changes.<br><br>
+    <span class="badge badge-accent">Route to improve</span>
+  </div>
+  <div class="card">
+    <div class="card-title">New capability on an existing screen</div>
+    Existing location does not make the request an improvement. A new product capability remains new development.<br><br>
+    <span class="badge badge-accent">Route to implement</span>
+  </div>
+</div>
+<p>The <code>improve</code> workflow captures the current behavior, defines the target behavior, protects existing tests, adds new expectations, and compares before and after.</p>
+<h2 id="scenario-5-bug-fix">Scenario 5 — bug fix</h2>
+<div class="steps">
+  <div class="step">
+    <div class="n">1</div>
+    <div class="st-body"><b>issue-open confirms the contract</b><br>Record expected behavior, actual behavior, and a reproducible condition.</div>
+  </div>
+  <div class="step">
+    <div class="n">2</div>
+    <div class="st-body"><b>fix identifies the root cause</b><br>Do not patch only the visible symptom.</div>
+  </div>
+  <div class="step">
+    <div class="n">3</div>
+    <div class="st-body"><b>Prove Red → Green</b><br>Add a regression test that fails before the fix and passes after it.</div>
+  </div>
+  <div class="step">
+    <div class="n">4</div>
+    <div class="st-body"><b>Verify the blast radius</b><br>Run relevant integration checks and review sibling sites with the same root pattern.</div>
+  </div>
+  <div class="step">
+    <div class="n">5</div>
+    <div class="st-body"><b>Close with evidence</b><br><code>issue-close</code> records the root cause, regression test, verification, and remaining monitoring.</div>
+  </div>
+</div>
+<h2 id="ownership-summary">Ownership summary</h2>
+<table><thead><tr><th>Skill</th><th>Owns</th><th>Does not own</th></tr></thead><tbody><tr><td><code>issue-open</code></td><td>Intake, readiness, missing-fact clarification, issue context, work classification, routing</td><td>Implementation and final history</td></tr><tr><td><code>brainstorm</code></td><td>Comparing viable solution options and locking a decision</td><td>Routine requirements capture</td></tr><tr><td><code>design-feature</code></td><td>Necessary architectural and contract decisions</td><td>Every new feature by default</td></tr><tr><td><code>implement</code></td><td>New capability development</td><td>Repairing broken existing behavior</td></tr><tr><td><code>improve</code></td><td>Intentional changes to working behavior</td><td>New capabilities disguised as improvements</td></tr><tr><td><code>fix</code></td><td>Root-cause repair and regression protection</td><td>Product-policy changes</td></tr><tr><td><code>issue-close</code></td><td>Final decisions, changes, proof, trade-offs, remaining work, completion state</td><td>Requirements intake</td></tr></tbody></table>
+<h2 id="intended-state-versus-current-repository">Intended state versus current repository</h2>
+<div class="callout callout-warn"><span class="ico">⚠️</span><div class="body"><p>This document describes the intended lifecycle. The current repository still presents <code>intake-spec</code> as a separate requirements front door and explicitly excludes requirements gathering from <code>issue-open</code>. Those skill and README contracts must be revised before the implementation matches this workflow.</p></div></div>
+</main>
+</body>
+</html>
