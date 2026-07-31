@@ -4,7 +4,7 @@ description: When PR is about to ship, dynamically discover and run all verify-*
 when_to_use: "Use before opening a PR, during code review, when auditing rule compliance, after implementing a feature, or when the user asks to run verification, check before PR, audit implementation, or run /verify-implementation."
 argument-hint: "[Optional: specific verify skill name]"
 disable-model-invocation: true
-allowed-tools: Bash(grep*) Bash(awk*) Bash(find*) Bash(python3 *) Read Glob Grep Edit
+allowed-tools: Bash(grep*) Bash(awk*) Bash(find*) Bash(python3 *scripts/*.py*) Read Glob Grep Edit
 ---
 
 # verify-implementation

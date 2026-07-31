@@ -252,8 +252,11 @@ Same effort, much wider payoff.
 ## Skill verification
 
 ```bash
-python3 tools/validate_skill.py plugins/elian-store/skills/improve
-python3 tools/validate_skill.py plugins/elian-store/skills/improve --json
+# SKILL_DIR = this skill's own directory on either host:
+SKILL_DIR="${CLAUDE_SKILL_DIR:-${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/skills/improve}}"
+SKILL_DIR="${SKILL_DIR:-${CODEX_HOME:-$HOME/.codex}/skills/improve}"
+python3 "${SKILL_DIR}/../_shared/validate_skill.py" "${SKILL_DIR}"
+python3 "${SKILL_DIR}/../_shared/validate_skill.py" "${SKILL_DIR}" --json
 ```
 
 ## Pre-flight checklist

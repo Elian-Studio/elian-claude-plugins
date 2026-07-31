@@ -4,7 +4,7 @@ description: When verify-* skills drift behind code changes (uncovered files / b
 when_to_use: "Use after introducing new patterns or rules, before PR to confirm verification coverage, when verification missed an expected issue, periodically to keep skills aligned with the codebase, or when the user asks to audit skill drift, repair verify skills, or run /manage-skills."
 argument-hint: "[skill-name | focus-area | question]"
 disable-model-invocation: true
-allowed-tools: Bash(git diff*) Bash(git log*) Bash(grep*) Bash(awk*) Bash(find*) Bash(python3 *) Read Glob Grep Edit Write
+allowed-tools: Bash(git diff*) Bash(git log*) Bash(grep*) Bash(awk*) Bash(find*) Bash(python3 *scripts/*.py*) Read Glob Grep Edit Write
 ---
 
 # manage-skills

@@ -50,7 +50,7 @@ jobs:
             python3 "$validator"
           done
           # Skills that shared one identical copy now run the single shared validator.
-          python3 tools/validate_skill.py \
+          python3 plugins/elian-store/skills/_shared/validate_skill.py \
             plugins/elian-store/skills/brainstorm \
             plugins/elian-store/skills/fix \
             plugins/elian-store/skills/implement \

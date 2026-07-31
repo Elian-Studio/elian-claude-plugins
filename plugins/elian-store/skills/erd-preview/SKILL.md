@@ -19,7 +19,7 @@ description: >
   the diagram with ACTUAL data (introspected from a DB or pasted), not invented
   example rows. Inputs: a live read-only DB tool, CREATE TABLE DDL, design docs,
   or pasted query results.
-allowed-tools: Read Write Bash(python3 *)
+allowed-tools: Read Write Bash(python3 *scripts/*.py*)
 disable-model-invocation: true
 ---
 

@@ -3,7 +3,7 @@ name: create-document
 description: When a skill or user needs to render structured HTML/MD from JSON, validate the data against a schema and substitute it into a bundled template.
 when_to_use: "Use for repeated document generation, JSON-to-HTML/Markdown rendering, schema-gated card documents, and internal calls from decision-dashboard or generate-teammate. Trigger phrases: 'render this JSON as a document', 'create a dashboard from this data', 'JSON to HTML', 'JSON to Markdown', '/create-document'."
 argument-hint: "--template <name> --data <json-path> --out <out-path>"
-allowed-tools: Bash(python3 *) Bash(mkdir *) Bash(cp *) Bash(ls *) Read Write
+allowed-tools: Bash(python3 *scripts/*.py*) Bash(mkdir *) Bash(cp *) Bash(ls *) Read Write
 disable-model-invocation: true
 ---
 

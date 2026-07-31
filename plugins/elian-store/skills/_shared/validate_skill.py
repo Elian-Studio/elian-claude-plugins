@@ -9,10 +9,15 @@ brainstorm/, fix/, implement/, and improve/ scripts/. The copies self-identified
 by their own location; this version takes the skill directory as an argument
 instead, so changing a rule is one edit rather than four.
 
+It lives in `_shared/` rather than the repository's `tools/` because the skills that
+document it ship to installed users, and `tools/` is not part of the plugin package —
+the documented command has to resolve inside a Claude or Codex install, not only in a
+repository checkout.
+
 Usage:
-    python3 tools/validate_skill.py <skill-dir> [<skill-dir> ...]
-    python3 tools/validate_skill.py <skill-dir> --json    # JSON output
-    python3 tools/validate_skill.py <skill-dir> --quiet   # exit code only
+    python3 <plugin>/skills/_shared/validate_skill.py <skill-dir> [<skill-dir> ...]
+    python3 <plugin>/skills/_shared/validate_skill.py <skill-dir> --json    # JSON output
+    python3 <plugin>/skills/_shared/validate_skill.py <skill-dir> --quiet   # exit code only
 
 Exits 0 when every skill passes, 1 otherwise.
 """

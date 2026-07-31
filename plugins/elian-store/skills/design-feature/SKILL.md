@@ -17,7 +17,7 @@ when_to_use: >
   PRD", "run design-feature". Also auto-follows /intake-spec when the user
   confirms the spec and says "proceed" or "next step".
 argument-hint: "<label> [--start-from phase1|phase2|phase3|phase4|phase5] [--stop-after phase1|phase2|phase3|phase4|phase5] [--skip-value-check]"
-allowed-tools: Bash(mkdir *) Bash(ls *) Bash(python3 *) Read Write Edit Glob Agent
+allowed-tools: Bash(mkdir *) Bash(ls *) Bash(python3 *scripts/*.py*) Read Write Edit Glob Agent
 disable-model-invocation: true
 ---
 

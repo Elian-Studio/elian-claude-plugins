@@ -88,7 +88,7 @@ still exists** before reading — report a moved path, not a false "missing".
 - Codex reads `~/.codex/skills/` **and** `.agents/skills/`; do not assume only one. Verify which a
   given machine actually populates before reporting a Codex-only gap.
 - Counts are lopsided (Claude ≫ Codex) and many names overlap (`commit`, `fix`, `implement`,
-  `review`, `brainstorm`, `decision-dashboard`, `design-ui`, `deep-interview`,
+  `review`, `brainstorm`, `decision-dashboard`, `deep-interview`,
   `para-memory-files`, …). Plus Claude loads skills from installed *plugins*, so a skill can be
   "present" via a plugin without a folder in `~/.claude/skills/`.
 - Report **presence** drift (which skill names exist on which side) — but verify each Codex-only

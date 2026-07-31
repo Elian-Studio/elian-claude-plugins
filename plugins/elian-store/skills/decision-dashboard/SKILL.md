@@ -3,7 +3,7 @@ name: decision-dashboard
 description: "When 3+ pending decisions block PO/team progress, capture them in a printable HTML artifact so the team can decide in 5 minutes instead of long chat threads. Replaces scattered decision fatigue with one page, all options, traceable choice, memo, and downloadable JSON for downstream skills."
 when_to_use: "Use when 3+ architecture, DDL, UX, consistency, or product decisions pile up in review; when the user asks to make a decision dashboard or lay out the choices; or when chat explanations are too long to inline. Skip for 1-2 decisions and ask directly in chat."
 argument-hint: "[issue-id] [output-dir?] [mode?]"
-allowed-tools: Bash(cp *) Bash(open *) Bash(date *) Bash(git branch*) Bash(mkdir *) Bash(python3 *) Edit Read Write
+allowed-tools: Bash(cp *) Bash(open *) Bash(date *) Bash(git branch*) Bash(mkdir *) Bash(python3 *scripts/*.py*) Edit Read Write
 disable-model-invocation: true
 ---
 

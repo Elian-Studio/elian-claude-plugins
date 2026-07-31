@@ -259,11 +259,14 @@ Resolution: extract format change to its own commit before parallel work,
 ## Skill verification
 
 ```bash
-python3 tools/validate_skill.py plugins/elian-store/skills/implement
-python3 tools/validate_skill.py plugins/elian-store/skills/implement --json
+# SKILL_DIR = this skill's own directory on either host:
+SKILL_DIR="${CLAUDE_SKILL_DIR:-${CLAUDE_PLUGIN_ROOT:+$CLAUDE_PLUGIN_ROOT/skills/implement}}"
+SKILL_DIR="${SKILL_DIR:-${CODEX_HOME:-$HOME/.codex}/skills/implement}"
+python3 "${SKILL_DIR}/../_shared/validate_skill.py" "${SKILL_DIR}"
+python3 "${SKILL_DIR}/../_shared/validate_skill.py" "${SKILL_DIR}" --json
 ```
 
-The shared validator (`tools/validate_skill.py`, stdlib only, argparse + `--json`) checks: frontmatter has the required fields and `name` matches the directory, the invocation gate is set, the body contains the required policy sections (Workflow / Standing Rules / Forbidden / Pitfall / Where this fits / Manual gating / Reflection / Persistent artifacts / BEFORE-AFTER / Pre-flight), and `references/` exists and is linked. Exits 0 on PASS, 1 on FAIL. `brainstorm`, `fix`, `implement`, and `improve` share it rather than each carrying a copy.
+The shared validator (`_shared/validate_skill.py`, stdlib only, argparse + `--json`) checks: frontmatter has the required fields and `name` matches the directory, the invocation gate is set, the body contains the required policy sections (Workflow / Standing Rules / Forbidden / Pitfall / Where this fits / Manual gating / Reflection / Persistent artifacts / BEFORE-AFTER / Pre-flight), and `references/` exists and is linked. Exits 0 on PASS, 1 on FAIL. `brainstorm`, `fix`, `implement`, and `improve` share it rather than each carrying a copy.
 
 ## Pre-flight checklist
 

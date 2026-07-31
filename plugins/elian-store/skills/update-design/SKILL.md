@@ -23,7 +23,7 @@ when_to_use: >
   /design-feature), minor typo fixes (just Edit), or code implementation
   (use /implement).
 argument-hint: "<label> [--scope design|ddl|arch|prd|api|qa|all] [--feedback \"<one-line change summary>\"]"
-allowed-tools: Bash(ls *) Bash(grep *) Bash(git log*) Bash(git status*) Bash(git diff*) Bash(python3 *) Read Write Edit Glob Agent
+allowed-tools: Bash(ls *) Bash(grep *) Bash(git log*) Bash(git status*) Bash(git diff*) Bash(python3 *scripts/*.py*) Bash(python3 -m json.tool*) Read Write Edit Glob Agent
 disable-model-invocation: true
 ---
 
@@ -331,7 +331,7 @@ comm -23 \
   <(grep -oE '\bR[0-9]+-AC[0-9]+\b' claudedocs/<label>/prd.md 2>/dev/null | sort -u)
 
 # 6. roadmap.json is valid JSON
-python3 -c 'import json;json.load(open("claudedocs/<label>/roadmap.json"));print("roadmap.json OK")'
+python3 -m json.tool claudedocs/<label>/roadmap.json > /dev/null && echo "roadmap.json OK"
 ```
 
 Report:
