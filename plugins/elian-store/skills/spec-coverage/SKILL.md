@@ -28,7 +28,7 @@ allowed-tools:
   - Edit
   - Glob
   - Grep
-  - Bash(python3 *)
+  - Bash(python3 *scripts/*.py*)
   - Bash(./gradlew *)
   - Bash(mvn *)
   - Bash(npm test*)

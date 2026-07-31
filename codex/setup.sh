@@ -8,12 +8,17 @@
 # symlinks, so a later `git pull` in this repo updates the installed skills
 # with no re-copy.
 #
+# `_shared/` is installed alongside the skills, not as a skill: several shipped
+# SKILL.md bodies link out to `../_shared/<file>` (review severity, execution
+# strategy, the structural validator). Without it those references dangle in a
+# Codex install even though every skill directory is present.
+#
 # Idempotent and safe:
 # - Correct symlink already in place        -> skipped.
 # - A real dir/file or a different symlink   -> backed up to <name>.bak.<ts>, then linked.
 #
 # Usage:
-#   ./codex/setup.sh            # install all skills under codex/skills/
+#   ./codex/setup.sh            # install all skills under codex/skills/ (plus _shared)
 #   ./codex/setup.sh create-document [other-skill ...]   # install a subset
 #
 # Uninstall a skill: rm "${CODEX_HOME:-$HOME/.codex}/skills/<name>"
@@ -33,7 +38,12 @@ mkdir -p "$DEST_DIR"
 
 # Build the install list: explicit args, or every entry under codex/skills/.
 if [ "$#" -gt 0 ]; then
+  # A subset install still needs the shared payload the skills link into.
   names=("$@")
+  case " ${names[*]} " in
+    *" _shared "*) ;;
+    *) [ -e "$SRC_DIR/_shared" ] && names+=("_shared") ;;
+  esac
 else
   names=()
   for path in "$SRC_DIR"/*; do

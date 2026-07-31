@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # dev-install.sh — install the WORKING-TREE elian-store plugin into the local
 # Claude Code plugin cache so the WHOLE pipeline (/intake-spec, /design-feature,
-# /functional-spec, /kanban-board, …) runs as real installed skills for end-to-end
+# /implement, /review, …) runs as real installed skills for end-to-end
 # testing — without merging to main or opening a PR.
 #
 # WHY: plugin skills load at session start from the installed cache, not from your
@@ -15,7 +15,7 @@
 #
 # AFTER INSTALL: fully restart the Claude Code session (skills load at startup),
 # then run the pipeline normally: /intake-spec … → /design-feature … →
-# /functional-spec … → /kanban-board.
+# /implement … → /review.
 #
 # This only touches your LOCAL ~/.claude plugin cache. It does not push or commit.
 
@@ -60,7 +60,7 @@ cat <<EOF
 dev-install complete (v$VERSION).
 Next:
   1. FULLY RESTART the Claude Code session (skills load at startup).
-  2. Verify: /functional-spec should appear; then run the pipeline end-to-end:
-       /intake-spec <label>  →  /design-feature <label>  →  /functional-spec <label>  →  /kanban-board <label>
+  2. Verify: /design-feature should appear; then run the pipeline end-to-end:
+       /intake-spec <label>  →  /design-feature <label>  →  /implement <label>  →  /review
   3. Undo:  tools/dev-install.sh --revert   (and /plugin to re-sync to the published version)
 EOF

@@ -6,9 +6,16 @@ index.html with two tabs (Before / After) styled like Notion.
 
 It is NOT fully self-contained: ```mermaid blocks are rendered by the mermaid
 library loaded from a CDN, because vendoring it would add megabytes to every
-report. Everything else (CSS, fonts, layout) is inlined. Offline or under a
-strict CSP the page still opens and reads correctly — diagrams degrade to their
-source with a visible notice rather than failing silently.
+report. The version is pinned exactly and carries an SRI hash, so a swapped CDN
+payload fails to execute instead of running. Everything else (CSS, fonts, layout)
+is inlined. Offline or under a strict CSP the page still opens and reads
+correctly — diagrams degrade to their source with a visible notice rather than
+failing silently.
+
+Page bodies are untrusted: anyone with edit access to the source page writes
+them, and the maintainer opens the result locally. Markdown is escaped, HTML
+(inline blocks and .html inputs alike) goes through sanitize_html(), and mermaid
+runs with securityLevel 'strict'.
 
 Usage:
   render_before_after.py --after after.md --title "KEY-123 — worker delegation" --out out/index.html
@@ -22,6 +29,7 @@ import argparse
 import html
 import re
 import sys
+from html.parser import HTMLParser
 
 CSS = r"""
   :root{
@@ -110,7 +118,7 @@ JS = r"""
     }
     try { window.mermaid.run({ nodes: nodes }); } catch(e){ console.error(e); }
   }
-  if (window.mermaid) { try { window.mermaid.initialize({ startOnLoad:false, theme:'neutral', securityLevel:'loose' }); } catch(e){} }
+  if (window.mermaid) { try { window.mermaid.initialize({ startOnLoad:false, theme:'neutral', securityLevel:'strict' }); } catch(e){} }
   renderMermaid(document.querySelector('.panel.active'));
   tabs.forEach(function(t){
     t.addEventListener('click', function(){
@@ -124,6 +132,18 @@ JS = r"""
   });
 })();
 """
+
+# Pinned exact version with an integrity hash: a floating `mermaid@11` lets the CDN
+# swap the script under a report that is kept as durable history, and without SRI the
+# browser will run whatever comes back. Re-pin by downloading the file and running
+# `openssl dgst -sha384 -binary mermaid.min.js | openssl base64 -A`.
+MERMAID_VERSION = '11.12.0'
+MERMAID_SRI = 'sha384-o+g/BxPwhi0C3RK7oQBxQuNimeafQ3GE/ST4iT2BxVI4Wzt60SH4pq9iXVYujjaS'
+MERMAID_SCRIPT = (
+    '<script src="https://cdn.jsdelivr.net/npm/mermaid@%s/dist/mermaid.min.js"'
+    ' integrity="%s" crossorigin="anonymous" referrerpolicy="no-referrer"></script>\n'
+    % (MERMAID_VERSION, MERMAID_SRI)
+)
 
 CALLOUT_ICON = {'NOTE': '\U0001F4DD', 'TIP': '\U0001F4A1', 'WARNING': '⚠️',
                 'CAUTION': '\U0001F6D1', 'IMPORTANT': '❗', 'INFO': 'ℹ️', 'TODO': '\U0001F4DD'}
@@ -154,6 +174,83 @@ def safe_url(url):
     if not SAFE_URL_RE.match(probe):
         return '#'
     return html.escape(u, quote=True)
+
+
+SAFE_ATTRS = {'href', 'src', 'alt', 'title', 'class', 'colspan', 'rowspan', 'open', 'lang'}
+URL_ATTRS = {'href', 'src'}
+VOID_TAGS = {'img', 'br', 'hr'}
+
+
+class _Sanitizer(HTMLParser):
+    """Reduce an HTML fragment to the tags and attributes this viewer renders.
+
+    Everything that is not in RAW_HTML_TAGS is escaped rather than dropped, so a
+    template placeholder written as `<Why this work was needed>` still shows up as
+    text instead of being swallowed by the browser. Attributes outside SAFE_ATTRS —
+    every `on*` handler among them — are removed, and `href`/`src` go through
+    safe_url(), which is the same allowlist the markdown path uses.
+    """
+
+    def __init__(self):
+        super().__init__(convert_charrefs=False)
+        self.out = []
+
+    def _emit_tag(self, tag, attrs, self_closing):
+        if tag.lower() not in RAW_HTML_TAGS:
+            return False
+        kept = []
+        for name, value in attrs:
+            name = name.lower()
+            if name not in SAFE_ATTRS:
+                continue
+            if value is None:
+                kept.append(name)
+            elif name in URL_ATTRS:
+                kept.append('%s="%s"' % (name, safe_url(value)))
+            else:
+                kept.append('%s="%s"' % (name, html.escape(value, quote=True)))
+        close = ' /' if self_closing or tag.lower() in VOID_TAGS else ''
+        self.out.append('<%s%s%s>' % (tag.lower(), ''.join(' ' + a for a in kept), close))
+        return True
+
+    def handle_starttag(self, tag, attrs):
+        if not self._emit_tag(tag, attrs, False):
+            self.out.append(html.escape(self.get_starttag_text() or '', quote=False))
+
+    def handle_startendtag(self, tag, attrs):
+        if not self._emit_tag(tag, attrs, True):
+            self.out.append(html.escape(self.get_starttag_text() or '', quote=False))
+
+    def handle_endtag(self, tag):
+        if tag.lower() in RAW_HTML_TAGS:
+            self.out.append('</%s>' % tag.lower())
+        else:
+            self.out.append(html.escape('</%s>' % tag, quote=False))
+
+    def handle_data(self, data):
+        self.out.append(html.escape(data, quote=False))
+
+    def handle_entityref(self, name):
+        self.out.append('&%s;' % name)
+
+    def handle_charref(self, name):
+        self.out.append('&#%s;' % name)
+
+    def handle_comment(self, data):
+        self.out.append('<!--%s-->' % data.replace('--', '- -'))
+
+
+def sanitize_html(fragment):
+    """Strip scripts, handlers, and unknown tags out of an untrusted HTML fragment."""
+    # <script>/<style> bodies are never markup this viewer renders, and HTMLParser hands
+    # them over as raw data. Drop them wholesale before parsing so their contents cannot
+    # survive as text that a later paste re-activates.
+    fragment = re.sub(r'<\s*(script|style)\b.*?<\s*/\s*\1\s*>', '', fragment,
+                      flags=re.I | re.S)
+    parser = _Sanitizer()
+    parser.feed(fragment)
+    parser.close()
+    return ''.join(parser.out)
 
 
 def inline(s):
@@ -224,7 +321,7 @@ def md_to_html(md):
             while i < n and lines[i].strip():
                 buf.append(lines[i])
                 i += 1
-            out.append('\n'.join(buf))
+            out.append(sanitize_html('\n'.join(buf)))
             continue
         # blockquote / GitHub callout
         if stripped.startswith('>'):
@@ -298,7 +395,7 @@ def load(path):
     with open(path, encoding='utf-8') as f:
         text = f.read()
     if path.lower().endswith(('.html', '.htm')):
-        return text
+        return sanitize_html(text)
     return md_to_html(text)
 
 
@@ -322,7 +419,7 @@ def wrap(title, before_html, after_html):
         '<section id="after" class="panel"><div class="page"><span class="ribbon after">After</span>\n',
         after_html, '\n</div></section>\n',
         '</main>\n',
-        '<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>\n',
+        MERMAID_SCRIPT,
         '<script>%s</script>\n</body>\n</html>\n' % JS,
     ]
     return ''.join(parts)
@@ -341,6 +438,18 @@ def main(argv=None):
         sample = "## H\n- a\n- b\n\n| x | y |\n|---|---|\n| 1 | 2 |\n\n```mermaid\nflowchart LR\n  A-->B\n```\n> [!TODO] confirm\n"
         h = md_to_html(sample)
         assert '<table class="headrow">' in h and '<div class="mermaid">' in h and 'callout yellow' in h and '<ul>' in h
+
+        hostile = ('<div class="x" onclick="steal()"><img src="x" onerror="alert(1)">'
+                   '<a href="javascript:alert(1)">go</a><script>alert(1)</script></div>')
+        s = sanitize_html(hostile)
+        assert 'onclick' not in s and 'onerror' not in s and 'javascript:' not in s
+        assert '<script' not in s and 'alert(1)' not in s
+        assert '<div class="x">' in s and '<a href="#">go</a>' in s
+
+        placeholder = '<Why this work was needed — the problem and motivation.>'
+        assert sanitize_html(placeholder).startswith('&lt;Why')
+
+        assert 'integrity="sha384-' in wrap('t', None, h)
         print('selftest OK')
         return 0
 

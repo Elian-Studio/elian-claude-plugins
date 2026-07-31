@@ -115,6 +115,27 @@ allowed-tools: {tools}{gate}
         validator.validate_skill_contracts()
         self.assertTrue(any(item.check == "tool-policy" for item in validator.findings))
 
+    def test_rejects_an_interpreter_with_no_script_path(self) -> None:
+        self.write_skill("runner", tools="Read Bash(python3 *)", disable="true")
+        validator = RepositoryValidator(self.root)
+        validator.validate_skill_contracts()
+        self.assertTrue(
+            any(
+                item.check == "tool-policy" and "unbounded interpreter" in item.message
+                for item in validator.findings
+            )
+        )
+
+    def test_allows_an_interpreter_bound_to_a_script_path(self) -> None:
+        self.write_skill(
+            "runner",
+            tools="Read Bash(python3 *scripts/*.py*) Bash(python3 -m json.tool*)",
+            disable="true",
+        )
+        validator = RepositoryValidator(self.root)
+        validator.validate_skill_contracts()
+        self.assertEqual([i for i in validator.findings if i.check == "tool-policy"], [])
+
     def test_flags_pre_allowlisted_pr_posting_commands(self) -> None:
         self.write_skill(
             "poster",
@@ -300,6 +321,29 @@ class CodexDanglingSymlinkTests(unittest.TestCase):
         validator.validate_cluster_manifest()
         self.assertTrue(any("dangling symlink" in item.message for item in validator.findings))
 
+    def test_requires_codex_to_ship_the_shared_payload(self) -> None:
+        # Skills link to ../_shared/<file>; codex/setup.sh installs what is in codex/skills,
+        # so a missing link here is a dangling reference in every Codex install.
+        self.make_skill("kept")
+        self.write_manifest(["kept"])
+        (self.codex / "kept").symlink_to("../../plugins/elian-store/skills/kept")
+        (self.skills / "_shared").mkdir()
+        validator = RepositoryValidator(self.root)
+        validator.validate_cluster_manifest()
+        self.assertTrue(any("_shared" in item.message for item in validator.findings))
+
+    def test_shared_payload_is_not_treated_as_an_unknown_skill(self) -> None:
+        self.make_skill("kept")
+        self.write_manifest(["kept"])
+        (self.codex / "kept").symlink_to("../../plugins/elian-store/skills/kept")
+        (self.skills / "_shared").mkdir()
+        (self.codex / "_shared").symlink_to("../../plugins/elian-store/skills/_shared")
+        validator = RepositoryValidator(self.root)
+        validator.validate_cluster_manifest()
+        self.assertEqual(
+            [i for i in validator.findings if i.check == "codex-disposition"], []
+        )
+
     def test_passes_when_every_link_resolves(self) -> None:
         self.make_skill("kept")
         self.write_manifest(["kept"])
@@ -370,6 +414,45 @@ class MultiPluginCoverageTests(unittest.TestCase):
         validator = RepositoryValidator(self.root)
         validator.validate_english_policy()
         self.assertTrue(any(item.check == "english-policy" for item in validator.findings))
+
+
+class SourceSyntaxTests(unittest.TestCase):
+    """`node --check` picks its parse goal from the runtime, which made results depend
+    on the contributor's Node version rather than on the file."""
+
+    def setUp(self) -> None:
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name)
+
+    def tearDown(self) -> None:
+        self.temp.cleanup()
+
+    def write(self, relative: str, source: str) -> None:
+        path = self.root / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(source, encoding="utf-8")
+
+    @unittest.skipUnless(validator_module.shutil.which("node"), "node is unavailable")
+    def test_accepts_an_es_module_with_a_js_extension(self) -> None:
+        self.write("src/mod.js", "export const meta = { name: 'x' };\n")
+        validator = RepositoryValidator(self.root)
+        validator.validate_source_syntax()
+        self.assertEqual([i for i in validator.findings if i.check == "javascript-syntax"], [])
+
+    @unittest.skipUnless(validator_module.shutil.which("node"), "node is unavailable")
+    def test_accepts_a_workflow_tool_script(self) -> None:
+        # The host wraps the body in a function, so `export` and top-level `return` coexist.
+        self.write(".claude/workflows/tool.js", "export const meta = { name: 'x' };\nreturn { ok: await Promise.resolve(1) };\n")
+        validator = RepositoryValidator(self.root)
+        validator.validate_source_syntax()
+        self.assertEqual([i for i in validator.findings if i.check == "javascript-syntax"], [])
+
+    @unittest.skipUnless(validator_module.shutil.which("node"), "node is unavailable")
+    def test_still_reports_a_real_syntax_error(self) -> None:
+        self.write("src/broken.mjs", "export const x = ;\n")
+        validator = RepositoryValidator(self.root)
+        validator.validate_source_syntax()
+        self.assertTrue(any(i.check == "javascript-syntax" for i in validator.findings))
 
 
 if __name__ == "__main__":

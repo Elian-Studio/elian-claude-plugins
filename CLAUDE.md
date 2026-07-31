@@ -36,4 +36,4 @@ ruby -EUTF-8 -ryaml -e 'Dir.glob("plugins/*/skills/*/SKILL.md").sort.each { |p| 
 ruby -rjson -e '[".claude-plugin/marketplace.json", *Dir.glob("plugins/*/.claude-plugin/plugin.json")].each { |p| JSON.parse(File.read(p)); puts "OK #{p}" }'
 ```
 
-Also validate the changed skill. Skills owning a bespoke validator run their own (e.g. `python3 plugins/elian-store/skills/review/scripts/validate_skill.py`); `brainstorm`, `fix`, `implement`, and `improve` share `python3 tools/validate_skill.py <skill-dir>`.
+Also validate the changed skill. Skills owning a bespoke validator run their own (e.g. `python3 plugins/elian-store/skills/review/scripts/validate_skill.py`); `brainstorm`, `fix`, `implement`, and `improve` share `python3 plugins/elian-store/skills/_shared/validate_skill.py <skill-dir>`. It sits inside the plugin rather than in `tools/` because `tools/` is not distributed, and a command a shipped `SKILL.md` documents must resolve in an installed plugin too.

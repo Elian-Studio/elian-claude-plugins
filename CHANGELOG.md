@@ -10,6 +10,42 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## elian-store Plugin
 
+### [4.2.0] — 2026-07-31
+
+Review follow-up on 4.1.0: the deduplication it shipped moved two things out of the
+distributed tree, and the safety baseline it inherited had a hole wider than the patterns
+it rejects.
+
+#### Fixed
+- **The shared `validate_skill.py` was unreachable for installed users.** 4.1.0 collapsed four
+  copies into `tools/validate_skill.py`, but `tools/` is not part of the plugin package, so the
+  Pre-flight command printed in `brainstorm`, `fix`, `implement`, and `improve` pointed at a path
+  that only exists in a repository checkout. It now lives at `skills/_shared/validate_skill.py`
+  and the skills resolve it through the same `CLAUDE_SKILL_DIR`/`CODEX_HOME` fallback they already
+  use for their own scripts.
+- **`_shared/` never reached a Codex install.** `codex/setup.sh` symlinks skill directories only,
+  so `../_shared/review-severity.md` (new in 4.1.0) and `../_shared/execution-strategy.md`
+  dangled for `review`, `fix`, `implement`, and `improve`. `codex/skills/_shared` now exists,
+  `setup.sh` installs it even for a subset install, and `scripts/validate_repository.py` fails
+  when it is missing.
+- **`Bash(python3 *)` in ten skills was unbounded code execution** — `python3 -c "…"` is strictly
+  broader than the `Bash(sh *)` spelling the validator already rejects. Narrowed to
+  `Bash(python3 *scripts/*.py*)` (plus an explicit `python3 -m json.tool` entry for
+  `update-design`, whose inline `-c` JSON check was rewritten), and the validator now rejects a
+  bare interpreter in `allowed-tools`.
+
+#### Changed
+- `scripts/validate_repository.py` picks the parse goal for a JavaScript file from its source
+  instead of the runtime default: `node --check` treats a `.js` file as CommonJS unless the
+  runtime does module detection (Node ≥ 22.7), so `.claude/workflows/harness-legacy-scan.js`
+  failed the documented pre-PR command for every contributor below that version while CI, pinned
+  to Node 22, stayed green. `.mjs`/`.cjs` are now checked too, and Workflow-tool scripts — which
+  are neither CommonJS nor ESM, since the host allows top-level `return` alongside `export` — are
+  normalized before the check rather than skipped.
+- Retired-skill references removed from `tools/dev-install.sh` (its end-to-end verification
+  invoked `/functional-spec` and `/kanban-board`), `docs/claude-codex-skill-parity.md` (port order
+  and non-shared disposition tables still listed them as live), and `harness-map.md`.
+
 ### [4.1.0] — 2026-07-29
 
 Layering work driven by measurement rather than by taxonomy. An architecture proposal
@@ -580,6 +616,22 @@ migration paths are recorded in `docs/claude-codex-skill-parity.md`
 ---
 
 ## elian-workflow Plugin
+
+### [1.1.0] — 2026-07-31
+
+#### Fixed
+- **`render_before_after.py` did not enforce the boundary it documented.** It declared page bodies
+  untrusted and neutralized `javascript:` URLs, then passed raw HTML lines and `.html` inputs
+  through verbatim — so `<img src=x onerror=…>` in a Notion page body reached the report the
+  maintainer opens locally — and initialized mermaid with `securityLevel:'loose'`, which re-enables
+  HTML in diagram labels. Both HTML paths now go through a stdlib tag/attribute allowlist that
+  drops scripts and `on*` handlers while still escaping (not swallowing) template placeholders like
+  `<Why this work was needed>`, and mermaid runs `strict`.
+- **The mermaid CDN reference was floating and unverified.** `mermaid@11` with no integrity hash
+  let the CDN change the script under a report kept as durable history. Pinned to `11.12.0` with
+  an SRI hash and `crossorigin`.
+- **`Bash(python3*)` in `/issue-close` allowed arbitrary code execution.** Narrowed to the one
+  script the skill runs.
 
 ### [1.0.0] — 2026-07-29
 

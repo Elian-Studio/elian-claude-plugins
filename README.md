@@ -296,7 +296,7 @@ python3 plugins/elian-store/skills/review/scripts/validate_skill.py
 carry four byte-identical copies), which takes the skill directories as arguments:
 
 ```shell
-python3 tools/validate_skill.py plugins/elian-store/skills/implement
+python3 plugins/elian-store/skills/_shared/validate_skill.py plugins/elian-store/skills/implement
 ```
 
 ---

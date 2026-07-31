@@ -95,7 +95,7 @@ Do not treat these gaps as immediate parity bugs. They are roadmap gaps and shou
 | `implement` | Build new features through TDD with approval gates | Good | Codex now preserves the approval-gated TDD flow and explicit file ownership before execution. | Present |
 | `fix` | Repair confirmed bugs with root-cause analysis and regression test first | Good | Codex now preserves root-cause-first repair, regression-test-first repair, and sibling-site search. | Present |
 | `improve` | Make behavior-changing improvements to working features | Good | Codex now preserves BEFORE/AFTER measurement and existing-test protection. | Present |
-| `design-ui` | Produce UI/UX design artifacts through interview, reference, wireframe, gate, visual | Mostly good | Codex now shares the same brief -> reference -> wireframe -> gate -> visual flow. Keep the gate explicit and preserve the artifact set. | Present |
+| ~~`design-ui`~~ | Produce UI/UX design artifacts through interview, reference, wireframe, gate, visual | Mostly good | Codex shared the same brief -> reference -> wireframe -> gate -> visual flow. | Retired in 4.0.0 |
 | `decision-dashboard` | Turn 3+ blocking decisions into a printable decision artifact and JSON | Good | Codex now preserves the JSON-first / HTML-second contract and the `generate` / `finalize` flow. Keep the memo requirement for `Other` explicit. | Present |
 | `generate-teammate` | Decide direct/subagent/team execution and generate teammate/task prompts | Platform-specific | Claude can use Agent/Team tools; Codex keeps the same phase analysis and handoff plan, but not actual teammate spawning. | Present (platform-limited) |
 | `create-document` | Deterministically render schema-validated JSON into HTML/MD templates | Good utility | Codex now preserves the validate-first rendering contract and the supported template set. Keep the legacy fixed five-block renderer out of the active path. | Present |
@@ -106,7 +106,7 @@ Do not treat these gaps as immediate parity bugs. They are roadmap gaps and shou
 | `pr-writer` | Draft a review-friendly PR/MR title and body from the diff, commits, and stated intent, contrasting intent vs implementation | Good | Both trees share the draft-only posture, PLAN -> DRAFT -> CONTRAST flow, platform (`gh`/`glab`) detection, and the same title/body output contract. Claude scopes read-only git tools via `allowed-tools`; Codex enforces the same draft-only boundary in prompt prose. | Present |
 | `verify-before-claiming` | Claim-time honesty gate — require fresh verification evidence before any pass/fixed/done claim | Good | Portable doctrine + bash verification idioms; ships as a shared symlink. Always-on (`disable-model-invocation: false`), read-only. Distinct from `verify-implementation` (suite runner) — this proves the specific claim being made. | Present |
 | `respond-to-review` | Consumer side of review — verify feedback before implementing, no performative agreement, push back with reasoning | Good | Behavioral, read-only triage that hands edits to `/fix` or `/improve`; ships as a shared symlink. Always-on (`disable-model-invocation: false`). | Present |
-| `finish-branch` | Disposition of a finished branch (merge / push+PR / keep / discard) with worktree-safe cleanup | Claude-only | Depends on native `EnterWorktree`/`ExitWorktree` and `.claude/worktrees/`; uses optional host release/commit skills with plain-git fallback. | Claude-only |
+| ~~`finish-branch`~~ | Disposition of a finished branch (merge / push+PR / keep / discard) with worktree-safe cleanup | Claude-only | Depended on native `EnterWorktree`/`ExitWorktree` and `.claude/worktrees/`. | Retired in 4.0.0 |
 
 ## Required Work To Maintain Parity
 
@@ -126,7 +126,7 @@ Minimum ongoing parity work:
 |---:|---|---|
 | 1 | `document-writer` | Portable and self-contained; only artifact-contract stability blocks it. |
 | 2 | `intake-spec`, `design-feature`, `update-design` | Port together after the design artifact manifest stabilizes. |
-| 3 | `erd-preview`, `kanban-board` | Port after Codex asset-backed artifact packaging is standardized. |
+| 3 | `erd-preview` | Port after Codex asset-backed artifact packaging is standardized. |
 
 ## Recommended New-Skill Order From gstack Review
 
@@ -143,7 +143,6 @@ Completed:
 - `brainstorm` now closes the biggest gap in the planning/discovery lane.
 - `create-document` now closes the JSON-to-artifact rendering lane.
 - `decision-dashboard` now closes the decision-dashboard generation lane.
-- `design-ui` now closes the biggest gap in the UX design artifact lane.
 - `fix` now closes the bug-repair lane.
 - `generate-teammate` now closes the execution-planning lane with a Codex handoff-only equivalent.
 - `improve` now closes the behavior-improvement lane.
@@ -162,10 +161,9 @@ These skills ship in the Claude plugin without a shared `codex/skills/<skill>` s
 |---|---|---|
 | `harness-manager` | Claude-only | Operates on both hosts' global harnesses and depends on Claude-side workflow semantics. |
 | `pr-review` | Claude-only | Its core is parallel multi-agent panel dispatch plus optional confirmed PR posting. |
-| `finish-branch` | Claude-only | Depends on native `EnterWorktree`/`ExitWorktree` and Claude worktree semantics. |
 | `document-writer` | Deferred | Portable renderer; port after the artifact contract settles. |
 | `intake-spec`, `design-feature`, `update-design` | Deferred | Portable requirements/design pipeline that is still changing as a unit. |
-| `erd-preview`, `kanban-board` | Deferred | Portable asset-backed generators; defer until the Codex artifact packaging path is standardized. |
+| `erd-preview` | Deferred | Portable asset-backed generator; defer until the Codex artifact packaging path is standardized. |
 | `spec-coverage` | Deferred | Coverage core (test-runner discovery, status/render scripts) is portable via Read/Write/Bash, but the optional PostToolUse auto-render hook is Claude-only; defer Codex shipping until that hook guidance is host-conditioned and smoke-tested. |
 
 ## Retired Commands
@@ -174,6 +172,10 @@ These skills ship in the Claude plugin without a shared `codex/skills/<skill>` s
 |---|---|---|---|
 | `ai-assisted-feature-development` | v3.0.0 (2026-07-22) | Its 9 phases duplicated existing skills: phases 1–5 = `intake-spec` + `design-feature`, phases 6–7 = `implement`, phase 8 = `review`. It wrote artifacts to its own layout, so nothing downstream could consume them, and `disable-model-invocation: false` let it auto-trigger against `intake-spec`. | `/intake-spec` → `/design-feature` → `/implement` → `/review` |
 | `skill-dispatcher` | v3.0.0 (2026-07-22) | Duplicated the host's built-in skill discovery plus each skill's own `when_to_use`. | None — the host routes on `description` / `when_to_use`. |
+| `design-ui` | v4.0.0 (2026-07-29) | 3 invocations in 67 days. | None — the slot is open; see `docs/plugin-portfolio-hybrid-model.md`. |
+| `functional-spec` | v4.0.0 (2026-07-29) | 0 invocations in 22 days. | None — reopen only with a repeatable workflow. |
+| `kanban-board` | v4.0.0 (2026-07-29) | Unused; superseded by host task tooling. | None. |
+| `finish-branch` | v4.0.0 (2026-07-29) | Unused; `/ship` and plain git covered the same dispositions. | `/pr-writer` for the PR body; plain git for merge/cleanup. |
 
 Removed from both trees in the same change (plugin skill + `codex/skills/` symlink).
 

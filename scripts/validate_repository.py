@@ -26,6 +26,7 @@ from urllib.parse import unquote
 
 
 HANGUL_RE = re.compile(r"[가-힣]")
+ESM_SYNTAX_RE = re.compile(r"^\s*(?:export\b|import\s|import\()", re.MULTILINE)
 MARKDOWN_LINK_RE = re.compile(r"!?\[[^\]]*]\(([^)\n]+)\)")
 FRONTMATTER_KEY_RE = re.compile(r"^([A-Za-z][A-Za-z0-9_-]*):(?:\s*(.*))?$")
 SIDE_EFFECT_TOOL_RE = re.compile(
@@ -40,6 +41,13 @@ UNSAFE_TOOL_PATTERNS = {
     "unbounded shell": re.compile(r"\bBash\((?:bash|sh) \*\)"),
     "wildcard deletion": re.compile(r"\bBash\(rm [^)]*\*\)"),
     "privilege escalation": re.compile(r"\bBash\(sudo"),
+    # An interpreter with no script path is arbitrary code execution — `python3 -c "…"`
+    # is strictly broader than the `Bash(sh *)` spelling right above, which is rejected.
+    # Constrain it to the script the skill actually runs, e.g.
+    # Bash(python3 *scripts/render.py*).
+    "unbounded interpreter": re.compile(
+        r"\bBash\((?:python3?|node|ruby|perl|osascript|env)\s*\*?\)"
+    ),
 }
 READ_ONLY_REVIEW_AGENTS = {"engineering-reviewer"}
 HIGH_IMPACT_SKILLS = {"harness-manager"}
@@ -98,6 +106,23 @@ def parse_frontmatter(text: str) -> dict[str, str]:
             value = raw
         result[key] = _strip_quotes(value)
     return result
+
+
+def _is_claude_workflow(path: Path) -> bool:
+    return ".claude" in path.parts and "workflows" in path.parts
+
+
+def _as_workflow_body(source: str) -> str:
+    """Rewrite a Workflow-tool script into something a plain parser accepts.
+
+    `.claude/workflows/*.js` is neither CommonJS nor an ES module: the host exports
+    `meta` with ESM syntax but runs the body inside a function, so a top-level `return`
+    and top-level `await` are both legal there and illegal in either standard goal.
+    Checking the file as-is fails one way or the other, so normalize the two host-only
+    affordances away and syntax-check what is left.
+    """
+    body = re.sub(r"^export\s+(?=const|let|var|function|class|async)", "", source, flags=re.MULTILINE)
+    return "(async function(){\n%s\n});" % body
 
 
 def strip_fenced_code(text: str) -> str:
@@ -365,12 +390,31 @@ class RepositoryValidator:
                         link,
                         "dangling symlink — its target was removed; delete the link too",
                     )
+                # `_shared/` is payload, not a skill: shipped SKILL.md bodies link into it,
+                # so it has to be present here and installed by codex/setup.sh.
+                elif link.name.startswith("_"):
+                    expected = Path("../..") / skills_dir_rel / link.name
+                    if not link.is_symlink() or Path(link.readlink()) != expected:
+                        self.add(
+                            "codex-disposition",
+                            link,
+                            f"shared payload must be a symlink to {expected}",
+                        )
                 elif link.name not in skills:
                     self.add(
                         "codex-disposition",
                         link,
                         f"'{link.name}' is not a skill in {skills_dir_rel}",
                     )
+
+        shared_dir = self.root / skills_dir_rel / "_shared"
+        if shared_dir.is_dir() and not (codex_skills / "_shared").exists():
+            self.add(
+                "codex-disposition",
+                codex_skills / "_shared",
+                "codex/skills must ship _shared; skills link to ../_shared/<file> and the "
+                "reference dangles in a Codex install without it",
+            )
 
     def validate_versions(self) -> None:
         # Every published plugin, not only the bundle. plugin.json.version is the update
@@ -516,14 +560,33 @@ class RepositoryValidator:
 
         node = shutil.which("node")
         if node:
-            for path in self.root.rglob("*.js"):
-                if any(part in excluded_parts for part in path.parts):
-                    continue
-                result = subprocess.run(
-                    [node, "--check", str(path)], capture_output=True, text=True, check=False
-                )
-                if result.returncode:
-                    self.add("javascript-syntax", path, result.stderr.strip() or "node --check failed")
+            for suffix in ("*.js", "*.mjs", "*.cjs"):
+                for path in self.root.rglob(suffix):
+                    if any(part in excluded_parts for part in path.parts):
+                        continue
+                    source = path.read_text(encoding="utf-8")
+                    # `node --check <file.js>` parses as CommonJS unless the runtime happens to
+                    # do module detection (Node >= 22.7), so an ES module with a .js extension
+                    # fails on older runtimes and passes on newer ones. Choose the goal
+                    # explicitly from the source instead of inheriting the runtime's default.
+                    if _is_claude_workflow(path):
+                        argv = [node, "--check"]
+                        stdin = _as_workflow_body(source)
+                    elif path.suffix == ".mjs" or (
+                        path.suffix != ".cjs" and ESM_SYNTAX_RE.search(source)
+                    ):
+                        argv = [node, "--input-type=module", "--check"]
+                        stdin = source
+                    else:
+                        argv = [node, "--check", str(path)]
+                        stdin = None
+                    result = subprocess.run(
+                        argv, input=stdin, capture_output=True, text=True, check=False
+                    )
+                    if result.returncode:
+                        self.add(
+                            "javascript-syntax", path, result.stderr.strip() or "node --check failed"
+                        )
         else:
             self.add(
                 "javascript-syntax",

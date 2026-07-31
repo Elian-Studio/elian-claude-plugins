@@ -12,7 +12,7 @@ description: >-
   code comment. (For rendering a fixed JSON payload through a schema-based template, use
   create-document — that is the render engine other skills call internally. This skill is the
   general-purpose author that turns arbitrary content into a well-presented document.)
-allowed-tools: Read Write Bash(python3 *) Bash(mkdir *)
+allowed-tools: Read Write Bash(python3 *scripts/*.py*) Bash(mkdir *)
 disable-model-invocation: true
 ---
 
