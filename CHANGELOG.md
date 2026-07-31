@@ -10,6 +10,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## elian-store Plugin
 
+### [4.1.1] — 2026-07-31
+
+#### Fixed
+- **HTML generators no longer allow injection from their input (XSS).** The document skills
+  render model/issue-supplied text into standalone HTML that a user then opens in a browser;
+  two paths let that text escape its context and execute script:
+  - `document-writer/scripts/build_doc.py` interpolated Markdown link/image URLs into
+    `href`/`src` without escaping. A link URL of `a"onclick="alert(1)` broke out of the
+    attribute, and a `javascript:` URL produced a clickable script link. URLs are now
+    HTML-escaped and `javascript:` / `vbscript:` / `data:` schemes are dropped.
+  - `create-document/scripts/render.py` escaped `{{ }}` substitutions with `quote=False`, so a
+    value placed in an attribute (`data-val="{{key}}"`) or a quoted `<script>` string
+    (`const ISSUE_ID = '{{issue}}'`) could break out — the latter is code execution. Switched
+    to `quote=True`. Trusted raw HTML still uses the explicit `{{{ }}}` form.
+
 ### [4.1.0] — 2026-07-29
 
 Layering work driven by measurement rather than by taxonomy. An architecture proposal
