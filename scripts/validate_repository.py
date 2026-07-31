@@ -24,10 +24,13 @@ from pathlib import Path
 from typing import Iterable
 from urllib.parse import unquote
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
+
+from skill_check import parse_frontmatter  # noqa: E402  (shared with the skill validators)
+
 
 HANGUL_RE = re.compile(r"[가-힣]")
 MARKDOWN_LINK_RE = re.compile(r"!?\[[^\]]*]\(([^)\n]+)\)")
-FRONTMATTER_KEY_RE = re.compile(r"^([A-Za-z][A-Za-z0-9_-]*):(?:\s*(.*))?$")
 SIDE_EFFECT_TOOL_RE = re.compile(
     r"(?:^|[\s,\[])(?:Write|Edit|TeamCreate|TaskCreate|TaskUpdate|SendMessage|"
     r"Bash\(gh pr (?:review|comment)|Bash\(glab mr (?:note|approve)|"
@@ -55,49 +58,6 @@ class Finding:
     path: str
     message: str
     severity: str = "error"
-
-
-def _strip_quotes(value: str) -> str:
-    value = value.strip()
-    if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
-        return value[1:-1]
-    return value
-
-
-def parse_frontmatter(text: str) -> dict[str, str]:
-    """Parse the top-level scalar/list subset used by repository frontmatter."""
-    lines = text.splitlines()
-    if not lines or lines[0].strip() != "---":
-        return {}
-    try:
-        end = next(i for i in range(1, len(lines)) if lines[i].strip() == "---")
-    except StopIteration:
-        return {}
-
-    result: dict[str, str] = {}
-    i = 1
-    while i < end:
-        match = FRONTMATTER_KEY_RE.match(lines[i])
-        if not match:
-            i += 1
-            continue
-        key, raw = match.group(1), (match.group(2) or "").strip()
-        i += 1
-        continuation: list[str] = []
-        while i < end and (lines[i].startswith((" ", "\t")) or not lines[i].strip()):
-            stripped = lines[i].strip()
-            if stripped.startswith("- "):
-                stripped = stripped[2:].strip()
-            continuation.append(stripped)
-            i += 1
-        if raw in {">", ">-", "|", "|-"}:
-            value = " ".join(part for part in continuation if part)
-        elif continuation:
-            value = " ".join([raw, *continuation]).strip()
-        else:
-            value = raw
-        result[key] = _strip_quotes(value)
-    return result
 
 
 def strip_fenced_code(text: str) -> str:

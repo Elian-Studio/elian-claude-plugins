@@ -299,6 +299,11 @@ carry four byte-identical copies), which takes the skill directories as argument
 python3 tools/validate_skill.py plugins/elian-store/skills/implement
 ```
 
+Every validator — shared and bespoke — is built on `tools/skill_check.py`, which owns the
+frontmatter parser (the same one `scripts/validate_repository.py` uses), the reusable checks,
+and the `--json` / `--quiet` report. A skill-owned validator declares only what is specific to
+its skill.
+
 ---
 
 ## Operating Model

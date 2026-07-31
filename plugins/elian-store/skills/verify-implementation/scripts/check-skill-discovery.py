@@ -32,36 +32,18 @@ import sys
 from pathlib import Path
 from typing import Any
 
+# frontmatter/section parsing is shared with manage-skills' frontmatter checker;
+# `_shared/` is copied into every emitted plugin, so this resolves after installation too.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "_shared" / "scripts"))
 
-def parse_frontmatter(text: str) -> dict[str, str] | None:
-    lines = text.splitlines()
-    if not lines or lines[0].strip() != "---":
-        return None
-    end = -1
-    for i in range(1, len(lines)):
-        if lines[i].strip() == "---":
-            end = i
-            break
-    if end == -1:
-        return None
-    fm: dict[str, str] = {}
-    for ln in lines[1:end]:
-        m = re.match(r"^([a-zA-Z_-][a-zA-Z0-9_-]*)\s*:\s*(.*)$", ln)
-        if m:
-            key, value = m.group(1), m.group(2).strip()
-            value = re.sub(r'^"|"$', "", value)
-            value = re.sub(r"^'|'$", "", value)
-            fm[key] = value
-    return fm
+try:
+    from skill_md import has_section, parse_frontmatter  # noqa: E402
+except ModuleNotFoundError:  # a lone skill directory was copied out of the plugin
+    raise SystemExit("error: skills/_shared/scripts/skill_md.py not found; install the whole plugin")
 
 
 def is_manual_only(text: str) -> bool:
     return bool(re.search(r"수동\s*실행\s*전용|수동\s*실행", text))
-
-
-def has_section(text: str, name: str) -> bool:
-    pattern = rf"^#{{1,4}}\s+.*\b{re.escape(name)}\b"
-    return bool(re.search(pattern, text, re.MULTILINE | re.IGNORECASE))
 
 
 def discover(skills_dir: Path) -> dict[str, Any]:

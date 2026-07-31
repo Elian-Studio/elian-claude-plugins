@@ -9,6 +9,9 @@ brainstorm/, fix/, implement/, and improve/ scripts/. The copies self-identified
 by their own location; this version takes the skill directory as an argument
 instead, so changing a rule is one edit rather than four.
 
+The checks themselves live in `tools/skill_check.py`, shared with the skill-owned
+validators that add their own skill-specific checks on top.
+
 Usage:
     python3 tools/validate_skill.py <skill-dir> [<skill-dir> ...]
     python3 tools/validate_skill.py <skill-dir> --json    # JSON output
@@ -20,21 +23,16 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 import sys
-from dataclasses import dataclass
 from pathlib import Path
 
-
-@dataclass
-class CheckResult:
-    name: str
-    passed: bool
-    detail: str = ""
-
-    def to_dict(self) -> dict:
-        return {"name": self.name, "passed": self.passed, "detail": self.detail}
-
+from skill_check import (
+    Check,
+    SkillValidator,
+    format_human,
+    json_payload,
+    run_checks,
+)
 
 REQUIRED_FRONTMATTER = ["name", "description", "when_to_use", "argument-hint", "allowed-tools"]
 REQUIRED_SECTIONS = [
@@ -54,116 +52,14 @@ REQUIRED_SECTIONS = [
 # passed because the checker itself lived in that directory, so it asserted nothing.
 
 
-def _read(p: Path) -> str:
-    try:
-        return p.read_text(encoding="utf-8")
-    except FileNotFoundError:
-        return ""
-
-
-def _frontmatter(text: str) -> dict[str, str]:
-    m = re.match(r"^---\n(.*?)\n---", text, re.DOTALL)
-    if not m:
-        return {}
-    fm: dict[str, str] = {}
-    for line in m.group(1).splitlines():
-        if ":" in line:
-            k, _, v = line.partition(":")
-            fm[k.strip()] = v.strip()
-    return fm
-
-
-def check_frontmatter(skill_dir: Path) -> CheckResult:
-    name = skill_dir.name
-    fm = _frontmatter(_read(skill_dir / "SKILL.md"))
-    missing = [k for k in REQUIRED_FRONTMATTER if k not in fm]
-    name_ok = fm.get("name") == name
-    return CheckResult(
-        name=f"frontmatter: required fields + name=={name}",
-        passed=not missing and name_ok,
-        detail=f"missing={missing}, name_match={name_ok}",
-    )
-
-
-def check_disable_model_invocation(skill_dir: Path) -> CheckResult:
-    fm = _frontmatter(_read(skill_dir / "SKILL.md"))
-    has = fm.get("disable-model-invocation") == "true"
-    return CheckResult(
-        name="frontmatter: disable-model-invocation: true",
-        passed=has,
-        detail="found" if has else "missing",
-    )
-
-
-def check_required_sections(skill_dir: Path) -> CheckResult:
-    text = _read(skill_dir / "SKILL.md")
-    missing = [pat for pat in REQUIRED_SECTIONS if not re.search(pat, text, re.MULTILINE)]
-    return CheckResult(
-        name=f"required sections present ({len(REQUIRED_SECTIONS)} total)",
-        passed=not missing,
-        detail=f"missing={missing}",
-    )
-
-
-def check_references_dir(skill_dir: Path) -> CheckResult:
-    refs = skill_dir / "references"
-    if not refs.is_dir():
-        return CheckResult(name="references/ directory exists with ≥1 file", passed=False, detail="missing")
-    files = [p for p in refs.iterdir() if p.suffix in {".md", ".html", ".txt"}]
-    return CheckResult(
-        name="references/ directory exists with ≥1 file",
-        passed=len(files) >= 1,
-        detail=f"{len(files)} file(s)",
-    )
-
-
-def check_references_linked(skill_dir: Path) -> CheckResult:
-    text = _read(skill_dir / "SKILL.md")
-    has = re.search(r"\[[^\]]+\]\(\s*references/", text) is not None
-    return CheckResult(
-        name="SKILL.md links into references/",
-        passed=has,
-        detail="linked" if has else "missing",
-    )
-
-
-CHECKS = [
-    check_frontmatter,
-    check_disable_model_invocation,
-    check_required_sections,
-    check_references_dir,
-    check_references_linked,
-]
-
-
-def run_all(skill_dir: Path) -> tuple[list[CheckResult], bool]:
-    results = [fn(skill_dir) for fn in CHECKS]
-    return results, all(r.passed for r in results)
-
-
-def format_human(skill_name: str, results: list[CheckResult], overall: bool) -> str:
-    lines = ["=" * 70, f"  /{skill_name} self-validation", "=" * 70]
-    for r in results:
-        lines.append(f"  [{'PASS' if r.passed else 'FAIL'}] {r.name}")
-        if r.detail:
-            lines.append(f"         {r.detail}")
-    lines.append("-" * 70)
-    lines.append(f"  Overall: {'PASS' if overall else 'FAIL'}")
-    lines.append("=" * 70)
-    return "\n".join(lines)
-
-
-def format_json(skill_name: str, results: list[CheckResult], overall: bool) -> dict:
-    return {
-        "skill": skill_name,
-        "overall": "pass" if overall else "fail",
-        "checks": [r.to_dict() for r in results],
-        "summary": {
-            "total": len(results),
-            "passed": sum(1 for r in results if r.passed),
-            "failed": sum(1 for r in results if not r.passed),
-        },
-    }
+def structural_checks(validator: SkillValidator) -> list[Check]:
+    return [
+        lambda: validator.check_frontmatter(REQUIRED_FRONTMATTER),
+        validator.check_model_invocation_disabled,
+        lambda: validator.check_required_sections(REQUIRED_SECTIONS),
+        validator.check_references_dir,
+        validator.check_references_linked,
+    ]
 
 
 def main() -> int:
@@ -180,19 +76,19 @@ def main() -> int:
     reports = []
     all_ok = True
     for raw in args.skill_dir:
-        skill_dir = raw.resolve()
-        if not (skill_dir / "SKILL.md").is_file():
+        validator = SkillValidator(raw)
+        if not validator.skill_file.is_file():
             print(f"error: {raw}/SKILL.md not found", file=sys.stderr)
             all_ok = False
             continue
-        results, overall = run_all(skill_dir)
+        results, overall = run_checks(structural_checks(validator))
         all_ok = all_ok and overall
         if args.quiet:
             continue
         if args.json:
-            reports.append(format_json(skill_dir.name, results, overall))
+            reports.append(json_payload(validator.name, results, overall))
         else:
-            print(format_human(skill_dir.name, results, overall))
+            print(format_human(validator.name, results, overall))
 
     if args.json and not args.quiet:
         # Always a list, even for one skill. Returning a bare object for N==1 and a list

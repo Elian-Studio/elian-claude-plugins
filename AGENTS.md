@@ -26,3 +26,8 @@ When the two ever differ, **`CLAUDE.md` wins**: update it, then reflect the chan
   500 lines and its `description` + `when_to_use` under 1,536 characters (the character limit is hard-enforced).
 - Run `python3 scripts/validate_repository.py` and
   `python3 -m unittest discover -s tests -v` before opening a pull request.
+- Shared code has two homes and the choice is not stylistic: contributor tooling imports
+  `tools/skill_check.py` (validators, `scripts/validate_repository.py`), while scripts that run on
+  a user's machine after installation import
+  `plugins/elian-store/skills/_shared/scripts/skill_md.py`. `tools/` is never installed; `_shared/`
+  is copied into every plugin `tools/generate.py` emits.

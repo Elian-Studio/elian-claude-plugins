@@ -10,6 +10,41 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## elian-store Plugin
 
+### [4.1.1] — 2026-07-31
+
+Continues the v4.1.0 finding that the real duplication in this repository is in code, not in
+conventions. v4.1.0 collapsed the four byte-identical `validate_skill.py` copies; the five
+*remaining* validators still each carried the same scaffolding around their own checks, and two
+shipped runtime scripts carried the same `SKILL.md` reader.
+
+#### Changed
+- **Validator scaffolding is defined once, in `tools/skill_check.py`.** `CheckResult`, the
+  `read_text` wrapper, the frontmatter parser, the reusable checks (required fields, invocation
+  gate, required sections, literal markers, forbidden patterns, read-only `allowed-tools`, the
+  500-line cap, `references/`), and the `--json` / `--quiet` CLI were copied across
+  `tools/validate_skill.py` and the bespoke validators owned by `review`, `persona-review`,
+  `respond-to-review`, and `verify-before-claiming`. Each validator now declares only the checks
+  specific to its skill. The four had already drifted into **two report shapes and two
+  frontmatter parsers**: the weaker regex parser is gone, and `--json` now emits a superset
+  (`overall` from one lineage, `passed` from the other) so no consumer of either shape breaks.
+  Every check on every skill produces the same verdict as before the change.
+- **`scripts/validate_repository.py` imports the same `parse_frontmatter`.** The repository-wide
+  checker and the per-skill validators disagreed on what a folded or list-valued frontmatter
+  field contains; the repository parser won and is now the only one.
+- **`skills/_shared/scripts/skill_md.py`** holds the `SKILL.md` frontmatter split and the section
+  detector that `manage-skills/scripts/check-skill-frontmatter.py` and
+  `verify-implementation/scripts/check-skill-discovery.py` each carried a copy of. It sits under
+  `_shared/` rather than `tools/` because those two scripts run on the *user's* machine after
+  installation, and `_shared/` is the one directory `tools/generate.py` copies into every emitted
+  plugin — so the import survives the cluster split. Both scripts emit byte-identical output to
+  the previous copies, on passing and failing fixtures alike.
+
+#### Added
+- `tests/test_shared_skill_helpers.py` — negative cases for the extracted helpers (missing field,
+  name mismatch, the tri-state invocation gate, a write-tool grant defeating the read-only check,
+  absent sections/markers/reference links, the line cap, unterminated frontmatter). The copies it
+  replaces were only ever exercised against passing fixtures.
+
 ### [4.1.0] — 2026-07-29
 
 Layering work driven by measurement rather than by taxonomy. An architecture proposal

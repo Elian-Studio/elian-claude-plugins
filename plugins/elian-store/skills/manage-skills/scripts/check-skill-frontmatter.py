@@ -51,6 +51,15 @@ import sys
 from pathlib import Path
 from typing import Any
 
+# frontmatter/section parsing is shared with verify-implementation's discovery script;
+# `_shared/` is copied into every emitted plugin, so this resolves after installation too.
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "_shared" / "scripts"))
+
+try:
+    from skill_md import has_section, split_frontmatter  # noqa: E402
+except ModuleNotFoundError:  # a lone skill directory was copied out of the plugin
+    raise SystemExit("error: skills/_shared/scripts/skill_md.py not found; install the whole plugin")
+
 REQUIRED_SECTIONS = [
     "Purpose",
     "When to Run",
@@ -63,37 +72,9 @@ REQUIRED_SECTIONS = [
 REQUIRED_FRONTMATTER_FIELDS = ["name", "description"]
 
 
-def parse_frontmatter(text: str) -> tuple[dict[str, str] | None, str]:
-    lines = text.splitlines()
-    if not lines or lines[0].strip() != "---":
-        return None, text
-    end = -1
-    for i in range(1, len(lines)):
-        if lines[i].strip() == "---":
-            end = i
-            break
-    if end == -1:
-        return None, text
-    fm: dict[str, str] = {}
-    for ln in lines[1:end]:
-        m = re.match(r"^([a-zA-Z_-][a-zA-Z0-9_-]*)\s*:\s*(.*)$", ln)
-        if m:
-            key, value = m.group(1), m.group(2).strip()
-            value = re.sub(r'^"|"$', "", value)
-            value = re.sub(r"^'|'$", "", value)
-            fm[key] = value
-    body = "\n".join(lines[end + 1 :])
-    return fm, body
-
-
-def has_required_section(body: str, name: str) -> bool:
-    pattern = rf"^#{{1,4}}\s+.*\b{re.escape(name)}\b"
-    return bool(re.search(pattern, body, re.MULTILINE | re.IGNORECASE))
-
-
 def check_one(path: Path) -> dict[str, Any]:
     text = path.read_text(encoding="utf-8")
-    fm, body = parse_frontmatter(text)
+    fm, body = split_frontmatter(text)
 
     checks: dict[str, dict[str, Any]] = {}
 
@@ -124,7 +105,7 @@ def check_one(path: Path) -> dict[str, Any]:
         else:
             checks["name_format"] = {"pass": True, "reason": "kebab-case OK"}
 
-    missing_sections = [s for s in REQUIRED_SECTIONS if not has_required_section(body, s)]
+    missing_sections = [s for s in REQUIRED_SECTIONS if not has_section(body, s)]
     checks["required_sections"] = {
         "pass": not missing_sections,
         "missing": missing_sections,

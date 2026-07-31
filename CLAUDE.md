@@ -37,3 +37,10 @@ ruby -rjson -e '[".claude-plugin/marketplace.json", *Dir.glob("plugins/*/.claude
 ```
 
 Also validate the changed skill. Skills owning a bespoke validator run their own (e.g. `python3 plugins/elian-store/skills/review/scripts/validate_skill.py`); `brainstorm`, `fix`, `implement`, and `improve` share `python3 tools/validate_skill.py <skill-dir>`.
+
+## Shared code
+
+Two modules exist so a rule is edited once. Which one a script may import is decided by where the script runs, not by convenience:
+
+- `tools/skill_check.py` — frontmatter parsing, reusable checks, and the `--json`/`--quiet` report for every validator, plus `scripts/validate_repository.py`. Contributor tooling: it is never installed, so nothing that runs on a user's machine may import it.
+- `plugins/elian-store/skills/_shared/scripts/skill_md.py` — `SKILL.md` parsing for the scripts skills ship (`check-skill-frontmatter.py`, `check-skill-discovery.py`). `_shared/` is the only directory `tools/generate.py` copies into every emitted plugin, so an import from there survives installation and the cluster split.

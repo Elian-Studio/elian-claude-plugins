@@ -58,7 +58,7 @@ python3 plugins/elian-store/skills/review/scripts/validate_skill.py
 python3 plugins/elian-store/skills/persona-review/scripts/validate_skill.py
 ```
 
-When adding a validator, prefer stdlib-only scripts when practical and include automation-friendly options such as `--json` or `--quiet` when useful.
+When adding a validator, prefer stdlib-only scripts when practical and include automation-friendly options such as `--json` or `--quiet` when useful. Build it on `tools/skill_check.py` — it provides the frontmatter parser, `CheckResult`, the reusable checks, and the `--json` / `--quiet` report, so a new validator only declares the checks specific to its skill. A script that runs on a *user's* machine rather than in this checkout cannot import `tools/` (it is not installed); shared parsing for those lives in `plugins/elian-store/skills/_shared/scripts/skill_md.py`.
 
 ## Claude Skill And Plugin Rules
 

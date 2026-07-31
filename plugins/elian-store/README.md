@@ -78,7 +78,15 @@ python3 tools/validate_skill.py plugins/elian-store/skills/implement
 ```
 
 `brainstorm`, `fix`, `implement`, and `improve` share `tools/validate_skill.py` rather than
-each carrying a copy of it.
+each carrying a copy of it. Every validator, shared or bespoke, gets its frontmatter parsing,
+reusable checks, and `--json` report from `tools/skill_check.py`.
+
+The scripts that run on an installed machine instead of in this checkout —
+`manage-skills/scripts/check-skill-frontmatter.py` and
+`verify-implementation/scripts/check-skill-discovery.py` — share
+`skills/_shared/scripts/skill_md.py`. Shared code they depend on has to live under `_shared/`,
+not `tools/`: `tools/` is contributor tooling and is never installed, while `_shared/` is copied
+into every plugin the generator emits.
 
 ## Release Boundary
 
