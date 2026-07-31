@@ -17,6 +17,8 @@ Checks:
   7. an AC ID that appears only in a testcase's classname does not bind
   8. build_status.py refuses a seed that misses an AC present in the PRD
   9. unparseable JUnit XML is a hard error, not a silent partial result
+ 10. a corrupt existing spec-coverage.json is a hard error, and build_status.py
+     leaves it untouched instead of silently overwriting human-entered evidence
 
 Checks 6-9 are regressions for defects found by adversarial review before the
 skill first shipped; each one produced a confidently wrong number.
@@ -226,6 +228,28 @@ def check_malformed_xml_is_fatal(tmp: Path):
           f"rc={proc.returncode} out={proc.stdout.strip()[:80]}")
 
 
+def check_corrupt_existing_not_overwritten(tmp: Path):
+    """A corrupt existing spec-coverage.json must not be silently overwritten.
+
+    build_status.py overwrites the output right after merging the previous file
+    in, so swallowing a parse error and falling back to fresh data would destroy
+    the human-entered status/evidence/notes the file exists to hold.
+    """
+    root = tmp / "corrupt"
+    out = root / "claudedocs" / "SC-DEMO" / "spec-coverage.json"
+    out.parent.mkdir(parents=True)
+    corrupt = '{"categories": [ this is not valid json'
+    out.write_text(corrupt, encoding="utf-8")
+    seed = root / "seed.json"
+    seed.write_text(json.dumps(SEED), encoding="utf-8")
+    proc = run([str(HERE / "build_status.py"), "SC-DEMO", "--seed", str(seed),
+                "--root", str(root)])
+    untouched = out.read_text(encoding="utf-8") == corrupt
+    ok = proc.returncode != 0 and untouched
+    check("build_status.py refuses to overwrite a corrupt spec-coverage.json", ok,
+          f"rc={proc.returncode} untouched={untouched} err={proc.stderr.strip()[:120]}")
+
+
 def check_render(tmp: Path):
     proc = run([str(HERE / "render.py"), "SC-DEMO", str(tmp), "--lang", "ko"])
     html = tmp / "claudedocs" / "SC-DEMO" / "spec-coverage.html"
@@ -254,6 +278,7 @@ def main():
         check_classname_does_not_bind(tmp)
         check_seed_must_cover_prd(tmp)
         check_malformed_xml_is_fatal(tmp)
+        check_corrupt_existing_not_overwritten(tmp)
 
     failed = [n for n, ok, _ in results if not ok]
     print()

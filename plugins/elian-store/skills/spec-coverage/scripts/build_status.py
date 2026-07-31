@@ -39,7 +39,9 @@ Merge rules (existing spec-coverage.json is never blindly overwritten):
     -- that is the whole product: a requirement nobody proved
 
 Exit codes: 0 ok, 1 bad usage, 2 seed missing/invalid, 3 seed does not cover
-every AC in --prd (a missing seed entry silently shrinks the denominator).
+every AC in --prd (a missing seed entry silently shrinks the denominator),
+4 existing spec-coverage.json is unreadable/corrupt (refuse to overwrite it and
+destroy the human-entered status/evidence/notes it holds).
 """
 import argparse
 import json
@@ -167,10 +169,27 @@ def merge_existing(new_data: dict, existing_path: Path) -> dict:
     """
     if not existing_path.exists():
         return new_data
+    # Do NOT swallow a read/parse failure and fall back to new_data. main()
+    # overwrites existing_path right after this returns, so silently discarding
+    # an unreadable or corrupt file would destroy the human-entered status /
+    # evidence / notes it exists to hold -- the exact "hard no" this docstring
+    # states. Fail loudly instead so the file is left untouched for repair.
     try:
-        existing = json.loads(existing_path.read_text(encoding="utf-8"))
-    except (ValueError, OSError):
-        return new_data
+        raw = existing_path.read_text(encoding="utf-8")
+    except OSError as exc:
+        print(f"ERROR: cannot read existing {existing_path}: {exc}", file=sys.stderr)
+        print("  Refusing to overwrite it -- the human-entered status/evidence/notes "
+              "it may hold cannot be preserved through an unreadable file. Fix the "
+              "permissions or move the file aside, then re-run.", file=sys.stderr)
+        sys.exit(4)
+    try:
+        existing = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        print(f"ERROR: existing {existing_path} is not valid JSON: {exc}", file=sys.stderr)
+        print("  Refusing to overwrite it -- doing so would silently destroy the "
+              "human-entered status/evidence/notes this file exists to hold. "
+              "Repair or remove the file, then re-run.", file=sys.stderr)
+        sys.exit(4)
 
     old = {}
     for cat in existing.get("categories", []):

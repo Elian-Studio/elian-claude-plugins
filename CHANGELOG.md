@@ -10,6 +10,20 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## elian-store Plugin
 
+### [4.1.1] — 2026-07-31
+
+#### Fixed
+- **`spec-coverage/build_status.py` silently destroyed human-entered evidence on a corrupt
+  prior file.** `merge_existing` caught `(ValueError, OSError)` and fell back to the freshly
+  built data, and `main()` overwrites `spec-coverage.json` on the very next line — so an
+  unreadable or half-written existing file made every human-entered `status` / `evidence` /
+  `note` / `blocker` vanish with no error, the exact "hard no" the function's own docstring
+  forbids. It now fails loudly (exit `4`) and leaves the file untouched for repair, matching
+  `collect_tests.py`'s "refuse to report partial results as current" posture. A read error
+  (`OSError`) and a parse error (`json.JSONDecodeError`) get distinct messages so the fix is
+  obvious. Added a `validate.py` regression that corrupts the output and asserts the run aborts
+  without rewriting it.
+
 ### [4.1.0] — 2026-07-29
 
 Layering work driven by measurement rather than by taxonomy. An architecture proposal
