@@ -439,24 +439,43 @@ class RepositoryValidator:
                     skills_dir / skill, target / "skills" / skill, f"{name}/skills/{skill}", manifest_path
                 )
 
-            if config.get("shared"):
-                for shared_file in sorted(shared_dir.glob("*")):
-                    if not shared_file.is_file():
-                        continue
-                    copy = target / "skills" / "_shared" / shared_file.name
-                    if not copy.is_file():
-                        self.add(
-                            "composed-parity",
-                            manifest_path,
-                            f"{name}: _shared/{shared_file.name} is missing from the target",
-                        )
-                    elif copy.read_bytes() != shared_file.read_bytes():
-                        self.add(
-                            "composed-parity",
-                            copy,
-                            f"{name}: _shared/{shared_file.name} differs from the source — "
-                            f"edit the source and re-run tools/generate.py --sync",
-                        )
+            shared_config = config.get("shared")
+            if shared_config is True:
+                shared_names = sorted(p.name for p in shared_dir.glob("*") if p.is_file())
+            elif isinstance(shared_config, list):
+                shared_names = list(shared_config)
+            else:
+                shared_names = []
+            for shared_name in shared_names:
+                shared_file = shared_dir / shared_name
+                if not shared_file.is_file():
+                    self.add(
+                        "composed-parity",
+                        manifest_path,
+                        f"{name}: _shared/{shared_name} is declared but missing from the source",
+                    )
+                    continue
+                copy = target / "skills" / "_shared" / shared_name
+                if not copy.is_file():
+                    self.add(
+                        "composed-parity",
+                        manifest_path,
+                        f"{name}: _shared/{shared_name} is missing from the target",
+                    )
+                elif copy.read_bytes() != shared_file.read_bytes():
+                    self.add(
+                        "composed-parity",
+                        copy,
+                        f"{name}: _shared/{shared_name} differs from the source — "
+                        f"edit the source and re-run tools/generate.py --sync",
+                    )
+            for stray in sorted((target / "skills" / "_shared").glob("*")):
+                if stray.is_file() and stray.name not in shared_names:
+                    self.add(
+                        "composed-parity",
+                        stray,
+                        f"{name}: _shared file is not declared in the manifest",
+                    )
 
             group = config.get("agents")
             groups = [group] if isinstance(group, str) else list(group or [])

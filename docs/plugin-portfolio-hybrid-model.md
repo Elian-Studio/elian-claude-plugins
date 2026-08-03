@@ -104,6 +104,18 @@ changed is the shape of the staged split and the arrival of a second published p
   > coexistence costs a duplicate catalog rather than buying à-la-carte choice. Read it as
   > evidence for the principle, not against it — the bar exists precisely to stop this, and it
   > was bypassed by a naming mistake rather than by a considered trade.
+  >
+  > **Reversed by `elian-store` 4.2.0 / `elian-workflow` 3.0.0 (2026-08-03).** The overlap was
+  > measured after publishing: 122 of 127 files duplicated, 30 agents duplicated, ~5.8k always-on
+  > tokens per session for a user who had both installed. `elian-store` absorbed `issue-open`,
+  > `issue-close`, and the two shared documents they read; `elian-workflow` is deprecated and
+  > ships generated copies of those two skills only, so earlier installs keep working. Duplicated
+  > files: 122 → 5.
+  >
+  > Operating Principle 1 held. What failed was that nothing enforced it at publish time — the
+  > `composed-parity` check verifies a copy *matches* its source, never that the copy *should
+  > exist*, so a duplicate catalog passed validation. The principle needed a measurement, not a
+  > stronger sentence.
 - **The two clusters remain staged in `dist/`, still unpublished.** Nothing about the two-way
   regrouping changes the reasoning below — they still share one audience, one permission
   profile, and one release cadence, and removing `elian-store` would still orphan installs.
@@ -154,7 +166,7 @@ Before adding or materially changing a skill, answer:
 | Feature planning | `intake-spec` + `design-feature` + `update-design` | Covered. `ai-assisted-feature-development` was retired in v3.0.0 — it ran a parallel 9-phase pipeline over the same lanes without sharing the `claudedocs/<label>/` artifact set. |
 | UI design | Missing | `design-ui` retired in 4.0.0 (3 invocations in 67 days). The slot is open; Operating Principle 8 applies before refilling it. |
 | Wireframe-to-code spec | Missing | `functional-spec` retired in 4.0.0 (0 invocations in 22 days). Reopen only with a repeatable workflow. |
-| Issue work-history | `elian-workflow` (`issue-open`, `issue-close`) | Added 2026-07-29 as a separate plugin. The issue cycle sits between per-commit logs and daily summaries and carries the decisions a diff cannot show. These two remain the only skills unique to `elian-workflow`; as of 2.0.0 the plugin also carries stage-ordered copies of 17 `elian-store` skills. |
+| Issue work-history | `elian-store` (`issue-open`, `issue-close`) | Shipped 2026-07-29 as a separate plugin, absorbed into `elian-store` on 2026-08-03. The issue cycle sits between per-commit logs and daily summaries and carries the decisions a diff cannot show. Being the only skills that need local configuration did not justify a plugin boundary — see the superseded block above. |
 | Implementation | `implement` | Covered. Should hand off to review/QA instead of absorbing release behavior. |
 | Bug fixing | `fix` | Covered. Keep root-cause-first and regression-test-first posture. |
 | Improvement | `improve` | Covered. Keep BEFORE/AFTER evidence and characterization tests. |

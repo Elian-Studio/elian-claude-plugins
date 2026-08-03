@@ -36,6 +36,61 @@
 | `pr-review` | You want an existing PR/MR reviewed from many perspectives (specialists + personas) with one synthesized verdict, posted only on confirmation. | `/elian-store:pr-review` |
 | `verify-before-claiming` | You are about to claim work passes/builds/is fixed/done and want to force fresh evidence first. | `/elian-store:verify-before-claiming` |
 | `respond-to-review` | You received review feedback on your change and need to respond with rigor before implementing. | `/elian-store:respond-to-review` |
+| `issue-open` | You are starting work on an issue and want the branch upstream checked, the task moved to in-progress, and the history skeleton seeded. | `/elian-store:issue-open` |
+| `issue-close` | An issue is finished and its decisions, architecture, verification, and remaining checks should be recorded as durable history. | `/elian-store:issue-close` |
+
+## The issue cycle — `issue-open` and `issue-close`
+
+These two are the only skills in the bundle that need configuration, and the only ones that
+write to an external service. Everything else runs as installed.
+
+Development work has three nested cycles, each wanting a different record: one audit row per
+**commit**, a narrative per **issue**, and context restore/summary per **day**. The issue level
+carries *why* a thing was built the way it was — the one thing a diff can never reconstruct.
+
+```shell
+/elian-store:issue-open KEY-123
+# ... run the stages: intake-spec → design-feature → implement → review → pr-writer ...
+/elian-store:issue-close KEY-123
+```
+
+Both are `disable-model-invocation: true` — they write to a live workspace, so they run only
+when you ask for them by name.
+
+### Notion setup
+
+Nothing about any particular workspace is baked in. Every database id, property name, and status
+value comes from a config file, resolved in this order, first match wins:
+
+1. `$CLAUDE_PROJECT_DIR/.claude/notion-workspace.json` — per-repository override
+2. `~/.claude/notion-workspace.json` — user default
+
+You do not have to write it by hand. On first run either skill enters setup: it asks which Notion
+MCP server to use, searches for your task database, reads its **live** property names and status
+options, proposes a mapping for you to correct, and writes the file after you confirm. Re-run any
+time with `--setup`. Requirements: a Notion MCP server connected to Claude Code, and a database
+with one page per issue. A second database for per-commit rows is optional — omit it and
+`issue-close` skips the commit backfill.
+
+Full schema: [`skills/_shared/notion-workspace-config.md`](skills/_shared/notion-workspace-config.md).
+
+### What they will not do
+
+- No git mutation. No branch create, switch, merge, push, or delete — not even the upstream fix
+  `issue-open` recommends, which it prints for you to run.
+- No Notion write without showing you the draft first.
+- No rewrite after an issue is closed. The narrative freezes to append-only; `--no-freeze`
+  overrides when you really mean it.
+- `issue-close` is recording only. Whatever you use to merge or clean up the branch should run
+  **after** it — the commit range is its source, and a cleaned-up branch takes that away.
+- `issue-close` refuses to invent a Why. With no evidence for a decision it leaves
+  `> [TODO: confirm intent with a human]` rather than something plausible.
+
+The narrative template and its supersede safety rules live in
+[`skills/_shared/narrative-template.md`](skills/_shared/narrative-template.md). One rule matters
+more than the rest: never select the page root or the whole body when updating — replacement is
+scoped to a `## heading` and stops before the next one. That is the single failure here that
+cannot be undone.
 
 ## Package Layout
 

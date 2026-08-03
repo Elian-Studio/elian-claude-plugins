@@ -28,7 +28,7 @@
     "elian-dev": {
       "displayName": "Elian Dev",
       "description": "The workflow that needs a code repository: approval-gated TDD implementation, root-cause bug fixing, evidence-backed improvement, findings-first engineering review, persona-lens review, multi-perspective PR review, PR/MR description drafting, the consumer side of receiving review feedback, verify-skill discovery and drift repair, a claim-time evidence gate, requirement-to-test coverage tracking, and harness reconciliation.",
-      "skills": ["implement", "fix", "improve", "review", "persona-review", "pr-review", "pr-writer", "respond-to-review", "verify-implementation", "verify-before-claiming", "spec-coverage", "manage-skills", "harness-manager"],
+      "skills": ["implement", "fix", "improve", "review", "persona-review", "pr-review", "pr-writer", "respond-to-review", "verify-implementation", "verify-before-claiming", "spec-coverage", "manage-skills", "harness-manager", "issue-open", "issue-close"],
       "agents": "reviewers",
       "shared": true
     },
@@ -45,25 +45,16 @@
     "_comment": "Composed plugins that are PUBLISHED from this repository, unlike `plugins` above which is the mutually-exclusive dist/ staging partition. A published target merges generated content (copied byte-for-byte from `source`) with hand-authored native content that lives only in the target. Skills may overlap with `plugins` and with each other — the one-plugin-per-skill rule applies to the dist/ partition, not here. Sync with `--sync`; drift is enforced by scripts/validate_repository.py.",
 
     "elian-workflow": {
+      "_comment": "DEPRECATED as of 3.0.0 — superseded by elian-store, which now owns both issue-cycle skills. Kept so existing installs keep working; nothing native remains here.",
       "target": "plugins/elian-workflow",
-      "skills": [
-        "brainstorm", "intake-spec", "design-feature", "update-design",
-        "implement", "fix", "improve",
-        "review", "persona-review", "pr-review", "respond-to-review",
-        "spec-coverage", "verify-implementation", "verify-before-claiming",
-        "pr-writer", "generate-teammate",
-        "create-document"
-      ],
-      "native_skills": ["issue-open", "issue-close"],
-      "native_shared": ["narrative-template.md", "notion-workspace-config.md"],
-      "agents": ["domain", "reviewers"],
-      "shared": true
+      "skills": ["issue-open", "issue-close"],
+      "shared": ["narrative-template.md", "notion-workspace-config.md"]
     }
   },
 
   "codex": {
     "_comment": "Codex distribution per skill. claude_only = blocked by a real runtime limitation; prompt_only = hand-authored Codex prompt; deferred = portable but intentionally not shipped yet; everything else ships as a codex/skills/<name> symlink.",
-    "claude_only": ["harness-manager", "pr-review"],
+    "claude_only": ["harness-manager", "pr-review", "issue-open", "issue-close"],
     "prompt_only": ["generate-teammate", "persona-review"],
     "deferred": ["document-writer", "intake-spec", "design-feature", "update-design",
       "erd-preview", "spec-coverage"]

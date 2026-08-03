@@ -5,13 +5,11 @@
 [![Plugin: elian-store](https://img.shields.io/badge/plugin-elian--store-blue)](plugins/elian-store/)
 [![Plugin: elian-workflow](https://img.shields.io/badge/plugin-elian--workflow-blue)](plugins/elian-workflow/)
 
-This repository ships two Claude Code plugins — `elian-store` (the full bundle) and `elian-workflow` (the stage-ordered development lifecycle) — plus a separate Codex CLI prompt/config tree and a small Claude workflows distribution tree.
-
-The two plugins **overlap by 17 skills**. Install one, not both.
+This repository ships one Claude Code plugin — `elian-store`, the full bundle — plus a separate Codex CLI prompt/config tree and a small Claude workflows distribution tree. `elian-workflow` is **deprecated** as of 3.0.0 and exists only so earlier installs keep working.
 
 Start here:
 
-- Install `elian-workflow` for the lifecycle including the Notion issue-history bookends; `elian-store` for the same workflow skills plus the document and convention utilities, without the issue cycle.
+- Install `elian-store`. It carries all 24 skills, including the two Notion issue-cycle bookends that `elian-workflow` used to own.
 - Open [plugins/elian-store/README.md](plugins/elian-store/README.md) or [plugins/elian-workflow/README.md](plugins/elian-workflow/README.md) for the plugin-local operating guides.
 - Open [codex/README.md](codex/README.md) for the Codex companion tree.
 - Open [.claude/workflows/README.md](.claude/workflows/README.md) for the Claude Workflow-tool scripts.
@@ -19,7 +17,7 @@ Start here:
 
 This repo intentionally has three distribution surfaces:
 
-- **Claude Code plugins**: install `elian-store` *or* `elian-workflow` from this marketplace. These are the primary product.
+- **Claude Code plugins**: install `elian-store` from this marketplace. This is the primary product. (`elian-workflow` is deprecated — see below.)
 - **Codex CLI config**: copy selected prompts/config from `codex/`. This is an independent companion tree, not a generated mirror.
 - **Claude workflows**: copy Workflow-tool `.js` scripts from `.claude/workflows/` into `~/.claude/workflows/`. Plugins cannot register workflows, so these are distributed by copy (like `codex/`).
 
@@ -36,34 +34,32 @@ For the full structure and edit map, see [docs/repository-operating-map.md](docs
 /plugin install elian-store@elian
 ```
 
-The marketplace ships two plugins, and they **overlap by 17 skills**. Install one.
+There is one plugin to install.
 
 ```shell
-/plugin install elian-workflow@elian    # 19 stage-ordered lifecycle skills + the Notion issue cycle
-/plugin install elian-store@elian       # the same workflow skills + document and convention utilities
+/plugin install elian-store@elian       # all 24 skills and 30 agents
 ```
 
-With both installed, every shared skill appears twice (`/elian-store:implement` and
-`/elian-workflow:implement` are the same skill from two plugins) and the 30 agents are
-duplicated in the picker. Nothing breaks; every choice is asked twice.
+`elian-workflow` is deprecated. It shipped 1.0.0 with two skills, expanded to 19 in 2.0.0 by
+copying 17 of `elian-store`'s, and 3.0.0 undoes that: it is back to the two issue-cycle skills,
+now generated from `elian-store` rather than owned. If you have it installed, replace it —
+nothing is lost, `elian-store` carries both skills:
 
-Pick by what is missing from the other:
+```shell
+/plugin install elian-store@elian
+/plugin uninstall elian-workflow@elian
+```
 
-| Only in `elian-workflow` | Only in `elian-store` |
-|---|---|
-| `issue-open`, `issue-close` — issue history recorded to Notion | `document-writer`, `erd-preview`, `decision-dashboard`, `manage-skills`, `harness-manager` |
-
-`elian-workflow`'s two issue-cycle skills need one local setup step: a Notion MCP server and a
-`~/.claude/notion-workspace.json` describing your databases. The skills build that file with
-you on first run by inspecting your live databases — nothing about any particular workspace is
-baked into the plugin. The other 17 skills need no configuration.
+Two of the 24 skills — `issue-open` and `issue-close` — need one local setup step: a Notion MCP
+server and a `~/.claude/notion-workspace.json` describing your databases. The skills build that
+file with you on first run by inspecting your live databases — nothing about any particular
+workspace is baked into the plugin. The other 22 skills need no configuration.
 
 Update later:
 
 ```shell
 /plugin marketplace update elian
 /plugin update elian-store@elian
-/plugin update elian-workflow@elian
 ```
 
 If you prefer Claude Code's native marketplace auto-update behavior, enable marketplace/plugin
@@ -164,42 +160,26 @@ Path: [plugins/elian-store/](plugins/elian-store/)
 | [respond-to-review](plugins/elian-store/skills/respond-to-review/) | Consumer side of review — verify feedback before implementing, no performative agreement, push back with reasoning. | `/elian-store:respond-to-review` |
 | [update-design](plugins/elian-store/skills/update-design/) | Design-change propagation orchestrator — runs an impact matrix across existing `/design-feature` docs and updates only the affected ones. | `/elian-store:update-design` |
 | [erd-preview](plugins/elian-store/skills/erd-preview/) | Turn a schema + real rows into a single self-contained "Lineage Explorer" HTML: click a record to trace its lineage (upstream FK ancestors → downstream impacts), with hard-FK (solid) vs soft-reference (dashed) links, an ancestors/impacts summary panel, and a Figma-style zoom/pan viewer. Fills a validated template from a live read-only DB, DDL, design docs, or pasted query results. | `/elian-store:erd-preview` |
+| [issue-open](plugins/elian-store/skills/issue-open/) | Start an issue: verify the branch upstream points at itself, move the task to in-progress with a start date, report whether design documents and open decisions exist, and seed the issue page body with the metadata and background that are only clear at kickoff. Never creates, switches, or deletes a branch. | `/elian-store:issue-open` |
+| [issue-close](plugins/elian-store/skills/issue-close/) | Close an issue: interview for the design decisions and dropped alternatives that code cannot show, upsert a readable narrative into the issue page body under section-scoped supersede rules, backfill commits missing from the audit log, transition status, and render a before/after HTML viewer. Recording only — it never merges, pushes, or deletes. | `/elian-store:issue-close` |
 
-### Claude Plugin: `elian-workflow`
+### Claude Plugin: `elian-workflow` (deprecated)
 
 Path: [plugins/elian-workflow/](plugins/elian-workflow/)
 
-The development lifecycle as one plugin: which stage comes next, and which skill runs there.
-19 skills and the 30 agents they dispatch. **17 of the skills are generated copies of
-`elian-store`'s** — same content, different packaging — so install one plugin, not both.
+Deprecated as of 3.0.0. `elian-store` owns `issue-open` and `issue-close` now; this plugin ships
+them as generated copies so existing installs keep working, and receives nothing else. Replace it:
 
-| Stage | Skills |
-|---|---|
-| Idea → Spec | `brainstorm`, `intake-spec` |
-| Issue | `issue-open` |
-| Architecture | `design-feature`, `update-design` |
-| Implementation | `implement`, `fix`, `improve` |
-| Review | `review`, `persona-review`, `pr-review`, `respond-to-review` |
-| Test / Verify | `spec-coverage`, `verify-implementation`, `verify-before-claiming` |
-| Release | `pr-writer` |
-| Record | `issue-close` |
-| Cross-stage | `generate-teammate`, `create-document` |
+```shell
+/plugin install elian-store@elian
+/plugin uninstall elian-workflow@elian
+```
 
-Only the two issue-cycle skills are unique to this plugin, and only they need configuration.
-Every database id, property name, and status value comes from a local config file
-(`~/.claude/notion-workspace.json`, or `.claude/notion-workspace.json` per repository) that the
-skill helps you build on first run by reading your live databases. Nothing about any particular
-Notion workspace is baked into the skills.
-
-| Skill | Purpose | Invocation |
-|---|---|---|
-| [issue-open](plugins/elian-workflow/skills/issue-open/) | Start an issue: verify the branch upstream points at itself, move the task to in-progress with a start date, report whether design documents and open decisions exist, and seed the issue page body with the metadata and background that are only clear at kickoff. Never creates, switches, or deletes a branch. | `/elian-workflow:issue-open` |
-| [issue-close](plugins/elian-workflow/skills/issue-close/) | Close an issue: interview for the design decisions and dropped alternatives that code cannot show, upsert a readable narrative into the issue page body under section-scoped supersede rules, backfill commits missing from the audit log, transition status, and render a before/after HTML viewer. Recording only — it never merges, pushes, or deletes. | `/elian-workflow:issue-close` |
-
-The generated 17 are edited in `plugins/elian-store/skills/` and refreshed with
-`python3 tools/generate.py --sync`; `scripts/validate_repository.py` fails if a copy drifts.
-See [plugins/elian-workflow/README.md](plugins/elian-workflow/README.md) for the full stage
-table and the native/generated split.
+Its history is worth stating plainly, because the middle step was a mistake: 1.0.0 shipped the two
+issue-cycle skills, 2.0.0 grew to 19 by copying 17 of `elian-store`'s skills and all 30 agents into
+the tree (122 duplicated files), and 3.0.0 reverses that. The duplication passed validation because
+`composed-parity` checks whether a copy *matches* its source, never whether the copy *should exist*.
+See [plugins/elian-workflow/README.md](plugins/elian-workflow/README.md).
 
 ### Codex Companion Tree
 
@@ -250,14 +230,11 @@ plugins/
       SKILL.md
       scripts/
       references/
-  elian-workflow/                  # Stage-ordered lifecycle plugin (19 skills, 30 agents)
+  elian-workflow/                  # DEPRECATED (3.0.0) — 2 skills, kept for existing installs
     README.md
     .claude-plugin/plugin.json
-    skills/issue-{open,close}/      # Native — edited here
-    skills/_shared/                 # Native narrative template + workspace config schema,
-                                    #   plus generated execution-strategy + review-severity
-    skills/<skill>/                 # Generated from elian-store — do not edit here
-    agents/                         # Generated from elian-store — do not edit here
+    skills/issue-{open,close}/      # Generated from elian-store — do not edit here
+    skills/_shared/                 # Generated narrative template + workspace config schema
 codex/                              # Independent Codex CLI companion tree
   prompts/
   AGENTS.md
@@ -287,8 +264,8 @@ Important distinction:
 |---|---|
 | Change a Claude skill | `plugins/elian-store/skills/<skill>/SKILL.md` and its `references/` or `scripts/`, then `python3 tools/generate.py --sync` — **never edit the copy under `plugins/elian-workflow/`**, the next sync reverts it and `validate_repository.py` fails first |
 | Add a Claude skill | new `plugins/elian-store/skills/<skill>/`, assign it in `tools/clusters.json` (both the `plugins` partition and any `published` target), then update plugin metadata, marketplace metadata, README, CHANGELOG, and parity docs |
-| Change issue-cycle / Notion behavior | `plugins/elian-workflow/skills/issue-{open,close}/SKILL.md` — native, edited in place |
-| Change the issue-history format | `plugins/elian-workflow/skills/_shared/narrative-template.md` — native |
+| Change issue-cycle / Notion behavior | `plugins/elian-store/skills/issue-{open,close}/SKILL.md`, then `--sync` |
+| Change the issue-history format | `plugins/elian-store/skills/_shared/narrative-template.md`, then `--sync` |
 | Change which skills a composed plugin ships | `tools/clusters.json` → `published`, then `--sync` |
 | Change plugin-local usage guide | `plugins/<plugin>/README.md` |
 | Change plugin install metadata | `plugins/<plugin>/.claude-plugin/plugin.json` (bump with the marketplace entry) |

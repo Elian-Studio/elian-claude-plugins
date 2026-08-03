@@ -1,23 +1,25 @@
 # CLAUDE.md
 
-Claude Code plugin marketplace shipping two plugins — `plugins/elian-store/` (the full bundle: workflow skills, agents, hooks) and `plugins/elian-workflow/` (the stage-ordered development lifecycle, 19 skills, including the Notion issue-history bookends) — plus an independent Codex CLI distribution tree (`codex/`). The two plugins overlap by 17 skills; users install one, not both. Process details live in CONTRIBUTING.md — this file holds only the facts that prevent mistakes.
+Claude Code plugin marketplace shipping one plugin — `plugins/elian-store/` (the full bundle: 24 skills, 30 agents, hooks) — plus an independent Codex CLI distribution tree (`codex/`). `plugins/elian-workflow/` is deprecated as of 3.0.0: it ships generated copies of `issue-open` and `issue-close` only, so earlier installs keep working. Process details live in CONTRIBUTING.md — this file holds only the facts that prevent mistakes.
 
 ## Rules
 
 - English only: repository docs, `SKILL.md` bodies, `when_to_use`, trigger phrases, references, templates, and Codex files. No Korean trigger phrases — Korean usage is served by slash commands and conversation context. This repository is English-only even where user-level settings prefer Korean.
-- Never push to `main`; pull requests only. `main` still requires the orphaned status check "Evaluate skills (90+ required)" whose workflow was removed, so merges currently need admin override.
+- Never push to `main`; pull requests only. The orphaned status check "Evaluate skills (90+ required)" no longer blocks — PR #45 merged without an admin override on 2026-08-03.
 - Claude and Codex are two independent trees with no single source of truth. When changing a command in one tree (`plugins/elian-store/skills/` ↔ `codex/prompts/`), check the other tree in the same PR, or document the exception in `docs/claude-codex-skill-parity.md`.
 - Skills with side effects default to `disable-model-invocation: true`. Keep `SKILL.md` under 500 lines and `description + when_to_use` under 1,536 characters.
-- **`plugins/elian-store/skills/` is the source of truth for every shared skill.** 17 of `elian-workflow`'s 19 skills and all 30 of its agents are generated copies committed into the tree. Editing a copy under `plugins/elian-workflow/` is wasted work — the next `python3 tools/generate.py --sync` reverts it, and `validate_repository.py`'s `composed-parity` check fails first. Only `issue-open`, `issue-close`, `_shared/narrative-template.md`, and `_shared/notion-workspace-config.md` are native there. `tools/clusters.json` → `published` declares the split.
-- A plugin is copied as a unit at install time, so no path may leave its plugin root — not a `../` link, and not a `${CLAUDE_PLUGIN_ROOT}/skills/<other>` bash reference. `create-document` is vendored into `elian-workflow` for exactly this reason. Enforced by the `plugin-self-containment` check.
+- **`plugins/elian-store/skills/` is the source of truth for every skill.** Nothing under `plugins/elian-workflow/skills/` is hand-authored — all 5 files there are generated copies. Editing one is wasted work: the next `python3 tools/generate.py --sync` reverts it, and `validate_repository.py`'s `composed-parity` check fails first. `tools/clusters.json` → `published` declares what is copied.
+- A plugin is copied as a unit at install time, so no path may leave its plugin root — not a `../` link, and not a `${CLAUDE_PLUGIN_ROOT}/skills/<other>` bash reference. Enforced by the `plugin-self-containment` check. This is also why two plugins cannot share a skill without physically duplicating it, which is what made `elian-workflow` 2.0.0 a mistake worth not repeating.
 
 ## Release convention
 
 Any user-visible plugin change must bump all of these together — without a `plugin.json` version bump, installed users receive nothing (`plugin.json.version` is the update cache key and wins over the marketplace entry):
 
-- `plugins/elian-store/.claude-plugin/plugin.json`
-- `.claude-plugin/marketplace.json` (`elian-store` entry)
+- `plugins/<plugin>/.claude-plugin/plugin.json`
+- `.claude-plugin/marketplace.json` (that plugin's entry)
 - `README.md`, `CHANGELOG.md`
+
+A change to a skill `elian-workflow` also ships (`issue-open`, `issue-close`, and the two shared documents they read) is a release of **both** plugins — run `--sync` and bump both.
 
 `codex/` changes are versioned independently and do not require a plugin version bump.
 

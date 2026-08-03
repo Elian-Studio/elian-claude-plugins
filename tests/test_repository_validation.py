@@ -471,6 +471,61 @@ class ComposedPluginTests(unittest.TestCase):
         validator.validate_composed_plugins()
         self.assertTrue(any("stowaway" in i.path for i in validator.findings))
 
+    def write_shared(self, *names: str) -> None:
+        """Put `names` in the source _shared dir and copy them into the target."""
+        source = self.source_skills / "_shared"
+        target = self.target_skills / "_shared"
+        source.mkdir(exist_ok=True)
+        target.mkdir(exist_ok=True)
+        for name in names:
+            (source / name).write_text(f"{name} body\n", encoding="utf-8")
+            (target / name).write_text(f"{name} body\n", encoding="utf-8")
+
+    def set_shared_config(self, value) -> None:
+        manifest = json.loads(self.manifest.read_text(encoding="utf-8"))
+        manifest["published"]["elian-workflow"]["shared"] = value
+        self.manifest.write_text(json.dumps(manifest), encoding="utf-8")
+
+    def test_shared_list_copies_only_the_declared_files(self) -> None:
+        """A target that reads two of the shared documents should not carry the rest —
+        that is duplication with no reader, which is what 2.0.0 shipped 122 of."""
+        self.write_shared("narrative-template.md", "notion-workspace-config.md")
+        (self.source_skills / "_shared" / "review-severity.md").write_text("rubric\n", encoding="utf-8")
+        self.set_shared_config(["narrative-template.md", "notion-workspace-config.md"])
+        validator = RepositoryValidator(self.root)
+        validator.validate_composed_plugins()
+        self.assertEqual([i.message for i in validator.findings], [])
+
+    def test_shared_true_still_requires_every_shared_file(self) -> None:
+        self.write_shared("narrative-template.md")
+        (self.source_skills / "_shared" / "review-severity.md").write_text("rubric\n", encoding="utf-8")
+        self.set_shared_config(True)
+        validator = RepositoryValidator(self.root)
+        validator.validate_composed_plugins()
+        self.assertTrue(
+            any("review-severity.md is missing" in i.message for i in validator.findings),
+            [i.message for i in validator.findings],
+        )
+
+    def test_flags_a_shared_file_the_manifest_does_not_declare(self) -> None:
+        self.write_shared("narrative-template.md", "review-severity.md")
+        self.set_shared_config(["narrative-template.md"])
+        validator = RepositoryValidator(self.root)
+        validator.validate_composed_plugins()
+        self.assertTrue(
+            any("not declared in the manifest" in i.message for i in validator.findings),
+            [i.message for i in validator.findings],
+        )
+
+    def test_flags_a_declared_shared_file_missing_from_the_source(self) -> None:
+        self.set_shared_config(["narrative-template.md"])
+        validator = RepositoryValidator(self.root)
+        validator.validate_composed_plugins()
+        self.assertTrue(
+            any("missing from the source" in i.message for i in validator.findings),
+            [i.message for i in validator.findings],
+        )
+
 
 class PluginSelfContainmentTests(unittest.TestCase):
     """A plugin is copied as a unit at install time. Anything it resolves outside its
