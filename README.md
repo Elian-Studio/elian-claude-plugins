@@ -357,6 +357,9 @@ Current high-priority gaps:
 
 Full change history: [CHANGELOG.md](CHANGELOG.md).
 
+`elian-store` v4.1.1 fixes two XSS paths in the HTML document generators (`document-writer`,
+`create-document`) where input text could break out of an attribute or `<script>` context.
+
 For v1.x users:
 
 ```shell

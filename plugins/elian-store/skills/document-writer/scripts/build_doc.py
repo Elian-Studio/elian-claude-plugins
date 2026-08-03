@@ -54,6 +54,21 @@ def _slug(text, used):
     return s
 
 
+_UNSAFE_URL_SCHEME = re.compile(r"^\s*(?:javascript|vbscript|data):", re.I)
+
+
+def _safe_url(url):
+    """Escape a URL for an HTML attribute and drop script-capable schemes.
+
+    Without this, a Markdown link like [x](a"onclick="alert(1)) breaks out of
+    the href attribute, and [x](javascript:alert(1)) yields a clickable script
+    URL — both are XSS in the rendered document.
+    """
+    if _UNSAFE_URL_SCHEME.match(url):
+        return ""
+    return html.escape(url, quote=True)
+
+
 def inline(text):
     """Convert inline Markdown to HTML. Inline raw HTML is passed through."""
     spans = []
@@ -68,14 +83,14 @@ def inline(text):
     # 2) images, then links
     text = re.sub(
         r"!\[([^\]]*)\]\(([^)\s]+)(?:\s+\"([^\"]*)\")?\)",
-        lambda m: f'<img src="{m.group(2)}" alt="{html.escape(m.group(1))}"'
+        lambda m: f'<img src="{_safe_url(m.group(2))}" alt="{html.escape(m.group(1))}"'
                   + (f' title="{html.escape(m.group(3))}"' if m.group(3) else "")
                   + ">",
         text,
     )
     text = re.sub(
         r"\[([^\]]+)\]\(([^)\s]+)(?:\s+\"([^\"]*)\")?\)",
-        lambda m: f'<a href="{m.group(2)}"'
+        lambda m: f'<a href="{_safe_url(m.group(2))}"'
                   + (f' title="{html.escape(m.group(3))}"' if m.group(3) else "")
                   + f">{m.group(1)}</a>",
         text,
