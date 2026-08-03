@@ -28,6 +28,9 @@ from urllib.parse import unquote
 HANGUL_RE = re.compile(r"[가-힣]")
 MARKDOWN_LINK_RE = re.compile(r"!?\[[^\]]*]\(([^)\n]+)\)")
 FRONTMATTER_KEY_RE = re.compile(r"^([A-Za-z][A-Za-z0-9_-]*):(?:\s*(.*))?$")
+# `.../skills/<name>` on a line that resolves a host root — the idiom skills use to
+# execute a sibling skill's script. The reference is only valid inside one plugin.
+RUNTIME_SKILL_REF_RE = re.compile(r"/skills/([a-z][a-z0-9-]+)")
 SIDE_EFFECT_TOOL_RE = re.compile(
     r"(?:^|[\s,\[])(?:Write|Edit|TeamCreate|TaskCreate|TaskUpdate|SendMessage|"
     r"Bash\(gh pr (?:review|comment)|Bash\(glab mr (?:note|approve)|"
@@ -189,14 +192,19 @@ class RepositoryValidator:
                     skill_md,
                     f"frontmatter name '{name}' does not match directory '{skill_dir.name}'",
                 )
-            if name in seen:
+            # Scoped per plugin. The host namespaces skills by plugin, and a composed
+            # published plugin carries generated copies of another plugin's skills on
+            # purpose — those copies are held identical by the composed-plugin check
+            # instead. Only a collision *within* one plugin is ambiguous.
+            key = f"{skill_dir.parent.parent.name}/{name}"
+            if key in seen:
                 self.add(
                     "skill-contract",
                     skill_md,
-                    f"duplicate skill name '{name}' also used by {seen[name].relative_to(self.root)}",
+                    f"duplicate skill name '{name}' also used by {seen[key].relative_to(self.root)}",
                 )
             elif name:
-                seen[name] = skill_md
+                seen[key] = skill_md
 
             line_count = len(text.splitlines())
             if line_count >= 500:
@@ -371,6 +379,157 @@ class RepositoryValidator:
                         link,
                         f"'{link.name}' is not a skill in {skills_dir_rel}",
                     )
+
+    def _parity_files(self, root: Path) -> dict[str, Path]:
+        """Relative-path -> file map, ignoring build artifacts the generator never copies."""
+        result: dict[str, Path] = {}
+        if not root.is_dir():
+            return result
+        for path in root.rglob("*"):
+            if not path.is_file() or path.is_symlink():
+                continue
+            if "__pycache__" in path.parts or path.suffix == ".pyc":
+                continue
+            result[str(path.relative_to(root))] = path
+        return result
+
+    def _compare_tree(self, source: Path, target: Path, label: str, manifest_path: Path) -> None:
+        src_files = self._parity_files(source)
+        dst_files = self._parity_files(target)
+        for rel in sorted(set(src_files) | set(dst_files)):
+            if rel not in dst_files:
+                self.add("composed-parity", manifest_path, f"{label}: '{rel}' is missing from the target")
+            elif rel not in src_files:
+                self.add("composed-parity", manifest_path, f"{label}: '{rel}' is not in the source")
+            elif src_files[rel].read_bytes() != dst_files[rel].read_bytes():
+                self.add(
+                    "composed-parity",
+                    dst_files[rel],
+                    f"{label}: differs from {src_files[rel].relative_to(self.root)} — "
+                    f"edit the source and re-run tools/generate.py --sync",
+                )
+
+    def validate_composed_plugins(self) -> None:
+        """Generated content in a published composed plugin must equal its source.
+
+        The copies are committed, so nothing stops someone editing one directly. That
+        edit would be silently reverted by the next sync, so it has to fail here first.
+        """
+        manifest_path = self.root / "tools" / "clusters.json"
+        manifest = self._load_json(manifest_path, "composed-parity")
+        if not isinstance(manifest, dict):
+            return
+        source = manifest.get("source", {})
+        skills_dir = self.root / source.get("skills_dir", "plugins/elian-store/skills")
+        agents_dir = self.root / source.get("agents_dir", "plugins/elian-store/agents")
+        shared_dir = self.root / source.get("shared_dir", "plugins/elian-store/skills/_shared")
+        agent_groups = manifest.get("agent_groups", {})
+
+        for name, config in manifest.get("published", {}).items():
+            if name.startswith("_"):
+                continue
+            target = self.root / config.get("target", "")
+            if not target.is_dir():
+                self.add("composed-parity", manifest_path, f"{name}: target directory does not exist")
+                continue
+
+            generated = config.get("skills", [])
+            for skill in generated:
+                self._compare_tree(
+                    skills_dir / skill, target / "skills" / skill, f"{name}/skills/{skill}", manifest_path
+                )
+
+            if config.get("shared"):
+                for shared_file in sorted(shared_dir.glob("*")):
+                    if not shared_file.is_file():
+                        continue
+                    copy = target / "skills" / "_shared" / shared_file.name
+                    if not copy.is_file():
+                        self.add(
+                            "composed-parity",
+                            manifest_path,
+                            f"{name}: _shared/{shared_file.name} is missing from the target",
+                        )
+                    elif copy.read_bytes() != shared_file.read_bytes():
+                        self.add(
+                            "composed-parity",
+                            copy,
+                            f"{name}: _shared/{shared_file.name} differs from the source — "
+                            f"edit the source and re-run tools/generate.py --sync",
+                        )
+
+            group = config.get("agents")
+            groups = [group] if isinstance(group, str) else list(group or [])
+            expected_agents = {f"{a}.md" for g in groups for a in agent_groups.get(g, [])}
+            for agent in sorted(expected_agents):
+                copy = target / "agents" / agent
+                origin = agents_dir / agent
+                if not copy.is_file():
+                    self.add("composed-parity", manifest_path, f"{name}: agents/{agent} is missing from the target")
+                elif origin.is_file() and copy.read_bytes() != origin.read_bytes():
+                    self.add(
+                        "composed-parity",
+                        copy,
+                        f"{name}: agents/{agent} differs from the source — "
+                        f"edit the source and re-run tools/generate.py --sync",
+                    )
+            if (target / "agents").is_dir():
+                for stray in sorted((target / "agents").glob("*.md")):
+                    if stray.name not in expected_agents:
+                        self.add("composed-parity", stray, f"{name}: agent is not declared in the manifest")
+
+            known = set(generated) | set(config.get("native_skills", []))
+            for skill_dir in self._skills_in(target / "skills"):
+                if skill_dir.name not in known:
+                    self.add(
+                        "composed-parity",
+                        skill_dir,
+                        f"{name}: skill is neither generated nor declared native in the manifest",
+                    )
+
+    def validate_plugin_self_containment(self) -> None:
+        """A plugin is copied as a unit at install time, so every path it resolves at
+        runtime must land inside itself. `../` escaping the plugin root, or a bash block
+        pointing at a sibling skill that ships in a *different* plugin, breaks silently
+        for installed users while resolving fine in this repository."""
+        plugins_dir = self.root / "plugins"
+        if not plugins_dir.is_dir():
+            return
+        for plugin_dir in sorted(p for p in plugins_dir.iterdir() if p.is_dir()):
+            plugin_root = plugin_dir.resolve()
+            own_skills = {p.name for p in self._skills_in(plugin_dir / "skills")} if (
+                plugin_dir / "skills").is_dir() else set()
+            for markdown in sorted(plugin_dir.rglob("*.md")):
+                if markdown.is_symlink() or "__pycache__" in markdown.parts:
+                    continue
+                text = markdown.read_text(encoding="utf-8")
+
+                for match in MARKDOWN_LINK_RE.finditer(strip_fenced_code(text)):
+                    target = match.group(1).strip().split(maxsplit=1)[0].strip("'\"<>")
+                    if not target or target.startswith(("#", "/", "http://", "https://", "mailto:", "data:")):
+                        continue
+                    target = unquote(target.split("#", 1)[0].split("?", 1)[0])
+                    if not target or any(char in target for char in "{}<>") or not target.startswith(".."):
+                        continue
+                    resolved = (markdown.parent / target).resolve()
+                    if not resolved.is_relative_to(plugin_root):
+                        self.add(
+                            "plugin-self-containment",
+                            markdown,
+                            f"relative path '{target}' escapes the plugin; it cannot resolve once installed",
+                        )
+
+                for line in text.splitlines():
+                    if "CLAUDE_PLUGIN_ROOT" not in line and "CODEX_HOME" not in line:
+                        continue
+                    for referenced in RUNTIME_SKILL_REF_RE.findall(line):
+                        if referenced not in own_skills:
+                            self.add(
+                                "plugin-self-containment",
+                                markdown,
+                                f"resolves sibling skill '{referenced}' at runtime, but it does not "
+                                f"ship in this plugin — vendor it or invoke it as a skill",
+                            )
 
     def validate_versions(self) -> None:
         # Every published plugin, not only the bundle. plugin.json.version is the update
@@ -554,6 +713,8 @@ class RepositoryValidator:
         self.validate_skill_contracts()
         self.validate_agents()
         self.validate_cluster_manifest()
+        self.validate_composed_plugins()
+        self.validate_plugin_self_containment()
         self.validate_versions()
         self.validate_links()
         self.validate_english_policy()

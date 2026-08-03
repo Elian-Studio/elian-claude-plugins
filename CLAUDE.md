@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Claude Code plugin marketplace shipping two plugins — `plugins/elian-store/` (bundled workflow skills, agents, hooks) and `plugins/elian-workflow/` (issue-cycle work-history recording to Notion) — plus an independent Codex CLI distribution tree (`codex/`). Process details live in CONTRIBUTING.md — this file holds only the facts that prevent mistakes.
+Claude Code plugin marketplace shipping two plugins — `plugins/elian-store/` (the full bundle: workflow skills, agents, hooks) and `plugins/elian-workflow/` (the stage-ordered development lifecycle, 19 skills, including the Notion issue-history bookends) — plus an independent Codex CLI distribution tree (`codex/`). The two plugins overlap by 17 skills; users install one, not both. Process details live in CONTRIBUTING.md — this file holds only the facts that prevent mistakes.
 
 ## Rules
 
@@ -8,6 +8,8 @@ Claude Code plugin marketplace shipping two plugins — `plugins/elian-store/` (
 - Never push to `main`; pull requests only. `main` still requires the orphaned status check "Evaluate skills (90+ required)" whose workflow was removed, so merges currently need admin override.
 - Claude and Codex are two independent trees with no single source of truth. When changing a command in one tree (`plugins/elian-store/skills/` ↔ `codex/prompts/`), check the other tree in the same PR, or document the exception in `docs/claude-codex-skill-parity.md`.
 - Skills with side effects default to `disable-model-invocation: true`. Keep `SKILL.md` under 500 lines and `description + when_to_use` under 1,536 characters.
+- **`plugins/elian-store/skills/` is the source of truth for every shared skill.** 17 of `elian-workflow`'s 19 skills and all 30 of its agents are generated copies committed into the tree. Editing a copy under `plugins/elian-workflow/` is wasted work — the next `python3 tools/generate.py --sync` reverts it, and `validate_repository.py`'s `composed-parity` check fails first. Only `issue-open`, `issue-close`, `_shared/narrative-template.md`, and `_shared/notion-workspace-config.md` are native there. `tools/clusters.json` → `published` declares the split.
+- A plugin is copied as a unit at install time, so no path may leave its plugin root — not a `../` link, and not a `${CLAUDE_PLUGIN_ROOT}/skills/<other>` bash reference. `create-document` is vendored into `elian-workflow` for exactly this reason. Enforced by the `plugin-self-containment` check.
 
 ## Release convention
 
@@ -28,6 +30,10 @@ Every glob below says `plugins/*`, never `plugins/elian-store`. The repository s
 python3 scripts/validate_repository.py
 python3 -m unittest discover -s tests -v
 python3 tools/generate.py
+
+# After changing any skill/agent that a composed plugin ships, refresh its copies.
+# validate_repository.py fails on drift, so run this before re-running it.
+python3 tools/generate.py --sync
 
 # SKILL.md frontmatter YAML smoke test
 ruby -EUTF-8 -ryaml -e 'Dir.glob("plugins/*/skills/*/SKILL.md").sort.each { |p| s=File.read(p, encoding: "UTF-8"); YAML.safe_load(s.split(/^---\s*$/,3)[1] || "", permitted_classes: [], aliases: false); puts "OK #{p}" }'

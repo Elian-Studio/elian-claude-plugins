@@ -41,6 +41,26 @@
     }
   },
 
+  "published": {
+    "_comment": "Composed plugins that are PUBLISHED from this repository, unlike `plugins` above which is the mutually-exclusive dist/ staging partition. A published target merges generated content (copied byte-for-byte from `source`) with hand-authored native content that lives only in the target. Skills may overlap with `plugins` and with each other — the one-plugin-per-skill rule applies to the dist/ partition, not here. Sync with `--sync`; drift is enforced by scripts/validate_repository.py.",
+
+    "elian-workflow": {
+      "target": "plugins/elian-workflow",
+      "skills": [
+        "brainstorm", "intake-spec", "design-feature", "update-design",
+        "implement", "fix", "improve",
+        "review", "persona-review", "pr-review", "respond-to-review",
+        "spec-coverage", "verify-implementation", "verify-before-claiming",
+        "pr-writer", "generate-teammate",
+        "create-document"
+      ],
+      "native_skills": ["issue-open", "issue-close"],
+      "native_shared": ["narrative-template.md", "notion-workspace-config.md"],
+      "agents": ["domain", "reviewers"],
+      "shared": true
+    }
+  },
+
   "codex": {
     "_comment": "Codex distribution per skill. claude_only = blocked by a real runtime limitation; prompt_only = hand-authored Codex prompt; deferred = portable but intentionally not shipped yet; everything else ships as a codex/skills/<name> symlink.",
     "claude_only": ["harness-manager", "pr-review"],

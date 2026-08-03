@@ -91,6 +91,114 @@ def validate_manifest(m, skills):
     return errors
 
 
+def resolve_agents(m, cfg):
+    """Agent names for a target. `agents` is a group name or a list of group names."""
+    grp = cfg.get("agents")
+    if not grp:
+        return []
+    groups = [grp] if isinstance(grp, str) else list(grp)
+    names = []
+    for g in groups:
+        for a in m["agent_groups"][g]:
+            if a not in names:
+                names.append(a)
+    return names
+
+
+def validate_published(m, skills):
+    """Validate `published` targets. These overlap `plugins` by design, so the
+    one-plugin-per-skill rule deliberately does not apply here."""
+    errors = []
+    skills_set = set(skills)
+    shared_dir = REPO / m["source"]["shared_dir"]
+    for name, cfg in m.get("published", {}).items():
+        if name.startswith("_"):
+            continue
+        target = REPO / cfg["target"]
+        if not target.is_dir():
+            errors.append(f"published {name}: target '{cfg['target']}' does not exist")
+            continue
+        generated = cfg.get("skills", [])
+        native = cfg.get("native_skills", [])
+        for s in generated:
+            if s not in skills_set:
+                errors.append(f"published {name}: lists unknown skill '{s}'")
+        for s in native:
+            if s in generated:
+                errors.append(
+                    f"published {name}: '{s}' is both native and generated — "
+                    f"sync would overwrite the hand-authored copy")
+            if not (target / "skills" / s / "SKILL.md").is_file():
+                errors.append(f"published {name}: native skill '{s}' has no SKILL.md in the target")
+        for g in ([cfg["agents"]] if isinstance(cfg.get("agents"), str) else cfg.get("agents") or []):
+            if g not in m["agent_groups"]:
+                errors.append(f"published {name}: unknown agent group '{g}'")
+        # A native _shared file may not share a name with a source one: the copy would win.
+        src_shared = {p.name for p in shared_dir.iterdir() if p.is_file()} if cfg.get("shared") else set()
+        for f in cfg.get("native_shared", []):
+            if f in src_shared:
+                errors.append(
+                    f"published {name}: native shared file '{f}' collides with "
+                    f"{m['source']['shared_dir']}/{f}")
+            if not (target / "skills" / "_shared" / f).is_file():
+                errors.append(f"published {name}: native shared file '{f}' is missing from the target")
+    return errors
+
+
+def published_plan(m, cfg):
+    """Return (skill_dirs, shared_files, agent_files) that sync owns for one target.
+
+    Everything in these three sets is overwritten on sync; everything else in the
+    target is hand-authored and must survive untouched.
+    """
+    shared_dir = REPO / m["source"]["shared_dir"]
+    skill_dirs = list(cfg.get("skills", []))
+    shared_files = sorted(p.name for p in shared_dir.iterdir() if p.is_file()) if cfg.get("shared") else []
+    agent_files = [f"{a}.md" for a in resolve_agents(m, cfg)]
+    return skill_dirs, shared_files, agent_files
+
+
+def sync_published(m, name, cfg):
+    """Refresh one published target's generated content in place.
+
+    Deletes only what the manifest names. Anything unexpected in the target is
+    reported, never removed — an unknown directory is more likely to be work in
+    progress than stale output, and this writes into a published plugin.
+    """
+    skills_dir = REPO / m["source"]["skills_dir"]
+    agents_dir = REPO / m["source"]["agents_dir"]
+    shared_dir = REPO / m["source"]["shared_dir"]
+    target = REPO / cfg["target"]
+    ignore = shutil.ignore_patterns("__pycache__", "*.pyc")
+    skill_dirs, shared_files, agent_files = published_plan(m, cfg)
+
+    (target / "skills").mkdir(parents=True, exist_ok=True)
+    for s in skill_dirs:
+        dest = target / "skills" / s
+        if dest.exists():
+            shutil.rmtree(dest)
+        shutil.copytree(skills_dir / s, dest, ignore=ignore)
+
+    if shared_files:
+        (target / "skills" / "_shared").mkdir(parents=True, exist_ok=True)
+        for f in shared_files:
+            shutil.copy2(shared_dir / f, target / "skills" / "_shared" / f)
+
+    if agent_files:
+        (target / "agents").mkdir(parents=True, exist_ok=True)
+        for f in agent_files:
+            shutil.copy2(agents_dir / f, target / "agents" / f)
+
+    known_skills = set(skill_dirs) | set(cfg.get("native_skills", []))
+    strays = [p.name for p in (target / "skills").iterdir()
+              if p.is_dir() and not p.name.startswith((".", "_")) and p.name not in known_skills]
+    known_agents = set(agent_files)
+    if (target / "agents").is_dir():
+        strays += [f"agents/{p.name}" for p in (target / "agents").glob("*.md")
+                   if p.name not in known_agents]
+    return len(skill_dirs), len(shared_files), len(agent_files), sorted(strays)
+
+
 def lint_skill(skill_md: Path):
     """Return list of (lineno, text) bare-var violations inside bash/sh fences."""
     violations = []
@@ -176,10 +284,10 @@ def emit_dist(m, skills, lint_map):
             shutil.copytree(skills_dir / s, pdir / "skills" / s, ignore=ignore)
         if cfg.get("shared"):
             shutil.copytree(shared_dir, pdir / "skills" / "_shared", ignore=ignore)
-        grp = cfg.get("agents")
-        if grp:
+        agent_names = resolve_agents(m, cfg)
+        if agent_names:
             (pdir / "agents").mkdir()
-            for a in m["agent_groups"][grp]:
+            for a in agent_names:
                 shutil.copy2(agents_dir / f"{a}.md", pdir / "agents" / f"{a}.md")
         plugin_json = {
             "name": name,
@@ -299,6 +407,8 @@ def do_bump(level, date):
 def main():
     ap = argparse.ArgumentParser(description="Phase A thematic-cluster generator")
     ap.add_argument("--emit", action="store_true", help="emit thematic plugins to dist/")
+    ap.add_argument("--sync", action="store_true",
+                    help="refresh generated content in published composed plugins (in place)")
     ap.add_argument("--apply-codex", action="store_true", help="create missing codex/skills symlinks")
     ap.add_argument("--bump", choices=["patch", "minor", "major"], help="bump the elian-store version")
     ap.add_argument("--date", default=None, help="CHANGELOG release date (YYYY-MM-DD; default today)")
@@ -310,7 +420,7 @@ def main():
     print(f"Discovered {len(skills)} skills under {m['source']['skills_dir']}/")
 
     # 1) manifest
-    errs = validate_manifest(m, skills)
+    errs = validate_manifest(m, skills) + validate_published(m, skills)
     if errs:
         for e in errs:
             print(f"  manifest: {e}", file=sys.stderr)
@@ -360,11 +470,31 @@ def main():
         disp = [f"{s}[{codex_disposition(s, m)}]" for s in cfg["skills"]]
         extra = []
         if cfg.get("agents"):
-            extra.append(f"{len(m['agent_groups'][cfg['agents']])} {cfg['agents']} agents")
+            extra.append(f"{len(resolve_agents(m, cfg))} {cfg['agents']} agents")
         if cfg.get("shared"):
             extra.append("_shared")
         suffix = f"  (+{', '.join(extra)})" if extra else ""
         print(f"  {name}: {', '.join(disp)}{suffix}")
+
+    # 4b) published composed plugins
+    published = {k: v for k, v in m.get("published", {}).items() if not k.startswith("_")}
+    if published:
+        print("\nPublished composed plugins:")
+        for name, cfg in published.items():
+            nskills, nshared, nagents = (len(x) for x in published_plan(m, cfg))
+            native = cfg.get("native_skills", [])
+            print(f"  {name} -> {cfg['target']}: {nskills} generated skill(s) "
+                  f"+ {len(native)} native ({', '.join(native)}), "
+                  f"{nagents} agent(s), {nshared} _shared file(s)")
+        if not args.sync:
+            print("  -> run with --sync to refresh; validate_repository.py enforces parity")
+    if args.sync:
+        print("Syncing:")
+        for name, cfg in published.items():
+            nskills, nshared, nagents, strays = sync_published(m, name, cfg)
+            print(f"  {name}: {nskills} skill(s), {nshared} _shared file(s), {nagents} agent(s) refreshed")
+            for s in strays:
+                print(f"    unexpected (left in place, not generated): {s}", file=sys.stderr)
 
     # 4) codex status
     rows, skills_dir_rel = codex_status(skills, m, lint_map)
