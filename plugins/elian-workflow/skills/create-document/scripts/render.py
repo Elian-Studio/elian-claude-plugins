@@ -117,7 +117,10 @@ def _render_with_scope(template: str, scope_stack: list) -> str:
         m = _MERMAID_RE.match(value.strip())
         if m:
             return f'<div class="mermaid">{html.escape(m.group(1))}</div>'
-        return html.escape(value, quote=False)
+        # quote=True so a value substituted into an HTML attribute
+        # (data-val="{{key}}") or a quoted JS string (const ID = '{{issue}}')
+        # cannot break out of its context. Use {{{key}}} for trusted raw HTML.
+        return html.escape(value, quote=True)
 
     return PLACEHOLDER_RE.sub(sub, template)
 
