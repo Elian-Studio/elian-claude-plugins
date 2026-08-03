@@ -10,6 +10,34 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ## elian-store Plugin
 
+### [4.2.0] — 2026-08-03
+
+The bundle absorbs the issue cycle, ending a two-plugin split that cost more than it bought.
+
+#### Added
+- **`issue-open` and `issue-close` moved here from `elian-workflow`**, along with the two
+  documents they read (`_shared/narrative-template.md`, `_shared/notion-workspace-config.md`).
+  The catalog goes 22 → 24 skills. Nothing about their behavior changed; only the owning plugin
+  did. Both stay `disable-model-invocation: true` — they write to a live Notion workspace.
+- `plugins/elian-store/README.md` gains the issue-cycle section: the three nested cycles, the
+  first-run Notion setup, the narrative supersede rule, and the list of what these two skills
+  refuse to do (no git mutation, no unshown write, no invented Why).
+
+#### Changed
+- **`tools/generate.py` accepts a list for a published target's `shared` field**, not only
+  `true`. `true` still copies every `_shared` file; a list copies exactly the named ones. Without
+  this, shrinking `elian-workflow` to two skills would have dragged `execution-strategy.md` and
+  `review-severity.md` along with no reader — duplication with nothing to justify it.
+  `scripts/validate_repository.py` resolves `shared` the same way, and now also reports a
+  `_shared` file in a target that the manifest does not declare.
+- `tools/clusters.json`: both skills join the `elian-dev` dist partition (they read `git log` and
+  `merge-base`, so they need a repository) and `codex.claude_only` (Notion MCP is Claude-side).
+
+#### Notes
+- Being the only skills that needed local configuration was the original argument for a separate
+  plugin. It did not survive contact with a release — see
+  `docs/plugin-portfolio-hybrid-model.md`, where that justification is now superseded twice.
+
 ### [4.1.1] — 2026-07-31
 
 #### Fixed
@@ -595,6 +623,52 @@ migration paths are recorded in `docs/claude-codex-skill-parity.md`
 ---
 
 ## elian-workflow Plugin
+
+### [3.0.0] — 2026-08-03 ⚠ BREAKING · DEPRECATED
+
+**Install `elian-store` instead.** It ships both issue-cycle skills alongside the rest of the
+workflow. This plugin is kept so existing installs keep working and receives no new skills.
+
+```shell
+/plugin install elian-store@elian
+/plugin uninstall elian-workflow@elian
+```
+
+This release reverses 2.0.0, which shipped earlier the same day.
+
+#### Removed
+- **17 skills and all 30 agents** — every one of them a byte-identical copy of an `elian-store`
+  file. Measured before removal: 122 of this plugin's 127 files were duplicates. After: 5.
+- `_shared/execution-strategy.md` and `_shared/review-severity.md`, whose only readers were among
+  the removed skills.
+
+#### Changed
+- **`issue-open` and `issue-close` are no longer native here.** They moved to
+  `plugins/elian-store/skills/` and are copied back by `tools/generate.py --sync`, so this plugin
+  now has no hand-authored skill content at all. `tools/clusters.json` declares the two-file
+  `shared` list; the `composed-parity` check enforces it.
+- Plugin and marketplace descriptions lead with `DEPRECATED`; `README.md` is a migration notice.
+
+#### Why 2.0.0 was wrong
+- It inverted the two releases before it. 4.0.0 retired four unused skills on usage evidence and
+  4.1.0 deleted 621 duplicated lines; 2.0.0 then committed 122 duplicate files — a net increase
+  far larger than what had just been removed.
+- The cost was pushed onto users as documentation: "install one, not both." With both installed,
+  every shared skill appeared twice in the picker and always-on context roughly doubled
+  (~6.4k → ~12.1k tokens per session, measured with `claude plugin details`).
+- Validation did not catch it, and could not have: `composed-parity` asks whether a copy
+  *matches* its source, never whether the copy *should exist*. The duplication was registered as
+  intended design in `tools/clusters.json` → `published`.
+- The problem it solved — a name collision with the Workflow layer reserved in
+  `docs/plugin-layering-architecture.md` §2 — was a documentation problem. A plugin is copied as
+  a unit at install time, so "two plugins ship the same skill" can only mean physical
+  duplication; that price should not have been paid for a name.
+
+#### Migration
+No skill is lost. `/elian-workflow:issue-open` becomes `/elian-store:issue-open`, same for
+`issue-close`; behavior, arguments, and the `~/.claude/notion-workspace.json` config are
+unchanged. If you install `elian-store` without uninstalling this plugin, both work — the two
+skills simply appear twice.
 
 ### [2.0.0] — 2026-08-03
 

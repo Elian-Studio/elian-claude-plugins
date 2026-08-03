@@ -1,8 +1,8 @@
 {
   "name": "elian-workflow",
   "displayName": "Elian Workflow",
-  "description": "The development lifecycle as one plugin: which stage comes next and which skill runs there. Nineteen skills from idea through spec, issue kickoff, architecture, TDD implementation, engineering and persona review, verification, PR drafting, and the recorded issue history — plus the 30 domain and reviewer agents those stages dispatch. Overlaps elian-store by 17 skills; install one, not both. Only the two issue-cycle skills need configuration: they record work history to a Notion workspace described by a local config file the skill helps you create on first run.",
-  "version": "2.0.0",
+  "description": "DEPRECATED — install elian-store instead, which ships these two skills plus the rest of the workflow. Issue-cycle bookends that record engineering work history to Notion: open an issue and close it with a readable narrative of decisions, architecture, verification, and remaining checks. Workspace-agnostic — database ids and property names come from a local config the skill helps you create on first run. This plugin is kept so existing installs keep working; it receives no new skills.",
+  "version": "3.0.0",
   "author": {
     "name": "Daniel (Elian-Studio)",
     "email": "danielmrbang@gmail.com"
@@ -13,10 +13,7 @@
   "keywords": [
     "elian",
     "workflow",
-    "lifecycle",
-    "tdd",
-    "review",
-    "verification",
+    "deprecated",
     "issue",
     "notion",
     "work-history",

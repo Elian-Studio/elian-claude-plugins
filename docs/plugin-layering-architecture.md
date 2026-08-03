@@ -1,8 +1,10 @@
 # Plugin layering architecture
 
 Date: 2026-07-29
-Status: **partially executed.** The Workflow layer was published as `elian-workflow` 2.0.0 —
-see §11. Standards and Common remain proposed. Supersedes the two-cluster grouping in
+Status: **proposed, not executed.** The Workflow layer was published as `elian-workflow` 2.0.0 on
+2026-07-29 and that publication was reversed on 2026-08-03 — see §11 and its superseding note.
+All three layers remain proposals enforced by the validator inside one bundle, which is what §8
+recommended. Standards and Common were never published. Supersedes the two-cluster grouping in
 `tools/clusters.json` (2026-07-29), which grouped by "needs a repo / does not" rather than by
 responsibility.
 
@@ -99,7 +101,7 @@ Three layers, strictly ordered. A layer may depend downward and never upward.
 
 ```mermaid
 flowchart TD
-    W["<b>elian-workflow</b><br/>process stages + actors<br/>18 skills + vendored create-document · 30 agents<br/><i>published 2.0.0 — see §11</i>"]
+    W["<b>elian-workflow</b><br/>process stages + actors<br/>18 skills + vendored create-document · 30 agents<br/><i>published 2.0.0, reversed 3.0.0 — see §11</i>"]
     S["<b>elian-standards</b><br/>how things must be written<br/>2 skills · N documents"]
     C["<b>elian-common</b><br/>format and render utilities<br/>4 skills"]
 
@@ -280,7 +282,7 @@ elian-claude-plugins/
 │   │       ├── _shared/                   # the Standards layer, vendored into each cluster
 │   │       │   ├── execution-strategy.md
 │   │       │   └── review-severity.md
-│   │       └── <22 skills>/
+│   │       └── <24 skills>/
 │   └── elian-workflow/
 │       └── skills/
 │           ├── _shared/                   # narrative-template.md, notion-workspace-config.md
@@ -450,6 +452,24 @@ What this costs, recorded so it is not rediscovered as a surprise:
   `tools/generate.py --sync` and held byte-identical by the `composed-parity` validator check.
 
 What it settles: `elian-workflow` now means one thing in this repository.
+
+> **Superseded (2026-08-03) — the resolution above was the wrong trade, and it was reversed.**
+>
+> "The published plugin grew into the layer" was measured after the fact: 122 of
+> `plugins/elian-workflow/`'s 127 files were byte-identical to `plugins/elian-store/`. The two
+> releases immediately before it had gone the other way — 4.0.0 retired four unused skills,
+> 4.1.0 deleted 621 duplicated lines — so the net effect of this section's resolution was to
+> re-add far more duplication than had just been removed, and to push the cost onto users as an
+> "install one, not both" instruction.
+>
+> `elian-store` 4.2.0 absorbs `issue-open`, `issue-close`, and the two shared documents they
+> read. `elian-workflow` 3.0.0 is deprecated and ships generated copies of exactly those two
+> skills, so existing installs keep working. Duplicated files: 122 → 5. Duplicated agents: 30 → 0.
+>
+> The layer identity question that §11 was solving is unchanged and still answered by the
+> validator, not by a package boundary — which is what §8 said in the first place. A name
+> collision is a documentation problem; it should not have been paid for with a duplicate
+> catalog.
 
 ---
 

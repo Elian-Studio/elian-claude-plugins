@@ -153,9 +153,22 @@ def published_plan(m, cfg):
     """
     shared_dir = REPO / m["source"]["shared_dir"]
     skill_dirs = list(cfg.get("skills", []))
-    shared_files = sorted(p.name for p in shared_dir.iterdir() if p.is_file()) if cfg.get("shared") else []
+    shared_files = resolve_shared(shared_dir, cfg.get("shared"))
     agent_files = [f"{a}.md" for a in resolve_agents(m, cfg)]
     return skill_dirs, shared_files, agent_files
+
+
+def resolve_shared(shared_dir, cfg_value):
+    """`shared` is `true` (every _shared file) or a list of filenames to copy.
+
+    A target that uses two of the four shared files should not carry the other
+    two — that is duplication with no reader.
+    """
+    if cfg_value is True:
+        return sorted(p.name for p in shared_dir.iterdir() if p.is_file())
+    if isinstance(cfg_value, list):
+        return list(cfg_value)
+    return []
 
 
 def sync_published(m, name, cfg):

@@ -1,7 +1,7 @@
 # Claude / Codex Skill Parity Review
 
 Date: 2026-06-02
-Last updated: 2026-07-29. The `elian-store` catalog has 22 skills. Codex ships 12 shared
+Last updated: 2026-08-03. The `elian-store` catalog has 24 skills. Codex ships 12 shared
 skill symlinks and two hand-authored prompts; two skills are blocked by runtime
 constraints and six portable skills are explicitly deferred. `tools/clusters.json`
 is the machine-readable disposition source and `scripts/validate_repository.py`
@@ -18,12 +18,12 @@ checks that every skill has exactly one non-overlapping disposition.
 > which is a Claude-side integration. Recorded here as a deliberate parity exception rather
 > than an oversight.
 >
-> **`elian-workflow` 2.0.0 (2026-07-29) does not change the parity surface.** It grew to 19
-> skills, but 17 of those are generated copies of `elian-store` skills, held byte-identical by
-> the validator's `composed-parity` check. `plugins/elian-store/skills/` remains the single
-> Claude-side source, and `codex/skills/*` symlinks still point there — so the Claude ↔ Codex
-> comparison below is unaffected by the second plugin's packaging. Only the two native skills
-> are new surface, and both stay Claude-only.
+> **Superseded by `elian-workflow` 3.0.0 / `elian-store` 4.2.0 (2026-08-03).** `elian-store`
+> absorbed `issue-open` and `issue-close`, so its catalog is 24 skills and `elian-workflow` is
+> deprecated — it now ships generated copies of exactly those two. Both remain Claude-only
+> (Notion MCP is a Claude-side integration) and are declared in `tools/clusters.json` →
+> `codex.claude_only`. The Claude ↔ Codex comparison below is unaffected: the source tree is
+> still `plugins/elian-store/skills/` and `codex/skills/*` symlinks still point there.
 
 ## Goal
 
@@ -53,8 +53,8 @@ A Claude skill and Codex prompt are considered aligned only when all of these ma
 
 | Area | Claude | Codex | Status |
 |---|---:|---:|---|
-| Catalog entries | 22 distinct skills (`elian-store`) + 2 native (`elian-workflow`); `elian-workflow` also repackages 17 of the 22 | 2 prompts + 12 shared skills | 14 matched + 2 Claude-only + 6 deferred + 2 MCP-bound |
-| Command naming | `/elian-store:<skill>`, `/elian-workflow:<skill>` | `/<prompt-file>` | Mostly alignable |
+| Catalog entries | 24 skills (`elian-store`); deprecated `elian-workflow` repackages 2 of them | 2 prompts + 12 shared skills | 14 matched + 4 Claude-only + 6 deferred |
+| Command naming | `/elian-store:<skill>` | `/<prompt-file>` | Mostly alignable |
 | Current matched commands | `brainstorm`, `create-document`, `decision-dashboard`, `fix`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `review`, `verify-implementation`, `persona-review`, `pr-writer`, `verify-before-claiming`, `respond-to-review` | `brainstorm`, `create-document`, `decision-dashboard`, `fix`, `generate-teammate`, `improve`, `implement`, `manage-skills`, `review`, `verify-implementation`, `persona-review`, `pr-writer`, `verify-before-claiming`, `respond-to-review` | Aligned |
 | Legacy `on-call-elian` | Removed from current Claude skill catalog | Removed from current Codex prompt catalog | Aligned |
 | Validation | Repository validator + YAML + skill-owned validators | Repository validator + prompt/config parity review | Automated structure, manual semantics |

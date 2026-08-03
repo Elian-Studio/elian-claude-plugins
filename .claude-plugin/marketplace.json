@@ -13,8 +13,8 @@
     {
       "name": "elian-store",
       "source": "./plugins/elian-store",
-      "description": "Workflow bundle with requirements intake, gated design-document generation and change propagation, decision artifacts, TDD implementation flows, engineering and persona review, PR review and drafting, verification orchestration, requirement coverage, harness sync, and bundled domain agents.",
-      "version": "4.1.1",
+      "description": "Workflow bundle with requirements intake, gated design-document generation and change propagation, decision artifacts, TDD implementation flows, engineering and persona review, PR review and drafting, verification orchestration, requirement coverage, the issue cycle recorded to Notion, harness sync, and bundled domain agents.",
+      "version": "4.2.0",
       "author": {
         "name": "Daniel (Elian-Studio)"
       },
@@ -34,8 +34,8 @@
     {
       "name": "elian-workflow",
       "source": "./plugins/elian-workflow",
-      "description": "The development lifecycle as one plugin: 19 stage-ordered skills from idea through spec, issue kickoff, architecture, TDD implementation, review, verification, PR drafting, and recorded issue history, plus the 30 agents those stages dispatch. Overlaps elian-store by 17 skills — install one, not both. Only the two issue-cycle skills need a Notion workspace config.",
-      "version": "2.0.0",
+      "description": "DEPRECATED — install elian-store instead, which now ships these two skills alongside the rest of the workflow. Issue-cycle bookends that record work history to Notion: open an issue, then close it with a readable narrative of decisions, architecture, verification, and remaining checks. Kept so existing installs keep working.",
+      "version": "3.0.0",
       "author": {
         "name": "Daniel (Elian-Studio)"
       },
@@ -43,9 +43,7 @@
       "tags": [
         "elian",
         "workflow",
-        "lifecycle",
-        "tdd",
-        "review",
+        "deprecated",
         "issue",
         "notion",
         "work-history",
